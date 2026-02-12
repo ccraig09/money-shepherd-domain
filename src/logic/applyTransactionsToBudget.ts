@@ -1,5 +1,6 @@
 import { Budget } from "../models/Budget";
 import { Transaction } from "../models/Transaction";
+import { TransactionAssignment } from "../models/TransactionAssignment";
 import { Money } from "../models/Money";
 import { spendFromEnvelope } from "./spendFromEnvelope";
 
@@ -8,32 +9,41 @@ export type ApplyBudgetTxResult = {
   appliedTransactionIds: Set<string>;
 };
 
+export type ApplyBudgetTxOptions = {
+  assignmentsByTransactionId?: Record<string, TransactionAssignment>;
+};
+
 export function applyTransactionsToBudget(
   budget: Budget,
   transactions: Transaction[],
   appliedTransactionIds: Set<string> = new Set(),
+  options: ApplyBudgetTxOptions = {},
 ): ApplyBudgetTxResult {
-  // IMPORTANT: create a local set so we can safely return it
-  // (and so callers can pass the returned set back next time)
   const nextAppliedIds = new Set(appliedTransactionIds);
-
   let nextBudget = budget;
 
+  const assignments = options.assignmentsByTransactionId ?? {};
+
   for (const tx of transactions) {
-    // idempotency
     if (nextAppliedIds.has(tx.id)) continue;
 
-    // only apply if this transaction is assigned to an envelope
-    if (!tx.envelopeId) continue;
+    // INCOME: increase availableToAssign
+    if (tx.amount.cents > 0) {
+      nextBudget = {
+        ...nextBudget,
+        availableToAssign: nextBudget.availableToAssign.add(tx.amount),
+      };
+      nextAppliedIds.add(tx.id);
+      continue;
+    }
 
-    // only expenses reduce envelopes
-    if (tx.amount.cents >= 0) continue;
+    // EXPENSE: must be assigned to an envelope
+    const envelopeId = assignments[tx.id]?.envelopeId ?? tx.envelopeId;
+    if (!envelopeId) continue;
 
-    // spendFromEnvelope expects a positive amount
     const spendAmount = Money.fromCents(Math.abs(tx.amount.cents));
+    nextBudget = spendFromEnvelope(nextBudget, envelopeId, spendAmount);
 
-    // Apply once, then mark applied
-    nextBudget = spendFromEnvelope(nextBudget, tx.envelopeId, spendAmount);
     nextAppliedIds.add(tx.id);
   }
 
