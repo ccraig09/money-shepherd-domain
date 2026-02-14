@@ -1,112 +1,109 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+import React from "react";
+import { View, Text, FlatList, Pressable } from "react-native";
+import { useAppStore } from "../../src/store/useAppStore";
 
-import { Collapsible } from '@/components/ui/collapsible';
-import { ExternalLink } from '@/components/external-link';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { IconSymbol } from '@/components/ui/icon-symbol';
-import { Fonts } from '@/constants/theme';
+export default function InboxScreen() {
+  const state = useAppStore((s) => s.state);
+  const assignTransaction = useAppStore((s) => s.assignTransaction);
+  const createEnvelope = useAppStore((s) => s.createEnvelope);
 
-export default function TabTwoScreen() {
+  if (!state) {
+    return (
+      <View style={{ padding: 16 }}>
+        <Text>Loading...</Text>
+      </View>
+    );
+  }
+
+  const { transactions, inbox, budget, users } = state;
+  const unassignedIds = inbox.unassignedTransactionIds;
+
+  const unassignedTx = transactions.filter((t) => unassignedIds.includes(t.id));
+
+  const defaultAssigner = users[0]?.id ?? "user-los"; // Los by default for now
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#D0D0D0', dark: '#353636' }}
-      headerImage={
-        <IconSymbol
-          size={310}
-          color="#808080"
-          name="chevron.left.forwardslash.chevron.right"
-          style={styles.headerImage}
+    <View style={{ flex: 1, padding: 16, gap: 12 }}>
+      <Text style={{ fontSize: 20, fontWeight: "600" }}>Inbox</Text>
+      <Text style={{ opacity: 0.7 }}>
+        Unassigned transactions: {unassignedTx.length}
+      </Text>
+
+      {budget.envelopes.length === 0 ? (
+        <View style={{ paddingVertical: 12, gap: 8 }}>
+          <Text style={{ fontWeight: "600" }}>No envelopes yet</Text>
+          <Text style={{ opacity: 0.7 }}>
+            Create one so you can assign transactions.
+          </Text>
+
+          <Pressable
+            onPress={() => createEnvelope("Groceries")}
+            style={{
+              padding: 12,
+              borderRadius: 10,
+              borderWidth: 1,
+              alignItems: "center",
+            }}
+          >
+            <Text>Create “Groceries” envelope</Text>
+          </Pressable>
+        </View>
+      ) : null}
+
+      {unassignedTx.length === 0 ? (
+        <View style={{ paddingVertical: 12 }}>
+          <Text style={{ fontWeight: "600" }}>You’re all caught up</Text>
+          <Text style={{ opacity: 0.7 }}>
+            Add a transaction from Home to test assignment.
+          </Text>
+        </View>
+      ) : (
+        <FlatList
+          data={unassignedTx}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={{ gap: 10, paddingTop: 10 }}
+          renderItem={({ item }) => {
+            const firstEnvelope = budget.envelopes[0];
+            return (
+              <View
+                style={{
+                  padding: 12,
+                  borderRadius: 12,
+                  borderWidth: 1,
+                  gap: 6,
+                }}
+              >
+                <Text style={{ fontWeight: "600" }}>{item.description}</Text>
+                <Text>Amount: {item.amount.cents} cents</Text>
+                <Text style={{ opacity: 0.7, fontSize: 12 }}>
+                  {item.postedAt}
+                </Text>
+
+                {firstEnvelope ? (
+                  <Pressable
+                    onPress={() =>
+                      assignTransaction({
+                        transactionId: item.id,
+                        envelopeId: firstEnvelope.id,
+                        assignedByUserId: defaultAssigner,
+                      })
+                    }
+                    style={{
+                      padding: 10,
+                      borderRadius: 10,
+                      borderWidth: 1,
+                      alignItems: "center",
+                      marginTop: 6,
+                    }}
+                  >
+                    <Text>Assign to: {firstEnvelope.name}</Text>
+                  </Pressable>
+                ) : null}
+              </View>
+            );
+          }}
         />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText
-          type="title"
-          style={{
-            fontFamily: Fonts.rounded,
-          }}>
-          Explore
-        </ThemedText>
-      </ThemedView>
-      <ThemedText>This app includes example code to help you get started.</ThemedText>
-      <Collapsible title="File-based routing">
-        <ThemedText>
-          This app has two screens:{' '}
-          <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> and{' '}
-          <ThemedText type="defaultSemiBold">app/(tabs)/explore.tsx</ThemedText>
-        </ThemedText>
-        <ThemedText>
-          The layout file in <ThemedText type="defaultSemiBold">app/(tabs)/_layout.tsx</ThemedText>{' '}
-          sets up the tab navigator.
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/router/introduction">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Android, iOS, and web support">
-        <ThemedText>
-          You can open this project on Android, iOS, and the web. To open the web version, press{' '}
-          <ThemedText type="defaultSemiBold">w</ThemedText> in the terminal running this project.
-        </ThemedText>
-      </Collapsible>
-      <Collapsible title="Images">
-        <ThemedText>
-          For static images, you can use the <ThemedText type="defaultSemiBold">@2x</ThemedText> and{' '}
-          <ThemedText type="defaultSemiBold">@3x</ThemedText> suffixes to provide files for
-          different screen densities
-        </ThemedText>
-        <Image
-          source={require('@/assets/images/react-logo.png')}
-          style={{ width: 100, height: 100, alignSelf: 'center' }}
-        />
-        <ExternalLink href="https://reactnative.dev/docs/images">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Light and dark mode components">
-        <ThemedText>
-          This template has light and dark mode support. The{' '}
-          <ThemedText type="defaultSemiBold">useColorScheme()</ThemedText> hook lets you inspect
-          what the user&apos;s current color scheme is, and so you can adjust UI colors accordingly.
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/develop/user-interface/color-themes/">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Animations">
-        <ThemedText>
-          This template includes an example of an animated component. The{' '}
-          <ThemedText type="defaultSemiBold">components/HelloWave.tsx</ThemedText> component uses
-          the powerful{' '}
-          <ThemedText type="defaultSemiBold" style={{ fontFamily: Fonts.mono }}>
-            react-native-reanimated
-          </ThemedText>{' '}
-          library to create a waving hand animation.
-        </ThemedText>
-        {Platform.select({
-          ios: (
-            <ThemedText>
-              The <ThemedText type="defaultSemiBold">components/ParallaxScrollView.tsx</ThemedText>{' '}
-              component provides a parallax effect for the header image.
-            </ThemedText>
-          ),
-        })}
-      </Collapsible>
-    </ParallaxScrollView>
+      )}
+    </View>
   );
 }
-
-const styles = StyleSheet.create({
-  headerImage: {
-    color: '#808080',
-    bottom: -90,
-    left: -35,
-    position: 'absolute',
-  },
-  titleContainer: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-});

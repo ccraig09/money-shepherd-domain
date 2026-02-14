@@ -3,7 +3,8 @@ import {
   buildInbox,
   applyTransactionsToBudget,
 } from "@money-shepherd/domain";
-
+import { createEnvelope, assignTransaction } from "./commands";
+import { allocateToEnvelope } from "./allocate";
 import type { AppStateV1 } from "./appState";
 import { APP_STATE_VERSION } from "./appState";
 import { loadAppState, saveAppState, clearAppState } from "./storage";
@@ -26,6 +27,17 @@ export type Engine = {
     description: string;
     postedAt?: string;
   }): Promise<AppStateV1>;
+
+  createEnvelope(args: { name: string }): Promise<AppStateV1>;
+  assignTransaction(args: {
+    transactionId: string;
+    envelopeId: string;
+    assignedByUserId: string;
+  }): Promise<AppStateV1>;
+  allocateToEnvelope(args: {
+    envelopeId: string;
+    amountCents: number;
+  }): Promise<AppStateV1>;
 };
 
 export function createEngine(): Engine {
@@ -33,6 +45,33 @@ export function createEngine(): Engine {
     const existing = await loadAppState();
     if (existing) return existing;
     return seed();
+  }
+
+  async function createEnvelopeAction(args: {
+    name: string;
+  }): Promise<AppStateV1> {
+    const state = await getState();
+    const next = createEnvelope(state, args);
+    return recompute(next);
+  }
+
+  async function assignTransactionAction(args: {
+    transactionId: string;
+    envelopeId: string;
+    assignedByUserId: string;
+  }): Promise<AppStateV1> {
+    const state = await getState();
+    const next = assignTransaction(state, args);
+    return recompute(next);
+  }
+
+  async function allocateToEnvelopeAction(args: {
+    envelopeId: string;
+    amountCents: number;
+  }): Promise<AppStateV1> {
+    const state = await getState();
+    const next = allocateToEnvelope(state, args);
+    return recompute(next);
   }
 
   async function seed(): Promise<AppStateV1> {
@@ -153,5 +192,14 @@ export function createEngine(): Engine {
     return recompute(next);
   }
 
-  return { getState, seed, reset, recompute, addManualTransaction };
+  return {
+    getState,
+    seed,
+    reset,
+    recompute,
+    addManualTransaction,
+    createEnvelope: createEnvelopeAction,
+    assignTransaction: assignTransactionAction,
+    allocateToEnvelope: allocateToEnvelopeAction,
+  };
 }

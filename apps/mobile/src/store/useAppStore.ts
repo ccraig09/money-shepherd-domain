@@ -13,7 +13,22 @@ type AppStore = {
   // actions
   bootstrap: () => Promise<void>;
   resetAndSeed: () => Promise<void>;
-  addIncomeToLos: () => Promise<void>;
+  createEnvelope: (name: string) => Promise<void>;
+  assignTransaction: (args: {
+    transactionId: string;
+    envelopeId: string;
+    assignedByUserId: string;
+  }) => Promise<void>;
+  allocateToEnvelope: (args: {
+    envelopeId: string;
+    amountCents: number;
+  }) => Promise<void>;
+  addManualTransaction: (args: {
+    accountId: string;
+    amountCents: number;
+    description: string;
+    postedAt?: string;
+  }) => Promise<void>;
 };
 
 const engine = createEngine();
@@ -56,17 +71,60 @@ export const useAppStore = create<AppStore>((set, get) => ({
     }
   },
 
-  addIncomeToLos: async () => {
+  createEnvelope: async (name: string) => {
     const current = get().state;
     if (!current) return;
 
     set({ status: "loading", errorMessage: null });
     try {
-      const state = await engine.addManualTransaction({
-        accountId: "acc-los",
-        amountCents: 2000,
-        description: "Manual income",
+      const state = await engine.createEnvelope({ name });
+      set({ state, status: "ready" });
+    } catch (err: any) {
+      set({
+        status: "error",
+        errorMessage: err?.message ?? "Failed to create envelope",
       });
+    }
+  },
+
+  assignTransaction: async (args) => {
+    const current = get().state;
+    if (!current) return;
+
+    set({ status: "loading", errorMessage: null });
+    try {
+      const state = await engine.assignTransaction(args);
+      set({ state, status: "ready" });
+    } catch (err: any) {
+      set({
+        status: "error",
+        errorMessage: err?.message ?? "Failed to assign transaction",
+      });
+    }
+  },
+
+  allocateToEnvelope: async (args) => {
+    const current = get().state;
+    if (!current) return;
+
+    set({ status: "loading", errorMessage: null });
+    try {
+      const state = await engine.allocateToEnvelope(args);
+      set({ state, status: "ready" });
+    } catch (err: any) {
+      set({
+        status: "error",
+        errorMessage: err?.message ?? "Failed to allocate",
+      });
+    }
+  },
+  addManualTransaction: async (args) => {
+    const current = get().state;
+    if (!current) return;
+
+    set({ status: "loading", errorMessage: null });
+    try {
+      const state = await engine.addManualTransaction(args);
       set({ state, status: "ready" });
     } catch (err: any) {
       set({
