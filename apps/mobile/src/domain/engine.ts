@@ -3,6 +3,9 @@ import {
   buildInbox,
   applyTransactionsToBudget,
 } from "@money-shepherd/domain";
+import { ensureAnonAuth } from "../infra/firebase/firebaseClient";
+import { HouseholdStateRepo } from "../infra/remote/householdStateRepo";
+import { loadSyncMeta, saveSyncMeta } from "../infra/local/syncMeta";
 import { createEnvelope, assignTransaction } from "./commands";
 import { allocateToEnvelope } from "./allocate";
 import type { AppStateV1 } from "./appState";
@@ -42,6 +45,18 @@ export type Engine = {
 
 export function createEngine(): Engine {
   async function getState(): Promise<AppStateV1> {
+    const syncMeta = await loadSyncMeta();
+
+    // If setup was completed, we must bootstrap (auth + remote load)
+    if (syncMeta) {
+      const existing = await loadAppState();
+      if (existing) return existing;
+
+      // bootstrap will ensure anon auth, pull remote, seed+push if needed
+      return bootstrap();
+    }
+
+    // No sync configured yet: local-only
     const existing = await loadAppState();
     if (existing) return existing;
     return seed();
@@ -125,6 +140,67 @@ export function createEngine(): Engine {
     await clearAppState();
   }
 
+  async function bootstrap(): Promise<AppStateV1> {
+    const user = await ensureAnonAuth();
+    console.log("Anon UID:", user.uid);
+
+    const syncMeta = await loadSyncMeta();
+    if (!syncMeta) {
+      throw new Error("Sync meta missing. Setup required.");
+    }
+
+    const repo = new HouseholdStateRepo(syncMeta.householdId);
+
+    const remote = await repo.pull();
+
+    // If remote exists → use it
+    if (remote) {
+      await saveAppState(remote.state);
+
+      await saveSyncMeta({
+        ...syncMeta,
+        rev: remote.rev,
+      });
+
+      return remote.state;
+    }
+
+    // If no remote → seed local then push
+    const local = await loadAppState();
+
+    if (!local) {
+      const seeded = await seed();
+      await saveAppState(seeded);
+
+      const pushed = await repo.push({
+        expectedRev: 0,
+        nextState: seeded,
+        updatedBy: syncMeta.userId,
+      });
+
+      await saveSyncMeta({
+        ...syncMeta,
+        rev: pushed.rev,
+      });
+
+      return seeded;
+    }
+
+    // local exists but remote doesn't
+    const pushed = await repo.push({
+      expectedRev: 0,
+      nextState: local,
+      updatedBy: syncMeta.userId,
+    });
+
+    await saveSyncMeta({
+      ...syncMeta,
+      rev: pushed.rev,
+    });
+
+    return local;
+  }
+
   async function recompute(state: AppStateV1): Promise<AppStateV1> {
     // 1) Apply transactions to accounts (ledger balances)
     const accountAppliedSet = new Set(state.appliedAccountTransactionIds);
@@ -164,6 +240,38 @@ export function createEngine(): Engine {
     };
 
     await saveAppState(next);
+    const syncMeta = await loadSyncMeta();
+    if (syncMeta) {
+      const repo = new HouseholdStateRepo(syncMeta.householdId);
+
+      try {
+        const pushed = await repo.push({
+          expectedRev: syncMeta.rev,
+          nextState: next,
+          updatedBy: syncMeta.userId,
+        });
+
+        await saveSyncMeta({
+          ...syncMeta,
+          rev: pushed.rev,
+        });
+      } catch (err: any) {
+        if (err?.code === "SYNC_CONFLICT") {
+          // MVP strategy: pull remote and overwrite local
+          const remote = await repo.pull();
+          if (remote) {
+            await saveAppState(remote.state);
+            await saveSyncMeta({
+              ...syncMeta,
+              rev: remote.rev,
+            });
+            return remote.state;
+          }
+        } else {
+          console.warn("Sync push failed", err);
+        }
+      }
+    }
     return next;
   }
 

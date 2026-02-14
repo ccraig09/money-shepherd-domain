@@ -1,4 +1,6 @@
 import React from "react";
+import { loadSyncMeta } from "../../src/infra/local/syncMeta";
+import { useRouter } from "expo-router";
 import { View, Text, FlatList, Pressable, TextInput } from "react-native";
 import { useAppStore } from "../../src/store/useAppStore";
 
@@ -20,9 +22,18 @@ export default function BudgetScreen() {
   const [txDescription, setTxDescription] = React.useState("Paycheck");
   const [txKind, setTxKind] = React.useState<"income" | "expense">("income");
 
+  const router = useRouter();
+
   React.useEffect(() => {
-    bootstrap();
-  }, [bootstrap]);
+    (async () => {
+      const meta = await loadSyncMeta();
+      if (!meta) {
+        router.replace("/setup");
+        return;
+      }
+      bootstrap(); // your existing bootstrap
+    })();
+  }, [bootstrap, router]);
 
   if (!state) {
     return (
