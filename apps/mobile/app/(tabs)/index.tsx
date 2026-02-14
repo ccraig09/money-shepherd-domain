@@ -18,6 +18,7 @@ export default function BudgetScreen() {
   const [allocateCents, setAllocateCents] = React.useState("0");
   const [txAmountCents, setTxAmountCents] = React.useState("2000");
   const [txDescription, setTxDescription] = React.useState("Paycheck");
+  const [txKind, setTxKind] = React.useState<"income" | "expense">("income");
 
   React.useEffect(() => {
     bootstrap();
@@ -80,10 +81,45 @@ export default function BudgetScreen() {
           style={{ borderWidth: 1, borderRadius: 10, padding: 10 }}
         />
 
+        <View style={{ flexDirection: "row", gap: 10 }}>
+          <Pressable
+            onPress={() => setTxKind("income")}
+            style={{
+              padding: 10,
+              borderWidth: 1,
+              borderRadius: 10,
+              flex: 1,
+              alignItems: "center",
+              backgroundColor: txKind === "income" ? "#e0e0e0" : "transparent",
+            }}
+          >
+            <Text style={{ fontWeight: txKind === "income" ? "700" : "400" }}>
+              Income
+            </Text>
+          </Pressable>
+          <Pressable
+            onPress={() => setTxKind("expense")}
+            style={{
+              padding: 10,
+              borderWidth: 1,
+              borderRadius: 10,
+              flex: 1,
+              alignItems: "center",
+              backgroundColor: txKind === "expense" ? "#e0e0e0" : "transparent",
+            }}
+          >
+            <Text style={{ fontWeight: txKind === "expense" ? "700" : "400" }}>
+              Expense
+            </Text>
+          </Pressable>
+        </View>
+
         <Pressable
           onPress={() => {
-            const cents = Number(txAmountCents);
-            if (!Number.isFinite(cents) || cents === 0) return;
+            const raw = Number(txAmountCents);
+            if (!Number.isFinite(raw) || raw <= 0) return;
+
+            const cents = txKind === "expense" ? -raw : raw;
 
             addManualTransaction({
               accountId: defaultAccountId,
@@ -140,9 +176,23 @@ export default function BudgetScreen() {
           keyExtractor={(e) => e.id}
           contentContainerStyle={{ gap: 10, paddingBottom: 20 }}
           renderItem={({ item }) => {
-            const assigned = Object.values(
+            const assignments = Object.values(
               state.inbox.assignmentsByTransactionId,
-            ).filter((a) => a.envelopeId === item.id);
+            );
+            const assigned = assignments.filter(
+              (a) => a.envelopeId === item.id,
+            );
+
+            const envelopeTx = state.transactions.filter((t) => {
+              const a = assignments.find((x) => x.transactionId === t.id);
+              return a?.envelopeId === item.id;
+            });
+
+            const spent = envelopeTx
+              .filter((t) => t.amount.cents < 0)
+              .reduce((sum, t) => sum + Math.abs(t.amount.cents), 0);
+
+            const allocated = item.balance.cents + spent;
 
             return (
               <View
@@ -154,7 +204,15 @@ export default function BudgetScreen() {
                 }}
               >
                 <Text style={{ fontWeight: "600" }}>{item.name}</Text>
-                <Text>Balance: {item.balance.cents} cents</Text>
+                <View style={{ gap: 2 }}>
+                  <Text>Balance: {item.balance.cents} cents</Text>
+                  <Text style={{ fontSize: 12, opacity: 0.6 }}>
+                    Total allocated: {allocated} cents
+                  </Text>
+                  <Text style={{ fontSize: 12, opacity: 0.6 }}>
+                    Total spent: {spent} cents
+                  </Text>
+                </View>
                 <Text style={{ opacity: 0.7 }}>
                   Assigned tx: {assigned.length}
                 </Text>
