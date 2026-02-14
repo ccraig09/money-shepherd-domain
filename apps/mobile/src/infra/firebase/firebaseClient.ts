@@ -22,6 +22,7 @@ let authSingleton: Auth | null = null;
 export function getFirebase() {
   const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 
+  // RN: must initializeAuth with AsyncStorage persistence
   if (!authSingleton) {
     authSingleton = initializeAuth(app, {
       persistence: getReactNativePersistence(ReactNativeAsyncStorage),

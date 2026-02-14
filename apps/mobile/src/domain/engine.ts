@@ -90,8 +90,11 @@ export function createEngine(): Engine {
   }
 
   async function seed(): Promise<AppStateV1> {
+    const syncMeta = await loadSyncMeta();
+    const householdId = syncMeta?.householdId ?? "household-local";
+
     const userLos = { id: "user-los", displayName: "Los" };
-    const userWife = { id: "user-wife", displayName: "Wife" };
+    const userJackia = { id: "user-jackia", displayName: "Jackia" };
 
     const accountLos = {
       id: "acc-los",
@@ -100,15 +103,15 @@ export function createEngine(): Engine {
       institution: "Manual",
     };
 
-    const accountWife = {
-      id: "acc-wife",
-      name: "Wife Checking",
+    const accountJackia = {
+      id: "acc-jackia",
+      name: "Jackia Checking",
       balance: Money.fromCents(0),
       institution: "Manual",
     };
 
     const budget = {
-      id: "household-1",
+      id: householdId,
       availableToAssign: Money.fromCents(0),
       envelopes: [],
     };
@@ -120,10 +123,10 @@ export function createEngine(): Engine {
 
     const state: AppStateV1 = {
       version: APP_STATE_VERSION,
-      householdId: "household-1",
-      users: [userLos, userWife],
+      householdId: householdId,
+      users: [userLos, userJackia],
       budget,
-      accounts: [accountLos, accountWife],
+      accounts: [accountLos, accountJackia],
       transactions: [],
       inbox: emptyInbox,
       appliedAccountTransactionIds: [],
@@ -245,6 +248,7 @@ export function createEngine(): Engine {
       const repo = new HouseholdStateRepo(syncMeta.householdId);
 
       try {
+        await ensureAnonAuth();
         const pushed = await repo.push({
           expectedRev: syncMeta.rev,
           nextState: next,
