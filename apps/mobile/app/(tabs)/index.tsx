@@ -1,10 +1,24 @@
 import React from "react";
 import { View, Text, FlatList, Pressable, TextInput } from "react-native";
 import { useAppStore } from "../../src/store/useAppStore";
+import { loadSyncMeta } from "../../src/infra/local/syncMeta";
+
+function userLabel(userId: string): string {
+  if (userId === "user-los") return "Los";
+  if (userId === "user-jackia") return "Jackia";
+  return userId;
+}
 
 export default function BudgetScreen() {
   const status = useAppStore((s) => s.status);
   const state = useAppStore((s) => s.state);
+
+  const [signedInAs, setSignedInAs] = React.useState<string | null>(null);
+  React.useEffect(() => {
+    loadSyncMeta().then((meta) => {
+      if (meta) setSignedInAs(userLabel(meta.userId));
+    });
+  }, []);
 
   const resetAndSeed = useAppStore((s) => s.resetAndSeed);
 
@@ -32,7 +46,12 @@ export default function BudgetScreen() {
 
   return (
     <View style={{ flex: 1, padding: 16, gap: 12 }}>
-      <Text style={{ fontSize: 22, fontWeight: "700" }}>Budget</Text>
+      <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+        <Text style={{ fontSize: 22, fontWeight: "700" }}>Budget</Text>
+        {signedInAs ? (
+          <Text style={{ fontSize: 13, color: "#888" }}>Signed in as: {signedInAs}</Text>
+        ) : null}
+      </View>
 
       <View style={{ padding: 12, borderWidth: 1, borderRadius: 12, gap: 6 }}>
         <Text style={{ opacity: 0.7 }}>Available to Assign</Text>

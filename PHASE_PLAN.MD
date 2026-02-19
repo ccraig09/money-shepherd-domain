@@ -26,7 +26,7 @@
 - [x] MS-13.5 Routing guard (Setup → App)
 - [x] MS-13.4 PIN infra + screens
 - [x] MS-13.3 Settings (switch/reset)
-- [ ] MS-13.6 Indicator
+- [x] MS-13.6 Indicator
 
 ### Phase 13 Smoke Check (must pass before Phase 14)
 
