@@ -1,0 +1,188 @@
+[debug] [2026-02-19T18:54:48.284Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-02-19T18:54:48.286Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-02-19T18:54:48.287Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-02-19T18:54:48.653Z] Running auto auth
+[debug] [2026-02-19T18:54:48.654Z] Running auto auth
+[debug] [2026-02-19T18:54:48.654Z] Running auto auth
+[debug] [2026-02-19T18:54:48.655Z] No OAuth tokens found
+[debug] [2026-02-19T18:54:48.655Z] No OAuth tokens found
+[debug] [2026-02-19T18:54:48.655Z] No OAuth tokens found
+[debug] [2026-02-19T18:54:48.656Z] >>> [apiv2][query] GET https://cloudbilling.googleapis.com/v1/projects/money-shepherd/billingInfo [none]
+[debug] [2026-02-19T18:54:48.658Z] >>> [apiv2][query] GET https://cloudbilling.googleapis.com/v1/projects/money-shepherd/billingInfo [none]
+[debug] [2026-02-19T18:54:48.659Z] >>> [apiv2][query] GET https://cloudbilling.googleapis.com/v1/projects/money-shepherd/billingInfo [none]
+[debug] [2026-02-19T18:54:48.973Z] <<< [apiv2][status] GET https://cloudbilling.googleapis.com/v1/projects/money-shepherd/billingInfo 200
+[debug] [2026-02-19T18:54:48.973Z] <<< [apiv2][body] GET https://cloudbilling.googleapis.com/v1/projects/money-shepherd/billingInfo {"name":"projects/money-shepherd/billingInfo","projectId":"money-shepherd","billingAccountName":"","billingEnabled":false}
+[debug] [2026-02-19T18:54:48.980Z] No OAuth tokens found
+[debug] [2026-02-19T18:54:48.980Z] No OAuth tokens found
+[debug] [2026-02-19T18:54:48.989Z] No OAuth tokens found
+[debug] [2026-02-19T18:54:48.989Z] No OAuth tokens found
+[debug] [2026-02-19T18:54:48.989Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/money-shepherd/services/firebasedataconnect.googleapis.com [none]
+[debug] [2026-02-19T18:54:48.989Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/money-shepherd/services/firebasedataconnect.googleapis.com  x-goog-user-project=money-shepherd
+[debug] [2026-02-19T18:54:48.990Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/money-shepherd/services/cloudfunctions.googleapis.com [none]
+[debug] [2026-02-19T18:54:48.990Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/money-shepherd/services/cloudfunctions.googleapis.com  x-goog-user-project=money-shepherd
+[debug] [2026-02-19T18:54:48.991Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/money-shepherd/services/firebaseapphosting.googleapis.com [none]
+[debug] [2026-02-19T18:54:48.991Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/money-shepherd/services/firebaseapphosting.googleapis.com  x-goog-user-project=money-shepherd
+[debug] [2026-02-19T18:54:48.992Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/money-shepherd/services/firebaseio.com [none]
+[debug] [2026-02-19T18:54:48.992Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/money-shepherd/services/firebaseio.com  x-goog-user-project=money-shepherd
+[debug] [2026-02-19T18:54:49.005Z] <<< [apiv2][status] GET https://cloudbilling.googleapis.com/v1/projects/money-shepherd/billingInfo 200
+[debug] [2026-02-19T18:54:49.005Z] <<< [apiv2][body] GET https://cloudbilling.googleapis.com/v1/projects/money-shepherd/billingInfo {"name":"projects/money-shepherd/billingInfo","projectId":"money-shepherd","billingAccountName":"","billingEnabled":false}
+[debug] [2026-02-19T18:54:49.005Z] No OAuth tokens found
+[debug] [2026-02-19T18:54:49.005Z] No OAuth tokens found
+[debug] [2026-02-19T18:54:49.007Z] No OAuth tokens found
+[debug] [2026-02-19T18:54:49.007Z] No OAuth tokens found
+[debug] [2026-02-19T18:54:49.007Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/money-shepherd/services/firebasedataconnect.googleapis.com [none]
+[debug] [2026-02-19T18:54:49.007Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/money-shepherd/services/firebasedataconnect.googleapis.com  x-goog-user-project=money-shepherd
+[debug] [2026-02-19T18:54:49.009Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/money-shepherd/services/cloudfunctions.googleapis.com [none]
+[debug] [2026-02-19T18:54:49.009Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/money-shepherd/services/cloudfunctions.googleapis.com  x-goog-user-project=money-shepherd
+[debug] [2026-02-19T18:54:49.009Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/money-shepherd/services/firebaseapphosting.googleapis.com [none]
+[debug] [2026-02-19T18:54:49.010Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/money-shepherd/services/firebaseapphosting.googleapis.com  x-goog-user-project=money-shepherd
+[debug] [2026-02-19T18:54:49.010Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/money-shepherd/services/firebaseio.com [none]
+[debug] [2026-02-19T18:54:49.010Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/money-shepherd/services/firebaseio.com  x-goog-user-project=money-shepherd
+[debug] [2026-02-19T18:54:49.044Z] <<< [apiv2][status] GET https://cloudbilling.googleapis.com/v1/projects/money-shepherd/billingInfo 200
+[debug] [2026-02-19T18:54:49.044Z] <<< [apiv2][body] GET https://cloudbilling.googleapis.com/v1/projects/money-shepherd/billingInfo {"name":"projects/money-shepherd/billingInfo","projectId":"money-shepherd","billingAccountName":"","billingEnabled":false}
+[debug] [2026-02-19T18:54:49.044Z] No OAuth tokens found
+[debug] [2026-02-19T18:54:49.044Z] No OAuth tokens found
+[debug] [2026-02-19T18:54:49.046Z] No OAuth tokens found
+[debug] [2026-02-19T18:54:49.046Z] No OAuth tokens found
+[debug] [2026-02-19T18:54:49.046Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/money-shepherd/services/firebasedataconnect.googleapis.com [none]
+[debug] [2026-02-19T18:54:49.046Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/money-shepherd/services/firebasedataconnect.googleapis.com  x-goog-user-project=money-shepherd
+[debug] [2026-02-19T18:54:49.046Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/money-shepherd/services/cloudfunctions.googleapis.com [none]
+[debug] [2026-02-19T18:54:49.046Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/money-shepherd/services/cloudfunctions.googleapis.com  x-goog-user-project=money-shepherd
+[debug] [2026-02-19T18:54:49.047Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/money-shepherd/services/firebaseapphosting.googleapis.com [none]
+[debug] [2026-02-19T18:54:49.047Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/money-shepherd/services/firebaseapphosting.googleapis.com  x-goog-user-project=money-shepherd
+[debug] [2026-02-19T18:54:49.047Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/money-shepherd/services/firebaseio.com [none]
+[debug] [2026-02-19T18:54:49.047Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/money-shepherd/services/firebaseio.com  x-goog-user-project=money-shepherd
+[debug] [2026-02-19T18:54:49.382Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/money-shepherd/services/firebaseio.com 403
+[debug] [2026-02-19T18:54:49.382Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/money-shepherd/services/firebaseio.com [omitted]
+[debug] [2026-02-19T18:54:49.421Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/money-shepherd/services/firebasedataconnect.googleapis.com 200
+[debug] [2026-02-19T18:54:49.421Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/money-shepherd/services/firebasedataconnect.googleapis.com [omitted]
+[debug] [2026-02-19T18:54:49.421Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/money-shepherd/services/firebaseapphosting.googleapis.com 200
+[debug] [2026-02-19T18:54:49.421Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/money-shepherd/services/firebaseapphosting.googleapis.com [omitted]
+[debug] [2026-02-19T18:54:49.435Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/money-shepherd/services/cloudfunctions.googleapis.com 200
+[debug] [2026-02-19T18:54:49.435Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/money-shepherd/services/cloudfunctions.googleapis.com [omitted]
+[debug] [2026-02-19T18:54:49.526Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/money-shepherd/services/firebaseio.com 403
+[debug] [2026-02-19T18:54:49.526Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/money-shepherd/services/firebaseio.com [omitted]
+[debug] [2026-02-19T18:54:49.542Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/money-shepherd/services/firebaseio.com 403
+[debug] [2026-02-19T18:54:49.542Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/money-shepherd/services/firebaseio.com [omitted]
+[debug] [2026-02-19T18:54:49.615Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/money-shepherd/services/firebaseapphosting.googleapis.com 200
+[debug] [2026-02-19T18:54:49.615Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/money-shepherd/services/firebaseapphosting.googleapis.com [omitted]
+[debug] [2026-02-19T18:54:49.616Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/money-shepherd/services/firebaseapphosting.googleapis.com 200
+[debug] [2026-02-19T18:54:49.616Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/money-shepherd/services/firebaseapphosting.googleapis.com [omitted]
+[debug] [2026-02-19T18:54:49.618Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/money-shepherd/services/firebasedataconnect.googleapis.com 200
+[debug] [2026-02-19T18:54:49.618Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/money-shepherd/services/firebasedataconnect.googleapis.com [omitted]
+[debug] [2026-02-19T18:54:49.620Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-02-19T18:54:49.620Z] Running auto auth
+[debug] [2026-02-19T18:54:49.620Z] No OAuth tokens found
+[debug] [2026-02-19T18:54:49.620Z] >>> [apiv2][query] GET https://cloudbilling.googleapis.com/v1/projects/money-shepherd/billingInfo [none]
+[debug] [2026-02-19T18:54:49.623Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/money-shepherd/services/cloudfunctions.googleapis.com 200
+[debug] [2026-02-19T18:54:49.624Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/money-shepherd/services/cloudfunctions.googleapis.com [omitted]
+[debug] [2026-02-19T18:54:49.624Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/money-shepherd/services/firebasedataconnect.googleapis.com 200
+[debug] [2026-02-19T18:54:49.624Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/money-shepherd/services/firebasedataconnect.googleapis.com [omitted]
+[debug] [2026-02-19T18:54:49.642Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/money-shepherd/services/cloudfunctions.googleapis.com 200
+[debug] [2026-02-19T18:54:49.642Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/money-shepherd/services/cloudfunctions.googleapis.com [omitted]
+[debug] [2026-02-19T18:54:49.644Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-02-19T18:54:49.644Z] Running auto auth
+[debug] [2026-02-19T18:54:49.645Z] No OAuth tokens found
+[debug] [2026-02-19T18:54:49.645Z] >>> [apiv2][query] GET https://cloudbilling.googleapis.com/v1/projects/money-shepherd/billingInfo [none]
+[debug] [2026-02-19T18:54:49.721Z] <<< [apiv2][status] GET https://cloudbilling.googleapis.com/v1/projects/money-shepherd/billingInfo 200
+[debug] [2026-02-19T18:54:49.721Z] <<< [apiv2][body] GET https://cloudbilling.googleapis.com/v1/projects/money-shepherd/billingInfo {"name":"projects/money-shepherd/billingInfo","projectId":"money-shepherd","billingAccountName":"","billingEnabled":false}
+[debug] [2026-02-19T18:54:49.722Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-02-19T18:54:49.722Z] Running auto auth
+[debug] [2026-02-19T18:54:49.732Z] <<< [apiv2][status] GET https://cloudbilling.googleapis.com/v1/projects/money-shepherd/billingInfo 200
+[debug] [2026-02-19T18:54:49.732Z] <<< [apiv2][body] GET https://cloudbilling.googleapis.com/v1/projects/money-shepherd/billingInfo {"name":"projects/money-shepherd/billingInfo","projectId":"money-shepherd","billingAccountName":"","billingEnabled":false}
+[debug] [2026-02-19T18:54:49.733Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-02-19T18:54:49.733Z] Running auto auth
+[debug] [2026-02-19T19:29:50.147Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-02-19T19:29:50.151Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-02-19T19:29:50.153Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-02-19T19:29:50.371Z] Running auto auth
+[debug] [2026-02-19T19:29:50.371Z] Running auto auth
+[debug] [2026-02-19T19:29:50.372Z] Running auto auth
+[debug] [2026-02-19T19:29:50.372Z] No OAuth tokens found
+[debug] [2026-02-19T19:29:50.373Z] No OAuth tokens found
+[debug] [2026-02-19T19:29:50.373Z] No OAuth tokens found
+[debug] [2026-02-19T19:29:50.374Z] >>> [apiv2][query] GET https://cloudbilling.googleapis.com/v1/projects/money-shepherd/billingInfo [none]
+[debug] [2026-02-19T19:29:50.375Z] >>> [apiv2][query] GET https://cloudbilling.googleapis.com/v1/projects/money-shepherd/billingInfo [none]
+[debug] [2026-02-19T19:29:50.376Z] >>> [apiv2][query] GET https://cloudbilling.googleapis.com/v1/projects/money-shepherd/billingInfo [none]
+[debug] [2026-02-19T19:29:50.675Z] <<< [apiv2][status] GET https://cloudbilling.googleapis.com/v1/projects/money-shepherd/billingInfo 200
+[debug] [2026-02-19T19:29:50.675Z] <<< [apiv2][body] GET https://cloudbilling.googleapis.com/v1/projects/money-shepherd/billingInfo {"name":"projects/money-shepherd/billingInfo","projectId":"money-shepherd","billingAccountName":"","billingEnabled":false}
+[debug] [2026-02-19T19:29:50.680Z] No OAuth tokens found
+[debug] [2026-02-19T19:29:50.680Z] No OAuth tokens found
+[debug] [2026-02-19T19:29:50.687Z] No OAuth tokens found
+[debug] [2026-02-19T19:29:50.687Z] No OAuth tokens found
+[debug] [2026-02-19T19:29:50.687Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/money-shepherd/services/firebasedataconnect.googleapis.com [none]
+[debug] [2026-02-19T19:29:50.687Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/money-shepherd/services/firebasedataconnect.googleapis.com  x-goog-user-project=money-shepherd
+[debug] [2026-02-19T19:29:50.688Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/money-shepherd/services/cloudfunctions.googleapis.com [none]
+[debug] [2026-02-19T19:29:50.688Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/money-shepherd/services/cloudfunctions.googleapis.com  x-goog-user-project=money-shepherd
+[debug] [2026-02-19T19:29:50.688Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/money-shepherd/services/firebaseapphosting.googleapis.com [none]
+[debug] [2026-02-19T19:29:50.689Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/money-shepherd/services/firebaseapphosting.googleapis.com  x-goog-user-project=money-shepherd
+[debug] [2026-02-19T19:29:50.689Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/money-shepherd/services/firebaseio.com [none]
+[debug] [2026-02-19T19:29:50.689Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/money-shepherd/services/firebaseio.com  x-goog-user-project=money-shepherd
+[debug] [2026-02-19T19:29:50.702Z] <<< [apiv2][status] GET https://cloudbilling.googleapis.com/v1/projects/money-shepherd/billingInfo 200
+[debug] [2026-02-19T19:29:50.702Z] <<< [apiv2][body] GET https://cloudbilling.googleapis.com/v1/projects/money-shepherd/billingInfo {"name":"projects/money-shepherd/billingInfo","projectId":"money-shepherd","billingAccountName":"","billingEnabled":false}
+[debug] [2026-02-19T19:29:50.702Z] No OAuth tokens found
+[debug] [2026-02-19T19:29:50.702Z] No OAuth tokens found
+[debug] [2026-02-19T19:29:50.704Z] No OAuth tokens found
+[debug] [2026-02-19T19:29:50.704Z] No OAuth tokens found
+[debug] [2026-02-19T19:29:50.704Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/money-shepherd/services/firebasedataconnect.googleapis.com [none]
+[debug] [2026-02-19T19:29:50.704Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/money-shepherd/services/firebasedataconnect.googleapis.com  x-goog-user-project=money-shepherd
+[debug] [2026-02-19T19:29:50.706Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/money-shepherd/services/cloudfunctions.googleapis.com [none]
+[debug] [2026-02-19T19:29:50.706Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/money-shepherd/services/cloudfunctions.googleapis.com  x-goog-user-project=money-shepherd
+[debug] [2026-02-19T19:29:50.706Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/money-shepherd/services/firebaseapphosting.googleapis.com [none]
+[debug] [2026-02-19T19:29:50.706Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/money-shepherd/services/firebaseapphosting.googleapis.com  x-goog-user-project=money-shepherd
+[debug] [2026-02-19T19:29:50.707Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/money-shepherd/services/firebaseio.com [none]
+[debug] [2026-02-19T19:29:50.707Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/money-shepherd/services/firebaseio.com  x-goog-user-project=money-shepherd
+[debug] [2026-02-19T19:29:50.740Z] <<< [apiv2][status] GET https://cloudbilling.googleapis.com/v1/projects/money-shepherd/billingInfo 200
+[debug] [2026-02-19T19:29:50.740Z] <<< [apiv2][body] GET https://cloudbilling.googleapis.com/v1/projects/money-shepherd/billingInfo {"name":"projects/money-shepherd/billingInfo","projectId":"money-shepherd","billingAccountName":"","billingEnabled":false}
+[debug] [2026-02-19T19:29:50.740Z] No OAuth tokens found
+[debug] [2026-02-19T19:29:50.740Z] No OAuth tokens found
+[debug] [2026-02-19T19:29:50.742Z] No OAuth tokens found
+[debug] [2026-02-19T19:29:50.742Z] No OAuth tokens found
+[debug] [2026-02-19T19:29:50.742Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/money-shepherd/services/firebasedataconnect.googleapis.com [none]
+[debug] [2026-02-19T19:29:50.742Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/money-shepherd/services/firebasedataconnect.googleapis.com  x-goog-user-project=money-shepherd
+[debug] [2026-02-19T19:29:50.742Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/money-shepherd/services/cloudfunctions.googleapis.com [none]
+[debug] [2026-02-19T19:29:50.742Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/money-shepherd/services/cloudfunctions.googleapis.com  x-goog-user-project=money-shepherd
+[debug] [2026-02-19T19:29:50.742Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/money-shepherd/services/firebaseapphosting.googleapis.com [none]
+[debug] [2026-02-19T19:29:50.742Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/money-shepherd/services/firebaseapphosting.googleapis.com  x-goog-user-project=money-shepherd
+[debug] [2026-02-19T19:29:50.743Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/money-shepherd/services/firebaseio.com [none]
+[debug] [2026-02-19T19:29:50.743Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/money-shepherd/services/firebaseio.com  x-goog-user-project=money-shepherd
+[debug] [2026-02-19T19:29:51.120Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/money-shepherd/services/firebaseapphosting.googleapis.com 200
+[debug] [2026-02-19T19:29:51.120Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/money-shepherd/services/firebaseapphosting.googleapis.com [omitted]
+[debug] [2026-02-19T19:29:51.353Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/money-shepherd/services/firebaseio.com 403
+[debug] [2026-02-19T19:29:51.353Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/money-shepherd/services/firebaseio.com [omitted]
+[debug] [2026-02-19T19:29:51.422Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/money-shepherd/services/firebaseapphosting.googleapis.com 200
+[debug] [2026-02-19T19:29:51.423Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/money-shepherd/services/firebaseapphosting.googleapis.com [omitted]
+[debug] [2026-02-19T19:29:51.423Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/money-shepherd/services/firebasedataconnect.googleapis.com 200
+[debug] [2026-02-19T19:29:51.423Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/money-shepherd/services/firebasedataconnect.googleapis.com [omitted]
+[debug] [2026-02-19T19:29:51.424Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/money-shepherd/services/cloudfunctions.googleapis.com 200
+[debug] [2026-02-19T19:29:51.424Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/money-shepherd/services/cloudfunctions.googleapis.com [omitted]
+[debug] [2026-02-19T19:29:51.425Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/money-shepherd/services/firebaseapphosting.googleapis.com 200
+[debug] [2026-02-19T19:29:51.425Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/money-shepherd/services/firebaseapphosting.googleapis.com [omitted]
+[debug] [2026-02-19T19:29:51.482Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/money-shepherd/services/firebaseio.com 403
+[debug] [2026-02-19T19:29:51.482Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/money-shepherd/services/firebaseio.com [omitted]
+[debug] [2026-02-19T19:29:51.495Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/money-shepherd/services/firebaseio.com 403
+[debug] [2026-02-19T19:29:51.496Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/money-shepherd/services/firebaseio.com [omitted]
+[debug] [2026-02-19T19:29:51.599Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/money-shepherd/services/cloudfunctions.googleapis.com 200
+[debug] [2026-02-19T19:29:51.599Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/money-shepherd/services/cloudfunctions.googleapis.com [omitted]
+[debug] [2026-02-19T19:29:51.599Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/money-shepherd/services/cloudfunctions.googleapis.com 200
+[debug] [2026-02-19T19:29:51.599Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/money-shepherd/services/cloudfunctions.googleapis.com [omitted]
+[debug] [2026-02-19T19:29:51.603Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-02-19T19:29:51.603Z] Running auto auth
+[debug] [2026-02-19T19:29:51.604Z] No OAuth tokens found
+[debug] [2026-02-19T19:29:51.604Z] >>> [apiv2][query] GET https://cloudbilling.googleapis.com/v1/projects/money-shepherd/billingInfo [none]
+[debug] [2026-02-19T19:29:51.606Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/money-shepherd/services/firebasedataconnect.googleapis.com 200
+[debug] [2026-02-19T19:29:51.606Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/money-shepherd/services/firebasedataconnect.googleapis.com [omitted]
+[debug] [2026-02-19T19:29:51.607Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/money-shepherd/services/firebasedataconnect.googleapis.com 200
+[debug] [2026-02-19T19:29:51.607Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/money-shepherd/services/firebasedataconnect.googleapis.com [omitted]
+[debug] [2026-02-19T19:29:51.609Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-02-19T19:29:51.609Z] Running auto auth
+[debug] [2026-02-19T19:29:51.609Z] No OAuth tokens found
+[debug] [2026-02-19T19:29:51.609Z] >>> [apiv2][query] GET https://cloudbilling.googleapis.com/v1/projects/money-shepherd/billingInfo [none]
+[debug] [2026-02-19T19:29:51.705Z] <<< [apiv2][status] GET https://cloudbilling.googleapis.com/v1/projects/money-shepherd/billingInfo 200
+[debug] [2026-02-19T19:29:51.705Z] <<< [apiv2][body] GET https://cloudbilling.googleapis.com/v1/projects/money-shepherd/billingInfo {"name":"projects/money-shepherd/billingInfo","projectId":"money-shepherd","billingAccountName":"","billingEnabled":false}
+[debug] [2026-02-19T19:29:51.707Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-02-19T19:29:51.707Z] Running auto auth
+[debug] [2026-02-19T19:29:51.724Z] <<< [apiv2][status] GET https://cloudbilling.googleapis.com/v1/projects/money-shepherd/billingInfo 200
+[debug] [2026-02-19T19:29:51.725Z] <<< [apiv2][body] GET https://cloudbilling.googleapis.com/v1/projects/money-shepherd/billingInfo {"name":"projects/money-shepherd/billingInfo","projectId":"money-shepherd","billingAccountName":"","billingEnabled":false}
+[debug] [2026-02-19T19:29:51.726Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-02-19T19:29:51.727Z] Running auto auth
