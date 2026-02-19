@@ -84,7 +84,7 @@
 
 ### Recommended build order (do not reorder unless blocked)
 
-- [ ] MS-14.10 MoneyInput helper
+- [x] MS-14.10 MoneyInput helper
 - [ ] MS-14.1 Add Transaction (screen + wiring)
 - [ ] MS-14.2 Transactions list + empty state
 - [ ] MS-14.5 Envelopes list + empty state
