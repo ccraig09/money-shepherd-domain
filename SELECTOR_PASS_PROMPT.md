@@ -1,3 +1,6 @@
+<!-- Ticket: MS-XX.X - <title>
+Link: <github issue link> -->
+
 Ticket: MS-XX.X - <title>
 Link: <github issue link>
 

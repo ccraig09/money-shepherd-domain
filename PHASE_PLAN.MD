@@ -17,6 +17,69 @@
 
 ---
 
+## Phase 13: Setup + PIN + Bootstrap (Two-device foundation)
+
+### Recommended build order (do not reorder unless blocked)
+
+- [ ] MS-13.1 Setup screen UI + saveSyncMeta
+- [ ] MS-13.2 Bootstrap + loading/error
+- [ ] MS-13.5 Routing guard (Setup → App)
+- [ ] MS-13.4 PIN infra + screens
+- [ ] MS-13.3 Settings (switch/reset)
+- [ ] MS-13.6 Indicator
+
+### Phase 13 Smoke Check (must pass before Phase 14)
+
+#### A) Fresh install (Device A: Los)
+
+- [ ] Launch app → Setup screen appears (not the main app)
+- [ ] Complete Setup:
+  - [ ] Choose user = Los
+  - [ ] Choose / create householdId (your intended default: `household-los-jackia` or whatever you’re using)
+  - [ ] Save succeeds (SyncMeta persisted via `saveSyncMeta`)
+- [ ] After Setup → app routes into the main UI (Routing guard works)
+- [ ] App shows a “bootstrapping/loading” state while remote loads (no blank screen)
+- [ ] No crash if remote household doc does not exist yet (seed then push works)
+
+#### B) Relaunch persistence (Device A)
+
+- [ ] Kill app, relaunch → it should NOT show Setup again
+- [ ] It should bootstrap automatically (ensureAnonAuth runs) and land in main UI
+
+#### C) PIN flow
+
+- [ ] On first Setup completion, you are prompted to create a 4-digit PIN (or immediately after entering app)
+- [ ] App locks when backgrounded/killed (depending on your chosen policy)
+- [ ] Reopen → PIN required
+- [ ] Wrong PIN shows friendly error, does not crash, can retry
+- [ ] “Forgot PIN” or “Reset local” path exists (even if destructive)
+
+#### D) Settings actions
+
+- [ ] Settings shows current:
+  - [ ] householdId
+  - [ ] userId (Los / Jackia)
+  - [ ] sync status indicator
+- [ ] “Switch user” works (writes syncMeta userId, reboots store safely)
+- [ ] “Reset local” clears local app state + sync meta (or whatever your policy is) and returns to Setup screen
+
+#### E) Device B (Jackia) joins the same household
+
+- [ ] Fresh install on Device B → Setup screen appears
+- [ ] Choose user = Jackia, same householdId as Los
+- [ ] Bootstrap pulls remote successfully
+- [ ] Make a tiny change on Device A (add a manual tx)
+- [ ] Device B relaunch or Sync → sees the updated state (at least after a manual refresh / app reopen)
+- [ ] If permissions block: error is human-readable and points to next step (rules/auth), not a stack trace
+
+### Blockers / Notes
+
+- BLOCKED: Firestore permissions
+  - Symptom: `permission-denied` on BatchGetDocuments for `households/{householdId}`
+  - Fix path: confirm anon auth UID is present, then update Firestore rules to allow the signed-in user access to the household doc (MVP rules ok for now).
+- If PIN is purely local: confirm it does not affect Firebase auth, only app access.
+- If bootstrap is defined but never called: routing must call `engine.getState()` once on app load to trigger bootstrap path when syncMeta exists.
+
 ## Phase 14: Core UI flows (Manual transactions + envelopes + inbox + dashboard)
 
 ### Recommended build order (do not reorder unless blocked)
