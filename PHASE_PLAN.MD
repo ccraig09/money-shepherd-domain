@@ -1,0 +1,175 @@
+# PHASE_PLAN.md
+
+# Money Shepherd - Phase Plan (Living Checklist)
+
+> Purpose:
+>
+> - This file is the "WHAT" to build, in order.
+> - For "HOW" to build (agent rules, tests policy, commands), see `AGENT_WORKFLOW.md`.
+> - Keep this document updated as you complete tickets.
+
+## How to use this file
+
+- Work top-to-bottom within a phase unless a ticket is blocked.
+- Mark tickets complete with `[x]`.
+- If blocked, add a note under **Blockers / Notes** with why and what unblocks it.
+- When switching phases, finish the **Phase Smoke Check** section before moving on.
+
+---
+
+## Phase 14: Core UI flows (Manual transactions + envelopes + inbox + dashboard)
+
+### Recommended build order (do not reorder unless blocked)
+
+- [ ] MS-14.10 MoneyInput helper
+- [ ] MS-14.1 Add Transaction (screen + wiring)
+- [ ] MS-14.2 Transactions list + empty state
+- [ ] MS-14.5 Envelopes list + empty state
+- [ ] MS-14.6 Create envelope (flow)
+- [ ] MS-14.3 Inbox list
+- [ ] MS-14.4 Assign flow (transaction -> envelope)
+- [ ] MS-14.7 Allocate flow (available -> envelope)
+- [ ] MS-14.8 Envelope detail (balance + activity)
+- [ ] MS-14.9 Dashboard (Available + quick actions + previews)
+- [ ] MS-14.12 Sync indicator (basic)
+- [ ] MS-14.11 Baseline polish (spacing/hierarchy)
+
+### Phase 14 Smoke Check (must pass before Phase 15)
+
+- [ ] Add Income transaction -> account balance increases
+- [ ] Create envelope “Groceries”
+- [ ] Allocate funds to Groceries -> envelope balance increases and Available decreases
+- [ ] Add Expense transaction -> appears in Inbox as Unassigned
+- [ ] Assign Expense to Groceries -> Groceries balance goes down
+- [ ] App relaunch -> state persists
+
+### Blockers / Notes
+
+- (Add anything that blocks a ticket, e.g., auth/rules, navigation, missing component)
+- Example:
+  - BLOCKED: MS-14.12 - requires Sync status model from Phase 17 (workaround: show "Local-only")
+
+---
+
+## Phase 15: Plaid integration (Link + mapping + merge + refresh UX)
+
+> NOTE: These are the planned ticket order for later reference.
+> Keep them commented until you start Phase 15.
+
+<!--
+### Recommended build order
+- [ ] MS-15.1 Strategy decision
+- [ ] MS-15.2 Env + safety
+- [ ] MS-15.3 Connect screen
+- [ ] MS-15.4 Link flow
+- [ ] MS-15.5 Token exchange + secure storage
+- [ ] MS-15.8 Account mapping
+- [ ] MS-15.7 Transaction mapping
+- [ ] MS-15.9 Dedup merge
+- [ ] MS-15.6 Refresh UI + engine method
+- [ ] MS-15.10 Error UX
+- [ ] MS-15.11 Cost guardrails
+
+### Phase 15 Smoke Check
+- [ ] Connect Plaid (Los)
+- [ ] Pull accounts -> map to domain accounts
+- [ ] Pull transactions -> merge without duplicates
+- [ ] Pull-to-refresh updates with no spam calls
+- [ ] App relaunch preserves token + mappings (secure storage)
+-->
+
+---
+
+## Phase 16: Input + UX polish (MoneyInput component + formatting + clarity)
+
+<!--
+### Recommended build order
+- [ ] MS-16.3 Parsing contract ({ ok, cents, error })
+- [ ] MS-16.1 MoneyInput component
+- [ ] MS-16.2 Formatting + tests
+- [ ] MS-16.4 Income/expense clarity
+- [ ] MS-16.5 Keyboard handling
+- [ ] MS-16.6 Empty state pass
+- [ ] MS-16.7 Envelope validation polish
+- [ ] MS-16.9 Manual checklist
+- [ ] MS-16.8 Quick actions (optional)
+
+### Phase 16 Smoke Check
+- [ ] Money input accepts "10", "10.5", "10.50", rejects invalid
+- [ ] Income vs expense is visually clear everywhere
+- [ ] Forms do not break when keyboard opens
+-->
+
+---
+
+## Phase 17: Sync UX (status model + retry/backoff + conflict messaging)
+
+<!--
+### Recommended build order
+- [ ] MS-17.1 Status model
+- [ ] MS-17.2 Indicator
+- [ ] MS-17.5 Pending changes
+- [ ] MS-17.3 Friendly errors
+- [ ] MS-17.4 Retry/backoff
+- [ ] MS-17.8 Debounce pushes
+- [ ] MS-17.6 Sync now button
+- [ ] MS-17.7 Conflict UX message
+- [ ] MS-17.9 Settings summary
+- [ ] MS-17.10 Two-device checklist
+
+### Phase 17 Smoke Check
+- [ ] Offline edit -> shows pending
+- [ ] Online -> retries, then syncs
+- [ ] Conflict -> pulls remote and informs user
+-->
+
+---
+
+## Phase 18: UI polish + navigation (make it feel like a product)
+
+<!--
+### Recommended build order
+- [ ] MS-18.1 Tokens baseline
+- [ ] MS-18.2 Card + SectionHeader
+- [ ] MS-18.3 Navigation audit
+- [ ] MS-18.4 Dashboard pass
+- [ ] MS-18.5 Transactions pass
+- [ ] MS-18.6 Inbox pass
+- [ ] MS-18.7 Envelopes list + sorting
+- [ ] MS-18.8 Envelope detail pass
+- [ ] MS-18.9 Forms pass
+- [ ] MS-18.10 Toast feedback
+- [ ] MS-18.11 Accessibility
+- [ ] MS-18.12 Branding shell
+
+### Phase 18 Smoke Check
+- [ ] Navigation is predictable (tabs + modals)
+- [ ] All empty states look intentional
+- [ ] Assign + allocate flows feel fast
+-->
+
+---
+
+## Phase 19: Hardening + release readiness (migrations, backups, guardrails)
+
+<!--
+### Recommended build order
+- [ ] MS-19.5 Feature flags
+- [ ] MS-19.2 Crash-safe persistence
+- [ ] MS-19.1 Migrations scaffold
+- [ ] MS-19.8 Guardrails
+- [ ] MS-19.6 Core tests
+- [ ] MS-19.3 Export
+- [ ] MS-19.4 Import
+- [ ] MS-19.7 Release checklist
+- [ ] MS-19.10 Install plan
+- [ ] MS-19.11 Security sanity
+- [ ] MS-19.9 Performance sanity
+- [ ] MS-19.12 Support bundle (optional)
+
+### Phase 19 Smoke Check
+- [ ] Export + import works
+- [ ] App recovers from corrupted local state
+- [ ] Feature flags can disable risky features cleanly
+- [ ] Install plan works for Jackia
+-->
