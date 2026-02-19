@@ -32,45 +32,45 @@
 
 #### A) Fresh install (Device A: Los)
 
-- [ ] Launch app → Setup screen appears (not the main app)
-- [ ] Complete Setup:
-  - [ ] Choose user = Los
-  - [ ] Choose / create householdId (your intended default: `household-los-jackia` or whatever you’re using)
-  - [ ] Save succeeds (SyncMeta persisted via `saveSyncMeta`)
-- [ ] After Setup → app routes into the main UI (Routing guard works)
-- [ ] App shows a “bootstrapping/loading” state while remote loads (no blank screen)
-- [ ] No crash if remote household doc does not exist yet (seed then push works)
+- [x] Launch app → Setup screen appears (not the main app)
+- [x] Complete Setup:
+  - [x] Choose user = Los
+  - [x] Choose / create householdId (your intended default: `household-los-jackia` or whatever you’re using)
+  - [x] Save succeeds (SyncMeta persisted via `saveSyncMeta`)
+- [x] After Setup → app routes into the main UI (Routing guard works)
+- [x] App shows a “bootstrapping/loading” state while remote loads (no blank screen)
+- [x] No crash if remote household doc does not exist yet (seed then push works)
 
 #### B) Relaunch persistence (Device A)
 
-- [ ] Kill app, relaunch → it should NOT show Setup again
-- [ ] It should bootstrap automatically (ensureAnonAuth runs) and land in main UI
+- [x] Kill app, relaunch → it should NOT show Setup again
+- [x] It should bootstrap automatically (ensureAnonAuth runs) and land in main UI
 
 #### C) PIN flow
 
-- [ ] On first Setup completion, you are prompted to create a 4-digit PIN (or immediately after entering app)
-- [ ] App locks when backgrounded/killed (depending on your chosen policy)
-- [ ] Reopen → PIN required
-- [ ] Wrong PIN shows friendly error, does not crash, can retry
-- [ ] “Forgot PIN” or “Reset local” path exists (even if destructive)
+- [x] On first Setup completion, you are prompted to create a 4-digit PIN (or immediately after entering app)
+- [x] App locks when backgrounded/killed (depending on your chosen policy)
+- [x] Reopen → PIN required
+- [x] Wrong PIN shows friendly error, does not crash, can retry
+- [x] “Forgot PIN” or “Reset local” path exists (even if destructive)
 
 #### D) Settings actions
 
-- [ ] Settings shows current:
-  - [ ] householdId
-  - [ ] userId (Los / Jackia)
-  - [ ] sync status indicator
-- [ ] “Switch user” works (writes syncMeta userId, reboots store safely)
-- [ ] “Reset local” clears local app state + sync meta (or whatever your policy is) and returns to Setup screen
+- [x] Settings shows current:
+  - [x] householdId
+  - [x] userId (Los / Jackia)
+  - [x] sync status indicator
+- [x] “Switch user” works (writes syncMeta userId, reboots store safely)
+- [x] “Reset local” clears local app state + sync meta (or whatever your policy is) and returns to Setup screen
 
 #### E) Device B (Jackia) joins the same household
 
-- [ ] Fresh install on Device B → Setup screen appears
-- [ ] Choose user = Jackia, same householdId as Los
-- [ ] Bootstrap pulls remote successfully
-- [ ] Make a tiny change on Device A (add a manual tx)
-- [ ] Device B relaunch or Sync → sees the updated state (at least after a manual refresh / app reopen)
-- [ ] If permissions block: error is human-readable and points to next step (rules/auth), not a stack trace
+- [x] Fresh install on Device B → Setup screen appears
+- [x] Choose user = Jackia, same householdId as Los
+- [x] Bootstrap pulls remote successfully
+- [x] Make a tiny change on Device A (add a manual tx)
+- [x] Device B relaunch or Sync → sees the updated state (at least after a manual refresh / app reopen)
+- [x] If permissions block: error is human-readable and points to next step (rules/auth), not a stack trace
 
 ### Blockers / Notes
 
