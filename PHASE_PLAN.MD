@@ -21,8 +21,8 @@
 
 ### Recommended build order (do not reorder unless blocked)
 
-- [ ] MS-13.1 Setup screen UI + saveSyncMeta
-- [ ] MS-13.2 Bootstrap + loading/error
+- [x] MS-13.1 Setup screen UI + saveSyncMeta
+- [x] MS-13.2 Bootstrap + loading/error
 - [ ] MS-13.5 Routing guard (Setup → App)
 - [ ] MS-13.4 PIN infra + screens
 - [ ] MS-13.3 Settings (switch/reset)
