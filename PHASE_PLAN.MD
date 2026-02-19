@@ -23,9 +23,9 @@
 
 - [x] MS-13.1 Setup screen UI + saveSyncMeta
 - [x] MS-13.2 Bootstrap + loading/error
-- [ ] MS-13.5 Routing guard (Setup → App)
-- [ ] MS-13.4 PIN infra + screens
-- [ ] MS-13.3 Settings (switch/reset)
+- [x] MS-13.5 Routing guard (Setup → App)
+- [x] MS-13.4 PIN infra + screens
+- [x] MS-13.3 Settings (switch/reset)
 - [ ] MS-13.6 Indicator
 
 ### Phase 13 Smoke Check (must pass before Phase 14)
