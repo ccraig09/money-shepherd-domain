@@ -3,7 +3,8 @@ import {
   DefaultTheme,
   ThemeProvider,
 } from "@react-navigation/native";
-import { Stack, useRouter, useSegments } from "expo-router";
+import { Stack } from "expo-router";
+import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import "react-native-reanimated";
 import React from "react";
@@ -18,57 +19,93 @@ import {
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useAppStore } from "@/src/store/useAppStore";
 import { loadSyncMeta } from "@/src/infra/local/syncMeta";
+import { loadPinHash } from "@/src/infra/local/pin";
 
-export const unstable_settings = {
-  anchor: "(tabs)",
-};
+SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
-  const router = useRouter();
-  const segments = useSegments();
 
+  const guardState = useAppStore((s) => s.guardState);
   const status = useAppStore((s) => s.status);
   const errorMessage = useAppStore((s) => s.errorMessage);
   const bootstrap = useAppStore((s) => s.bootstrap);
 
-  const isOnTabs = segments[0] === "(tabs)";
-
+  // Determine routing on mount (runs once)
   React.useEffect(() => {
-    if (!isOnTabs || status !== "idle") return;
     (async () => {
       const meta = await loadSyncMeta();
       if (!meta) {
-        router.replace("/setup");
+        useAppStore.setState({ guardState: "needs-setup" });
         return;
       }
-      bootstrap();
+      const pinHash = await loadPinHash();
+      if (!pinHash) {
+        useAppStore.setState({ guardState: "needs-pin-setup" });
+        return;
+      }
+      useAppStore.setState({ guardState: "needs-pin" });
     })();
-  }, [isOnTabs, status, router, bootstrap]);
+  }, []);
 
-  const showLoading = isOnTabs && (status === "idle" || status === "loading");
-  const showError = isOnTabs && status === "error";
+  // Hide native splash once guard decision is made
+  React.useEffect(() => {
+    if (guardState !== "checking") {
+      SplashScreen.hideAsync();
+    }
+  }, [guardState]);
+
+  // Keep native splash visible while deciding
+  if (guardState === "checking") return null;
+
+  const isReady = guardState === "ready";
+  const needsSetup = guardState === "needs-setup";
+  const needsPinSetup = guardState === "needs-pin-setup";
+  const needsPin = guardState === "needs-pin";
 
   return (
     <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
       <View style={styles.root}>
         <Stack>
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen name="setup/index" options={{ headerShown: false }} />
+          <Stack.Protected guard={isReady}>
+            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          </Stack.Protected>
+
+          <Stack.Protected guard={needsSetup}>
+            <Stack.Screen
+              name="setup/index"
+              options={{ headerShown: false, gestureEnabled: false, animation: "none" }}
+            />
+          </Stack.Protected>
+
+          <Stack.Protected guard={needsPinSetup}>
+            <Stack.Screen
+              name="pin/setup"
+              options={{ headerShown: false, gestureEnabled: false, animation: "none" }}
+            />
+          </Stack.Protected>
+
+          <Stack.Protected guard={needsPin}>
+            <Stack.Screen
+              name="pin/unlock"
+              options={{ headerShown: false, gestureEnabled: false, animation: "none" }}
+            />
+          </Stack.Protected>
+
           <Stack.Screen
             name="modal"
             options={{ presentation: "modal", title: "Modal" }}
           />
         </Stack>
 
-        {showLoading && (
+        {isReady && (status === "loading" || status === "idle") && (
           <View style={[StyleSheet.absoluteFillObject, styles.overlay]}>
             <ActivityIndicator size="large" color="#4f8ef7" />
             <Text style={styles.loadingText}>Loading…</Text>
           </View>
         )}
 
-        {showError && (
+        {isReady && status === "error" && (
           <View style={[StyleSheet.absoluteFillObject, styles.overlay]}>
             <Text style={styles.errorText}>
               {errorMessage ?? "Something went wrong"}

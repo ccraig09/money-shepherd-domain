@@ -12,7 +12,7 @@ import {
 } from "react-native";
 import { saveSyncMeta } from "../../src/infra/local/syncMeta";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useRouter } from "expo-router";
+import { useAppStore } from "../../src/store/useAppStore";
 
 const HOUSEHOLD_ID = "household-los-jackia";
 const PIN_KEY_PREFIX = "ms_pin_hash_v1:";
@@ -32,7 +32,8 @@ const USERS: { id: UserChoice; label: string }[] = [
 ];
 
 export default function SetupScreen() {
-  const router = useRouter();
+  const bootstrap = useAppStore((s) => s.bootstrap);
+  const setGuardReady = useAppStore((s) => s.setGuardReady);
 
   const [userId, setUserId] = React.useState<UserChoice>("user-los");
   const [pin, setPin] = React.useState("");
@@ -64,7 +65,8 @@ export default function SetupScreen() {
       });
 
       setPin("");
-      router.replace("/");
+      await bootstrap();
+      setGuardReady();
     } catch (err: any) {
       setError("Failed to save setup. Please try again.");
       console.error("[SetupScreen] onSave error:", err);

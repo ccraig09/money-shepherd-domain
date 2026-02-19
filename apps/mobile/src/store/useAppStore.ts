@@ -1,17 +1,24 @@
 import { create } from "zustand";
 import { createEngine } from "../domain/engine";
 import type { AppStateV1 } from "../domain/appState";
+import { clearSyncMeta, loadSyncMeta, saveSyncMeta } from "../infra/local/syncMeta";
+import { clearPin } from "../infra/local/pin";
 
 type LoadState = "idle" | "loading" | "ready" | "error";
+type GuardState = "checking" | "needs-setup" | "needs-pin-setup" | "needs-pin" | "ready";
 
 type AppStore = {
   // state
   status: LoadState;
   errorMessage: string | null;
   state: AppStateV1 | null;
+  guardState: GuardState;
 
   // actions
   bootstrap: () => Promise<void>;
+  setGuardReady: () => void;
+  resetAll: () => Promise<void>;
+  switchUser: () => Promise<void>;
   resetAndSeed: () => Promise<void>;
   createEnvelope: (name: string) => Promise<void>;
   assignTransaction: (args: {
@@ -43,6 +50,9 @@ export const useAppStore = create<AppStore>((set, get) => ({
   status: "idle",
   errorMessage: null,
   state: null,
+  guardState: "checking",
+
+  setGuardReady: () => set({ guardState: "ready" }),
 
   bootstrap: async () => {
     set({ status: "loading", errorMessage: null });
@@ -54,6 +64,28 @@ export const useAppStore = create<AppStore>((set, get) => ({
         status: "error",
         errorMessage: err?.message ?? "Failed to load app state",
       });
+    }
+  },
+
+  resetAll: async () => {
+    try {
+      await engine.reset();
+      await clearSyncMeta();
+      await clearPin();
+      set({ state: null, status: "idle", guardState: "needs-setup", errorMessage: null });
+    } catch (err: any) {
+      set({ status: "error", errorMessage: err?.message ?? "Failed to reset" });
+    }
+  },
+
+  switchUser: async () => {
+    try {
+      const meta = await loadSyncMeta();
+      if (!meta) return;
+      const nextUserId = meta.userId === "user-los" ? "user-jackia" : "user-los";
+      await saveSyncMeta({ ...meta, userId: nextUserId });
+    } catch (err: any) {
+      set({ status: "error", errorMessage: err?.message ?? "Failed to switch user" });
     }
   },
 
