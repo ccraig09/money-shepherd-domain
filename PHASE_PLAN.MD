@@ -88,7 +88,7 @@
 - [x] MS-14.1 Add Transaction (screen + wiring)
 - [x] MS-14.2 Transactions list + empty state
 - [x] MS-14.5 Envelopes list + empty state
-- [ ] MS-14.6 Create envelope (flow)
+- [x] MS-14.6 Create envelope (flow)
 - [ ] MS-14.3 Inbox list
 - [ ] MS-14.4 Assign flow (transaction -> envelope)
 - [ ] MS-14.7 Allocate flow (available -> envelope)
