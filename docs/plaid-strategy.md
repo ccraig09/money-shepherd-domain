@@ -119,11 +119,25 @@ The Firestore schema (`plaidItems/{itemId}`) is a collection and supports multip
 
 1. `npm install expo-dev-client -w @money-shepherd/mobile`
 2. Add `"expo-dev-client"` to `plugins` array in `app.json`
-3. Run `eas build --platform ios --profile development` (one-time)
-4. Install the `.ipa` on both devices (Los + Jackia)
-5. Use `expo start --dev-client` for all subsequent development
+3. Create `eas.json` with `development`, `preview`, and `production` profiles
+4. Build the dev client (see workflow below)
+5. Install the `.ipa` on both devices (Los + Jackia)
 
-After this one-time setup, day-to-day development works identically to before. Both devices share the same dev build output.
+### Recommended build workflow (hybrid)
+
+| Situation | Command | Notes |
+|-----------|---------|-------|
+| First dev client build | `eas build --local --platform ios --profile development` | Free, local, no cloud minutes |
+| Day-to-day JS iteration | `npx expo run:ios` | Fastest loop — auto-prebuild + hot reload |
+| Adding a native dep (e.g. Plaid SDK) | `eas build --local --platform ios --profile development` | Rebuild only when native layer changes |
+| Production release | `eas build --platform ios --profile production` | Cloud build; uses free tier (30 builds/month) |
+
+**Why `--local` for dev builds?** EAS free tier gives 30 cloud builds/month. A personal 2-device app will use 2–5 rebuilds/month — well under the limit — but local builds are instant, free, and don't consume that budget. Once native deps stabilize after Phase 15, rebuilds become rare; almost all iteration is JS hot reload via `npx expo run:ios`.
+
+**Rebuild triggers** (when you must rebuild the native binary):
+- Adding or updating a library with native code
+- Changing `app.json` in ways that affect the native layer (new plugins, scheme, etc.)
+- Everything else (JS/TS changes) → hot reload only, no rebuild
 
 ---
 
