@@ -99,12 +99,12 @@
 
 ### Phase 14 Smoke Check (must pass before Phase 15)
 
-- [ ] Add Income transaction -> account balance increases
-- [ ] Create envelope “Groceries”
-- [ ] Allocate funds to Groceries -> envelope balance increases and Available decreases
-- [ ] Add Expense transaction -> appears in Inbox as Unassigned
-- [ ] Assign Expense to Groceries -> Groceries balance goes down
-- [ ] App relaunch -> state persists
+- [x] Add Income transaction -> account balance increases
+- [x] Create envelope “Groceries”
+- [x] Allocate funds to Groceries -> envelope balance increases and Available decreases
+- [x] Add Expense transaction -> appears in Inbox as Unassigned
+- [x] Assign Expense to Groceries -> Groceries balance goes down
+- [x] App relaunch -> state persists
 
 ### Blockers / Notes
 
