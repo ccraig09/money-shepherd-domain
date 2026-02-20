@@ -14,6 +14,7 @@ import { useAppStore } from "../../src/store/useAppStore";
 export default function SettingsScreen() {
   const resetAll = useAppStore((s) => s.resetAll);
   const switchUser = useAppStore((s) => s.switchUser);
+  const lastSyncAt = useAppStore((s) => s.lastSyncAt);
 
   const [meta, setMeta] = React.useState<SyncMeta | null>(null);
   const [isBusy, setIsBusy] = React.useState(false);
@@ -87,11 +88,17 @@ export default function SettingsScreen() {
     <ScrollView style={styles.root} contentContainerStyle={styles.container}>
       <Text style={styles.pageTitle}>Settings</Text>
 
+      {/* Sync status */}
+      <View style={styles.card}>
+        <Text style={styles.cardTitle}>Sync</Text>
+        <Row label="Last synced" value={lastSyncAt ? formatSyncTime(lastSyncAt) : "Not yet this session"} />
+        <Row label="User" value={meta ? userLabel(meta.userId) : "—"} />
+      </View>
+
       {/* Device info */}
       <View style={styles.card}>
         <Text style={styles.cardTitle}>Device</Text>
         <Row label="Household" value={meta?.householdId ?? "—"} />
-        <Row label="User" value={meta ? userLabel(meta.userId) : "—"} />
       </View>
 
       {/* Actions */}
@@ -134,6 +141,25 @@ function userLabel(userId: string): string {
   if (userId === "user-los") return "Los";
   if (userId === "user-jackia") return "Jackia";
   return userId;
+}
+
+function formatSyncTime(iso: string): string {
+  try {
+    const date = new Date(iso);
+    const now = new Date();
+    const isToday =
+      date.getFullYear() === now.getFullYear() &&
+      date.getMonth() === now.getMonth() &&
+      date.getDate() === now.getDate();
+    const time = date.toLocaleTimeString("en-US", {
+      hour: "numeric",
+      minute: "2-digit",
+    });
+    if (isToday) return `Today, ${time}`;
+    return date.toLocaleDateString("en-US", { month: "short", day: "numeric" }) + `, ${time}`;
+  } catch {
+    return "—";
+  }
 }
 
 function Row({ label, value }: { label: string; value: string }) {

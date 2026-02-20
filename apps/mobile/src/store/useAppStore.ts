@@ -13,6 +13,7 @@ type AppStore = {
   errorMessage: string | null;
   state: AppStateV1 | null;
   guardState: GuardState;
+  lastSyncAt: string | null;
 
   // actions
   bootstrap: () => Promise<void>;
@@ -51,6 +52,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
   errorMessage: null,
   state: null,
   guardState: "checking",
+  lastSyncAt: null,
 
   setGuardReady: () => set({ guardState: "ready" }),
 
@@ -58,7 +60,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
     set({ status: "loading", errorMessage: null });
     try {
       const state = await engine.getState();
-      set({ state, status: "ready" });
+      set({ state, status: "ready", lastSyncAt: new Date().toISOString() });
     } catch (err: any) {
       set({
         status: "error",
@@ -110,7 +112,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
     set({ status: "loading", errorMessage: null });
     try {
       const state = await engine.createEnvelope({ name });
-      set({ state, status: "ready" });
+      set({ state, status: "ready", lastSyncAt: new Date().toISOString() });
     } catch (err: any) {
       set({
         status: "error",
@@ -126,7 +128,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
     set({ status: "loading", errorMessage: null });
     try {
       const state = await engine.assignTransaction(args);
-      set({ state, status: "ready" });
+      set({ state, status: "ready", lastSyncAt: new Date().toISOString() });
     } catch (err: any) {
       set({
         status: "error",
@@ -142,7 +144,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
     set({ status: "loading", errorMessage: null });
     try {
       const state = await engine.allocateToEnvelope(args);
-      set({ state, status: "ready" });
+      set({ state, status: "ready", lastSyncAt: new Date().toISOString() });
     } catch (err: any) {
       set({
         status: "error",
@@ -150,6 +152,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
       });
     }
   },
+
   addManualTransaction: async (args) => {
     const current = get().state;
     if (!current) return;
@@ -157,7 +160,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
     set({ status: "loading", errorMessage: null });
     try {
       const state = await engine.addManualTransaction(args);
-      set({ state, status: "ready" });
+      set({ state, status: "ready", lastSyncAt: new Date().toISOString() });
     } catch (err: any) {
       set({
         status: "error",
