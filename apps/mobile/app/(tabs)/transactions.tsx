@@ -30,6 +30,17 @@ export default function TransactionsScreen() {
     return accounts.find((a) => a.id === accountId)?.name ?? accountId;
   }
 
+  function formatDate(iso: string): string {
+    try {
+      return new Date(iso).toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+      });
+    } catch {
+      return "";
+    }
+  }
+
   return (
     <View style={styles.root}>
       <View style={styles.header}>
@@ -45,8 +56,9 @@ export default function TransactionsScreen() {
 
       {transactions.length === 0 ? (
         <View style={styles.empty}>
-          <Text style={styles.emptyText}>No transactions yet.</Text>
-          <Text style={styles.emptyHint}>{"Tap \"+ Add\" to record income or an expense."}</Text>
+          <Text style={styles.emptyText}>
+            No transactions yet. Add your first one.
+          </Text>
         </View>
       ) : (
         <FlatList
@@ -55,14 +67,16 @@ export default function TransactionsScreen() {
           contentContainerStyle={styles.list}
           renderItem={({ item }) => {
             const isExpense = item.amount.cents < 0;
+            const desc = item.description || "Manual transaction";
+            const meta = `${accountName(item.accountId)} · ${formatDate(item.postedAt)}`;
             return (
               <View style={styles.row}>
                 <View style={styles.rowMain}>
                   <Text style={styles.rowDescription} numberOfLines={1}>
-                    {item.description}
+                    {desc}
                   </Text>
-                  <Text style={styles.rowAccount}>
-                    {accountName(item.accountId)}
+                  <Text style={styles.rowAccount} numberOfLines={1}>
+                    {meta}
                   </Text>
                 </View>
                 <Text
@@ -110,8 +124,7 @@ const styles = StyleSheet.create({
     gap: 8,
     paddingHorizontal: 32,
   },
-  emptyText: { fontSize: 17, fontWeight: "600", color: "#333" },
-  emptyHint: { fontSize: 14, color: "#888", textAlign: "center" },
+  emptyText: { fontSize: 17, fontWeight: "600", color: "#333", textAlign: "center" },
   list: { paddingVertical: 8 },
   row: {
     flexDirection: "row",
