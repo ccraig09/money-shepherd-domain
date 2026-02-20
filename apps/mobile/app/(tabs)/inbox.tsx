@@ -6,6 +6,7 @@ import {
   Pressable,
   StyleSheet,
 } from "react-native";
+import { router } from "expo-router";
 import { useAppStore } from "../../src/store/useAppStore";
 import { formatCents } from "../../src/lib/moneyInput";
 import type { Transaction } from "@money-shepherd/domain";
@@ -75,7 +76,10 @@ export default function InboxScreen() {
               <Pressable
                 style={styles.row}
                 onPress={() => {
-                  // MS-14.4: navigate to assign flow
+                  router.push({
+                    pathname: "/assign-transaction",
+                    params: { transactionId: item.id },
+                  });
                 }}
                 accessibilityLabel={`Assign ${desc}`}
               >

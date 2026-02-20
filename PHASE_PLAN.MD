@@ -90,7 +90,7 @@
 - [x] MS-14.5 Envelopes list + empty state
 - [x] MS-14.6 Create envelope (flow)
 - [x] MS-14.3 Inbox list
-- [ ] MS-14.4 Assign flow (transaction -> envelope)
+- [x] MS-14.4 Assign flow (transaction -> envelope)
 - [ ] MS-14.7 Allocate flow (available -> envelope)
 - [ ] MS-14.8 Envelope detail (balance + activity)
 - [ ] MS-14.9 Dashboard (Available + quick actions + previews)
