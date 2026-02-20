@@ -112,6 +112,10 @@ export default function RootLayout() {
             name="modal"
             options={{ presentation: "modal", title: "Modal" }}
           />
+          <Stack.Screen
+            name="envelope/[envelopeId]"
+            options={{ headerBackTitle: "Envelopes" }}
+          />
         </Stack>
 
         {isReady && (status === "loading" || status === "idle") && (
