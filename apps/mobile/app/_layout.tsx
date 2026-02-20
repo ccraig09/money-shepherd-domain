@@ -93,6 +93,10 @@ export default function RootLayout() {
           </Stack.Protected>
 
           <Stack.Screen
+            name="add-transaction"
+            options={{ presentation: "modal", title: "Add Transaction" }}
+          />
+          <Stack.Screen
             name="modal"
             options={{ presentation: "modal", title: "Modal" }}
           />
