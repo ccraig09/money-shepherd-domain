@@ -27,13 +27,22 @@ export default function EnvelopesScreen() {
     <View style={styles.root}>
       <View style={styles.header}>
         <Text style={styles.title}>Envelopes</Text>
-        <Pressable
-          onPress={() => router.push("/create-envelope")}
-          style={styles.addBtn}
-          accessibilityLabel="Create envelope"
-        >
-          <Text style={styles.addBtnText}>+ New</Text>
-        </Pressable>
+        <View style={styles.headerActions}>
+          <Pressable
+            onPress={() => router.push("/allocate")}
+            style={styles.allocateBtn}
+            accessibilityLabel="Allocate funds"
+          >
+            <Text style={styles.allocateBtnText}>$ Allocate</Text>
+          </Pressable>
+          <Pressable
+            onPress={() => router.push("/create-envelope")}
+            style={styles.addBtn}
+            accessibilityLabel="Create envelope"
+          >
+            <Text style={styles.addBtnText}>+ New</Text>
+          </Pressable>
+        </View>
       </View>
 
       {envelopes.length === 0 ? (
@@ -88,6 +97,15 @@ const styles = StyleSheet.create({
     borderColor: "#ddd",
   },
   title: { fontSize: 24, fontWeight: "700" },
+  headerActions: { flexDirection: "row", gap: 8 },
+  allocateBtn: {
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: "#4f8ef7",
+  },
+  allocateBtnText: { color: "#4f8ef7", fontWeight: "600", fontSize: 14 },
   addBtn: {
     paddingHorizontal: 16,
     paddingVertical: 8,

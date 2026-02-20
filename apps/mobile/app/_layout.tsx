@@ -105,6 +105,10 @@ export default function RootLayout() {
             options={{ presentation: "modal", title: "Assign to Envelope" }}
           />
           <Stack.Screen
+            name="allocate"
+            options={{ presentation: "modal", title: "Allocate Funds" }}
+          />
+          <Stack.Screen
             name="modal"
             options={{ presentation: "modal", title: "Modal" }}
           />
