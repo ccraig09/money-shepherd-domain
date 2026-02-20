@@ -121,7 +121,7 @@
 
 <!--
 ### Recommended build order
-- [ ] MS-15.1 Strategy decision
+- [x] MS-15.1 Strategy decision
 - [ ] MS-15.2 Env + safety
 - [ ] MS-15.3 Connect screen
 - [ ] MS-15.4 Link flow
