@@ -93,7 +93,7 @@
 - [x] MS-14.4 Assign flow (transaction -> envelope)
 - [x] MS-14.7 Allocate flow (available -> envelope)
 - [x] MS-14.8 Envelope detail (balance + activity)
-- [ ] MS-14.9 Dashboard (Available + quick actions + previews)
+- [x] MS-14.9 Dashboard (Available + quick actions + previews)
 - [ ] MS-14.12 Sync indicator (basic)
 - [ ] MS-14.11 Baseline polish (spacing/hierarchy)
 

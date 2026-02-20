@@ -1,268 +1,267 @@
 import React from "react";
-import { View, Text, FlatList, Pressable, TextInput } from "react-native";
+import {
+  View,
+  Text,
+  Pressable,
+  StyleSheet,
+  ScrollView,
+} from "react-native";
+import { router } from "expo-router";
 import { useAppStore } from "../../src/store/useAppStore";
-import { loadSyncMeta } from "../../src/infra/local/syncMeta";
+import { formatCents } from "../../src/lib/moneyInput";
 
-function userLabel(userId: string): string {
-  if (userId === "user-los") return "Los";
-  if (userId === "user-jackia") return "Jackia";
-  return userId;
-}
-
-export default function BudgetScreen() {
-  const status = useAppStore((s) => s.status);
+export default function DashboardScreen() {
   const state = useAppStore((s) => s.state);
-
-  const [signedInAs, setSignedInAs] = React.useState<string | null>(null);
-  React.useEffect(() => {
-    loadSyncMeta().then((meta) => {
-      if (meta) setSignedInAs(userLabel(meta.userId));
-    });
-  }, []);
-
-  const resetAndSeed = useAppStore((s) => s.resetAndSeed);
-
-  const createEnvelope = useAppStore((s) => s.createEnvelope);
-  const allocateToEnvelope = useAppStore((s) => s.allocateToEnvelope);
-
-  const addManualTransaction = useAppStore((s) => s.addManualTransaction);
-
-  const [newEnvelopeName, setNewEnvelopeName] = React.useState("");
-  const [allocateCents, setAllocateCents] = React.useState("0");
-  const [txAmountCents, setTxAmountCents] = React.useState("2000");
-  const [txDescription, setTxDescription] = React.useState("Paycheck");
-  const [txKind, setTxKind] = React.useState<"income" | "expense">("income");
 
   if (!state) {
     return (
-      <View style={{ padding: 16 }}>
-        <Text>Loading...</Text>
+      <View style={styles.center}>
+        <Text>Loading…</Text>
       </View>
     );
   }
 
-  const available = state.budget.availableToAssign.cents;
-  const defaultAccountId = state.accounts[0]?.id ?? "acc-los";
+  const availableCents = state.budget.availableToAssign.cents;
+  const totalEnvelopeCents = state.budget.envelopes.reduce(
+    (sum, e) => sum + e.balance.cents,
+    0,
+  );
+
+  // Unassigned expenses — nudge the user to assign them
+  const assignedTxIds = new Set(
+    Object.values(state.inbox.assignmentsByTransactionId).map(
+      (a) => a.transactionId,
+    ),
+  );
+  const unassignedExpenseCount = state.transactions.filter(
+    (tx) => tx.amount.cents < 0 && !assignedTxIds.has(tx.id),
+  ).length;
+
+  const envelopes = state.budget.envelopes;
 
   return (
-    <View style={{ flex: 1, padding: 16, gap: 12 }}>
-      <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
-        <Text style={{ fontSize: 22, fontWeight: "700" }}>Budget</Text>
-        {signedInAs ? (
-          <Text style={{ fontSize: 13, color: "#888" }}>Signed in as: {signedInAs}</Text>
-        ) : null}
+    <ScrollView
+      style={styles.root}
+      contentContainerStyle={styles.content}
+      showsVerticalScrollIndicator={false}
+    >
+      {/* Header */}
+      <View style={styles.header}>
+        <Text style={styles.title}>Dashboard</Text>
       </View>
 
-      <View style={{ padding: 12, borderWidth: 1, borderRadius: 12, gap: 6 }}>
-        <Text style={{ opacity: 0.7 }}>Available to Assign</Text>
-        <Text style={{ fontSize: 18, fontWeight: "600" }}>
-          {available} cents
-        </Text>
-        <Pressable
-          onPress={resetAndSeed}
-          style={{
-            padding: 10,
-            borderRadius: 10,
-            borderWidth: 1,
-            alignItems: "center",
-          }}
+      {/* Available to Assign — hero card */}
+      <View style={styles.heroCard}>
+        <Text style={styles.heroLabel}>Available to Assign</Text>
+        <Text
+          style={[
+            styles.heroAmount,
+            availableCents < 0 && styles.heroAmountNegative,
+          ]}
         >
-          <Text>Reset (dev)</Text>
-        </Pressable>
-        {status === "loading" ? (
-          <Text style={{ opacity: 0.7 }}>Updating…</Text>
-        ) : null}
-      </View>
-
-      <View style={{ padding: 12, borderWidth: 1, borderRadius: 12, gap: 8 }}>
-        <Text style={{ fontWeight: "600" }}>Add Transaction (Manual)</Text>
-        <Text style={{ opacity: 0.7 }}>
-          Positive = income. Negative = expense.
+          ${formatCents(availableCents)}
         </Text>
-
-        <TextInput
-          value={txDescription}
-          onChangeText={setTxDescription}
-          placeholder="e.g. Paycheck, Groceries, Rent"
-          style={{ borderWidth: 1, borderRadius: 10, padding: 10 }}
-        />
-
-        <TextInput
-          value={txAmountCents}
-          onChangeText={setTxAmountCents}
-          keyboardType="number-pad"
-          placeholder="Amount in cents (e.g. 2000)"
-          style={{ borderWidth: 1, borderRadius: 10, padding: 10 }}
-        />
-
-        <View style={{ flexDirection: "row", gap: 10 }}>
-          <Pressable
-            onPress={() => setTxKind("income")}
-            style={{
-              padding: 10,
-              borderWidth: 1,
-              borderRadius: 10,
-              flex: 1,
-              alignItems: "center",
-              backgroundColor: txKind === "income" ? "#e0e0e0" : "transparent",
-            }}
-          >
-            <Text style={{ fontWeight: txKind === "income" ? "700" : "400" }}>
-              Income
-            </Text>
-          </Pressable>
-          <Pressable
-            onPress={() => setTxKind("expense")}
-            style={{
-              padding: 10,
-              borderWidth: 1,
-              borderRadius: 10,
-              flex: 1,
-              alignItems: "center",
-              backgroundColor: txKind === "expense" ? "#e0e0e0" : "transparent",
-            }}
-          >
-            <Text style={{ fontWeight: txKind === "expense" ? "700" : "400" }}>
-              Expense
-            </Text>
-          </Pressable>
+        <View style={styles.heroStat}>
+          <Text style={styles.heroStatLabel}>Total in envelopes</Text>
+          <Text style={styles.heroStatValue}>
+            ${formatCents(totalEnvelopeCents)}
+          </Text>
         </View>
-
-        <Pressable
-          onPress={() => {
-            const raw = Number(txAmountCents);
-            if (!Number.isFinite(raw) || raw <= 0) return;
-
-            const cents = txKind === "expense" ? -raw : raw;
-
-            addManualTransaction({
-              accountId: defaultAccountId,
-              amountCents: cents,
-              description: txDescription.trim() || "Manual transaction",
-            });
-          }}
-          style={{
-            padding: 10,
-            borderRadius: 10,
-            borderWidth: 1,
-            alignItems: "center",
-          }}
-        >
-          <Text>Add Transaction</Text>
-        </Pressable>
       </View>
 
-      <View style={{ padding: 12, borderWidth: 1, borderRadius: 12, gap: 8 }}>
-        <Text style={{ fontWeight: "600" }}>Create Envelope</Text>
-        <TextInput
-          value={newEnvelopeName}
-          onChangeText={setNewEnvelopeName}
-          placeholder="e.g. Groceries"
-          style={{ borderWidth: 1, borderRadius: 10, padding: 10 }}
-        />
+      {/* Unassigned nudge */}
+      {unassignedExpenseCount > 0 && (
         <Pressable
-          onPress={() => {
-            const name = newEnvelopeName.trim();
-            if (!name) return;
-            createEnvelope(name);
-            setNewEnvelopeName("");
-          }}
-          style={{
-            padding: 10,
-            borderRadius: 10,
-            borderWidth: 1,
-            alignItems: "center",
-          }}
+          style={styles.nudge}
+          onPress={() => router.push("/(tabs)/inbox")}
+          accessibilityLabel="Go to inbox to assign transactions"
         >
-          <Text>Create</Text>
+          <Text style={styles.nudgeText}>
+            {unassignedExpenseCount}{" "}
+            {unassignedExpenseCount === 1 ? "transaction needs" : "transactions need"} a home
+          </Text>
+          <Text style={styles.nudgeArrow}>→</Text>
         </Pressable>
-      </View>
-
-      <Text style={{ fontSize: 16, fontWeight: "600" }}>Envelopes</Text>
-
-      {state.budget.envelopes.length === 0 ? (
-        <Text style={{ opacity: 0.7 }}>
-          No envelopes yet. Create one above.
-        </Text>
-      ) : (
-        <FlatList
-          data={state.budget.envelopes}
-          keyExtractor={(e) => e.id}
-          contentContainerStyle={{ gap: 10, paddingBottom: 20 }}
-          renderItem={({ item }) => {
-            const assignments = Object.values(
-              state.inbox.assignmentsByTransactionId,
-            );
-            const assigned = assignments.filter(
-              (a) => a.envelopeId === item.id,
-            );
-
-            const envelopeTx = state.transactions.filter((t) => {
-              const a = assignments.find((x) => x.transactionId === t.id);
-              return a?.envelopeId === item.id;
-            });
-
-            const spent = envelopeTx
-              .filter((t) => t.amount.cents < 0)
-              .reduce((sum, t) => sum + Math.abs(t.amount.cents), 0);
-
-            const allocated = item.balance.cents + spent;
-
-            return (
-              <View
-                style={{
-                  padding: 12,
-                  borderWidth: 1,
-                  borderRadius: 12,
-                  gap: 8,
-                }}
-              >
-                <Text style={{ fontWeight: "600" }}>{item.name}</Text>
-                <View style={{ gap: 2 }}>
-                  <Text>Balance: {item.balance.cents} cents</Text>
-                  <Text style={{ fontSize: 12, opacity: 0.6 }}>
-                    Total allocated: {allocated} cents
-                  </Text>
-                  <Text style={{ fontSize: 12, opacity: 0.6 }}>
-                    Total spent: {spent} cents
-                  </Text>
-                </View>
-                <Text style={{ opacity: 0.7 }}>
-                  Assigned tx: {assigned.length}
-                </Text>
-
-                <View style={{ gap: 8 }}>
-                  <Text style={{ opacity: 0.7 }}>Allocate (cents)</Text>
-                  <TextInput
-                    value={allocateCents}
-                    onChangeText={setAllocateCents}
-                    keyboardType="number-pad"
-                    style={{ borderWidth: 1, borderRadius: 10, padding: 10 }}
-                  />
-                  <Pressable
-                    onPress={() => {
-                      const cents = Number(allocateCents);
-                      if (!Number.isFinite(cents) || cents <= 0) return;
-                      allocateToEnvelope({
-                        envelopeId: item.id,
-                        amountCents: cents,
-                      });
-                    }}
-                    style={{
-                      padding: 10,
-                      borderRadius: 10,
-                      borderWidth: 1,
-                      alignItems: "center",
-                    }}
-                  >
-                    <Text>Allocate to {item.name}</Text>
-                  </Pressable>
-                </View>
-              </View>
-            );
-          }}
-        />
       )}
-    </View>
+
+      {/* CTA buttons */}
+      <View style={styles.ctaRow}>
+        <Pressable
+          style={styles.ctaPrimary}
+          onPress={() => router.push("/add-transaction")}
+          accessibilityLabel="Add transaction"
+        >
+          <Text style={styles.ctaPrimaryText}>+ Add Transaction</Text>
+        </Pressable>
+        <Pressable
+          style={styles.ctaSecondary}
+          onPress={() => router.push("/create-envelope")}
+          accessibilityLabel="Create envelope"
+        >
+          <Text style={styles.ctaSecondaryText}>+ New Envelope</Text>
+        </Pressable>
+      </View>
+
+      {/* Envelopes preview */}
+      <Text style={styles.sectionLabel}>Envelopes</Text>
+
+      {envelopes.length === 0 ? (
+        <View style={styles.emptyEnvelopes}>
+          <Text style={styles.emptyText}>
+            No envelopes yet — create one to get started.
+          </Text>
+        </View>
+      ) : (
+        <View style={styles.envelopeList}>
+          {envelopes.map((env) => {
+            const isNegative = env.balance.cents < 0;
+            return (
+              <Pressable
+                key={env.id}
+                style={styles.envelopeRow}
+                onPress={() =>
+                  router.push({
+                    pathname: "/envelope/[envelopeId]",
+                    params: { envelopeId: env.id },
+                  })
+                }
+                accessibilityLabel={`${env.name} envelope`}
+              >
+                <Text style={styles.envelopeName} numberOfLines={1}>
+                  {env.name}
+                </Text>
+                <Text
+                  style={[
+                    styles.envelopeBalance,
+                    isNegative && styles.envelopeBalanceNegative,
+                  ]}
+                >
+                  ${formatCents(env.balance.cents)}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
+      )}
+    </ScrollView>
   );
 }
+
+const styles = StyleSheet.create({
+  root: { flex: 1, backgroundColor: "#fff" },
+  content: { paddingBottom: 40 },
+  center: { flex: 1, alignItems: "center", justifyContent: "center" },
+  header: {
+    paddingHorizontal: 16,
+    paddingTop: 60,
+    paddingBottom: 16,
+  },
+  title: { fontSize: 28, fontWeight: "700", color: "#111" },
+
+  // Hero card
+  heroCard: {
+    marginHorizontal: 16,
+    marginBottom: 12,
+    backgroundColor: "#4f8ef7",
+    borderRadius: 20,
+    paddingVertical: 28,
+    paddingHorizontal: 24,
+    gap: 4,
+  },
+  heroLabel: { fontSize: 13, color: "rgba(255,255,255,0.75)", fontWeight: "600", textTransform: "uppercase", letterSpacing: 0.5 },
+  heroAmount: { fontSize: 44, fontWeight: "800", color: "#fff", marginTop: 4 },
+  heroAmountNegative: { color: "#ffcdd2" },
+  heroStat: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 16,
+    paddingTop: 12,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderColor: "rgba(255,255,255,0.3)",
+  },
+  heroStatLabel: { fontSize: 13, color: "rgba(255,255,255,0.75)" },
+  heroStatValue: { fontSize: 13, fontWeight: "600", color: "#fff" },
+
+  // Nudge
+  nudge: {
+    marginHorizontal: 16,
+    marginBottom: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    backgroundColor: "#fff8e1",
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderWidth: 1,
+    borderColor: "#ffe082",
+  },
+  nudgeText: { fontSize: 14, fontWeight: "500", color: "#795548" },
+  nudgeArrow: { fontSize: 16, color: "#795548" },
+
+  // CTA
+  ctaRow: {
+    flexDirection: "row",
+    gap: 10,
+    marginHorizontal: 16,
+    marginBottom: 24,
+  },
+  ctaPrimary: {
+    flex: 1,
+    backgroundColor: "#4f8ef7",
+    borderRadius: 14,
+    paddingVertical: 14,
+    alignItems: "center",
+  },
+  ctaPrimaryText: { color: "#fff", fontWeight: "700", fontSize: 15 },
+  ctaSecondary: {
+    flex: 1,
+    borderRadius: 14,
+    paddingVertical: 14,
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#4f8ef7",
+  },
+  ctaSecondaryText: { color: "#4f8ef7", fontWeight: "700", fontSize: 15 },
+
+  // Section
+  sectionLabel: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: "#555",
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+    paddingHorizontal: 16,
+    marginBottom: 8,
+  },
+
+  // Envelopes
+  emptyEnvelopes: {
+    marginHorizontal: 16,
+    padding: 20,
+    borderRadius: 14,
+    backgroundColor: "#f5f5f5",
+    alignItems: "center",
+  },
+  emptyText: { fontSize: 14, color: "#888", textAlign: "center" },
+  envelopeList: {
+    marginHorizontal: 16,
+    borderRadius: 14,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: "#eee",
+    overflow: "hidden",
+  },
+  envelopeRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderColor: "#eee",
+    backgroundColor: "#fff",
+  },
+  envelopeName: { fontSize: 15, fontWeight: "500", color: "#111", flex: 1 },
+  envelopeBalance: { fontSize: 15, fontWeight: "600", color: "#2d9e6b", marginLeft: 12 },
+  envelopeBalanceNegative: { color: "#d94f4f" },
+});
