@@ -65,7 +65,7 @@ export default function EnvelopesScreen() {
             <Pressable
               style={styles.row}
               onPress={() => {
-                // MS-14.8: envelope detail — wired in a future ticket
+                router.push({ pathname: "/envelope/[envelopeId]", params: { envelopeId: item.id } });
               }}
               accessibilityLabel={`${item.name} envelope`}
             >

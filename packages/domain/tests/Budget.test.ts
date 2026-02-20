@@ -4,7 +4,6 @@ import { Envelope } from "../src/models/Envelope";
 import { allocateFunds } from "../src/logic/allocateFunds";
 import { spendFromEnvelope } from "../src/logic/spendFromEnvelope";
 import { InsufficientAvailableFundsError } from "../src/errors/InsufficientAvailableFundsError";
-import { InsufficientEnvelopeFundsError } from "../src/errors/InsufficientEnvelopeFundsError";
 
 describe("Budget envelope rules", () => {
   const groceries: Envelope = {
@@ -60,15 +59,21 @@ describe("Budget envelope rules", () => {
     ).toBe(250);
   });
 
-  it("throws if spending more than envelope balance", () => {
+  it("allows negative balance when spending exceeds envelope funds", () => {
     const allocated = allocateFunds(
       baseBudget,
       "env-groceries",
       Money.fromCents(100),
     );
 
-    expect(() =>
-      spendFromEnvelope(allocated, "env-groceries", Money.fromCents(200)),
-    ).toThrow(InsufficientEnvelopeFundsError);
+    const result = spendFromEnvelope(
+      allocated,
+      "env-groceries",
+      Money.fromCents(200),
+    );
+
+    expect(
+      result.envelopes.find((e) => e.id === "env-groceries")!.balance.cents,
+    ).toBe(-100);
   });
 });
