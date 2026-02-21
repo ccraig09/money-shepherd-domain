@@ -14,6 +14,7 @@ import {
 import { router } from "expo-router";
 import { useAppStore } from "../src/store/useAppStore";
 import { parseDollars } from "../src/lib/moneyInput";
+import { MoneyInput } from "../src/ui/components/MoneyInput";
 import { buildAccountPickerList } from "../src/lib/accountStatus";
 import { loadPlaidTokens, type PlaidTokenData } from "../src/infra/local/secureTokens";
 import { loadSyncMeta } from "../src/infra/local/syncMeta";
@@ -195,20 +196,13 @@ export default function AddTransactionScreen() {
         </View>
 
         <Text style={styles.sectionLabel}>Amount</Text>
-        <TextInput
+        <MoneyInput
           value={rawAmount}
-          onChangeText={(v) => {
-            setRawAmount(v);
-            if (amountError) setAmountError(null);
-          }}
-          placeholder="e.g. 10.50"
-          keyboardType="decimal-pad"
-          style={[styles.input, amountError ? styles.inputError : null]}
+          onChangeText={setRawAmount}
+          error={amountError}
+          onErrorClear={() => setAmountError(null)}
           accessibilityLabel="Amount in dollars"
         />
-        {amountError ? (
-          <Text style={styles.errorText}>{amountError}</Text>
-        ) : null}
 
         <Text style={styles.sectionLabel}>Description <Text style={styles.optional}>(optional)</Text></Text>
         <TextInput
@@ -325,8 +319,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#111",
   },
-  inputError: { borderColor: "#d94f4f" },
-  errorText: { fontSize: 13, color: "#d94f4f", marginTop: 4 },
   saveBtn: {
     marginTop: 24,
     backgroundColor: "#4f8ef7",

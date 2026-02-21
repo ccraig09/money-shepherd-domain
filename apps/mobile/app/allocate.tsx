@@ -2,7 +2,6 @@ import React from "react";
 import {
   View,
   Text,
-  TextInput,
   Pressable,
   StyleSheet,
   KeyboardAvoidingView,
@@ -12,6 +11,7 @@ import {
 import { router } from "expo-router";
 import { useAppStore } from "../src/store/useAppStore";
 import { parseDollars, formatCents } from "../src/lib/moneyInput";
+import { MoneyInput } from "../src/ui/components/MoneyInput";
 
 export default function AllocateScreen() {
   const state = useAppStore((s) => s.state);
@@ -123,25 +123,15 @@ export default function AllocateScreen() {
 
             {/* Amount input */}
             <Text style={styles.sectionLabel}>Amount</Text>
-            <TextInput
+            <MoneyInput
               value={rawAmount}
-              onChangeText={(v) => {
-                setRawAmount(v);
-                if (amountError) setAmountError(null);
-              }}
+              onChangeText={setRawAmount}
+              error={amountError}
+              onErrorClear={() => setAmountError(null)}
               placeholder="e.g. 50.00"
-              keyboardType="decimal-pad"
               editable={!isZeroAvailable}
-              style={[
-                styles.input,
-                amountError ? styles.inputError : null,
-                isZeroAvailable ? styles.inputDisabled : null,
-              ]}
               accessibilityLabel="Amount to allocate in dollars"
             />
-            {amountError ? (
-              <Text style={styles.errorText}>{amountError}</Text>
-            ) : null}
 
             {/* Actions */}
             <Pressable
@@ -213,19 +203,6 @@ const styles = StyleSheet.create({
   envelopeNameSelected: { color: "#4f8ef7", fontWeight: "700" },
   envelopeBalance: { fontSize: 14, color: "#888" },
   envelopeBalanceSelected: { color: "#4f8ef7" },
-  input: {
-    borderWidth: 1,
-    borderColor: "#ddd",
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    fontSize: 16,
-    color: "#111",
-    marginTop: 4,
-  },
-  inputError: { borderColor: "#d94f4f" },
-  inputDisabled: { backgroundColor: "#f5f5f5", color: "#aaa" },
-  errorText: { fontSize: 13, color: "#d94f4f", marginTop: 4 },
   allocateBtn: {
     marginTop: 20,
     backgroundColor: "#4f8ef7",
