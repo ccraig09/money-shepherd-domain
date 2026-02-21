@@ -10,10 +10,13 @@ import {
 import { router } from "expo-router";
 import { useAppStore } from "../../src/store/useAppStore";
 import { formatCents } from "../../src/lib/moneyInput";
+import { InlineNotice } from "../../src/ui/components/InlineNotice";
 
 export default function TransactionsScreen() {
   const state = useAppStore((s) => s.state);
   const refreshFromPlaid = useAppStore((s) => s.refreshFromPlaid);
+  const plaidSyncError = useAppStore((s) => s.plaidSyncError);
+  const clearPlaidSyncError = useAppStore((s) => s.clearPlaidSyncError);
   const [refreshing, setRefreshing] = useState(false);
 
   async function handleRefresh() {
@@ -76,6 +79,22 @@ export default function TransactionsScreen() {
           </Pressable>
         </View>
       </View>
+
+      {plaidSyncError && (
+        <InlineNotice
+          variant="error"
+          message={plaidSyncError.message}
+          actionLabel={plaidSyncError.cta}
+          onAction={() => {
+            clearPlaidSyncError();
+            if (plaidSyncError.category === "network" || plaidSyncError.category === "unknown") {
+              handleRefresh();
+            } else {
+              router.push("/settings/connect-accounts");
+            }
+          }}
+        />
+      )}
 
       {transactions.length === 0 ? (
         <View style={styles.empty}>

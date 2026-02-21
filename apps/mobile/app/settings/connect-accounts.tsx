@@ -18,6 +18,7 @@ import {
   type PlaidTokenData,
 } from "../../src/infra/local/secureTokens";
 import { mapPlaidAccounts } from "../../src/infra/plaid/mapAccounts";
+import { classifyPlaidError } from "../../src/infra/plaid/errors";
 import { createEngine } from "../../src/domain/engine";
 
 type UserEntry = {
@@ -73,8 +74,8 @@ export default function ConnectAccountsScreen() {
             setTokens((prev) => ({ ...prev, [userId]: updated }));
             Alert.alert("Bank connected!", `${institutionName} was linked with ${plaidAccounts.length} account(s).`);
           } catch (err: unknown) {
-            const message = err instanceof Error ? err.message : "Token exchange failed.";
-            Alert.alert("Exchange error", message);
+            const info = classifyPlaidError(err);
+            Alert.alert("Connection failed", info.message);
           } finally {
             setConnecting(null);
           }
@@ -88,8 +89,8 @@ export default function ConnectAccountsScreen() {
       });
     } catch (err: unknown) {
       setConnecting(null);
-      const message = err instanceof Error ? err.message : "Unable to start bank connection.";
-      Alert.alert("Error", message);
+      const info = classifyPlaidError(err);
+      Alert.alert("Unable to connect", info.message);
     }
   }
 

@@ -130,7 +130,7 @@
 - [x] MS-15.7 Transaction mapping
 - [x] MS-15.9 Dedup merge
 - [x] MS-15.6 Refresh UI + engine method
-- [ ] MS-15.10 Error UX
+- [x] MS-15.10 Error UX
 - [ ] MS-15.11 Cost guardrails
 
 ### Phase 15 Smoke Check

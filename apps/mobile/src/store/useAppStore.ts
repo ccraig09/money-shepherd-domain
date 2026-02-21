@@ -6,6 +6,7 @@ import { clearPin } from "../infra/local/pin";
 import { loadPlaidTokens } from "../infra/local/secureTokens";
 import { syncTransactions } from "../infra/plaid/plaidClient";
 import { mapPlaidTransactions } from "../infra/plaid/mapTransaction";
+import { classifyPlaidError, type PlaidErrorInfo } from "../infra/plaid/errors";
 
 type LoadState = "idle" | "loading" | "ready" | "error";
 type GuardState = "checking" | "needs-setup" | "needs-pin-setup" | "needs-pin" | "ready";
@@ -17,10 +18,12 @@ type AppStore = {
   state: AppStateV1 | null;
   guardState: GuardState;
   lastSyncAt: string | null;
+  plaidSyncError: PlaidErrorInfo | null;
 
   // actions
   bootstrap: () => Promise<void>;
   setGuardReady: () => void;
+  clearPlaidSyncError: () => void;
   resetAll: () => Promise<void>;
   switchUser: () => Promise<void>;
   resetAndSeed: () => Promise<void>;
@@ -57,8 +60,10 @@ export const useAppStore = create<AppStore>((set, get) => ({
   state: null,
   guardState: "checking",
   lastSyncAt: null,
+  plaidSyncError: null,
 
   setGuardReady: () => set({ guardState: "ready" }),
+  clearPlaidSyncError: () => set({ plaidSyncError: null }),
 
   bootstrap: async () => {
     set({ status: "loading", errorMessage: null });
@@ -174,7 +179,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
   },
 
   refreshFromPlaid: async () => {
-    set({ status: "loading", errorMessage: null });
+    set({ status: "loading", errorMessage: null, plaidSyncError: null });
     try {
       const USER_IDS = ["user-los", "user-jackia"];
       const allNewTransactions: import("@money-shepherd/domain").Transaction[] = [];
@@ -207,8 +212,9 @@ export const useAppStore = create<AppStore>((set, get) => ({
 
       set({ state, status: "ready", lastSyncAt: new Date().toISOString() });
       return { imported };
-    } catch (err: any) {
-      set({ status: "error", errorMessage: err?.message ?? "Failed to refresh" });
+    } catch (err: unknown) {
+      const info = classifyPlaidError(err);
+      set({ status: "error", errorMessage: info.message, plaidSyncError: info });
       return { imported: 0 };
     }
   },
