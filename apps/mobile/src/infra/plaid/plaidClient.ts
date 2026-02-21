@@ -31,6 +31,27 @@ export async function requestLinkToken(userId: string): Promise<string> {
   return result.data.linkToken;
 }
 
+interface ExchangeTokenResponse {
+  accessToken: string;
+  itemId: string;
+}
+
+/**
+ * Exchanges a public_token from Plaid Link for a long-lived access_token.
+ * The exchange happens server-side via Cloud Function.
+ */
+export async function exchangePublicToken(
+  publicToken: string,
+  userId: string
+): Promise<ExchangeTokenResponse> {
+  const fn = httpsCallable<
+    { publicToken: string; userId: string },
+    ExchangeTokenResponse
+  >(functions, "exchangePublicToken");
+  const result = await fn({ publicToken, userId });
+  return result.data;
+}
+
 export interface PlaidLinkCallbacks {
   onSuccess: (publicToken: string, metadata: LinkSuccess["metadata"]) => void;
   onExit: (error: LinkExit["error"] | null) => void;

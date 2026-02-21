@@ -125,7 +125,7 @@
 - [x] MS-15.2 Env + safety
 - [x] MS-15.3 Connect screen
 - [x] MS-15.4 Link flow
-- [ ] MS-15.5 Token exchange + secure storage
+- [x] MS-15.5 Token exchange + secure storage
 - [ ] MS-15.8 Account mapping
 - [ ] MS-15.7 Transaction mapping
 - [ ] MS-15.9 Dedup merge

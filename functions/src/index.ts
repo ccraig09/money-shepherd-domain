@@ -69,3 +69,51 @@ export const createLinkToken = onCall<
     };
   }
 );
+
+interface ExchangeTokenRequest {
+  publicToken: string;
+  userId: string;
+}
+
+interface ExchangeTokenResponse {
+  accessToken: string;
+  itemId: string;
+}
+
+/**
+ * Exchanges a short-lived public_token (from Plaid Link) for a
+ * long-lived access_token + item_id.
+ */
+export const exchangePublicToken = onCall<
+  ExchangeTokenRequest,
+  Promise<ExchangeTokenResponse>
+>(
+  { secrets: [PLAID_CLIENT_ID, PLAID_SECRET] },
+  async (request) => {
+    if (!request.auth) {
+      throw new HttpsError("unauthenticated", "Must be signed in.");
+    }
+
+    const { publicToken, userId } = request.data;
+    if (!publicToken || typeof publicToken !== "string") {
+      throw new HttpsError("invalid-argument", "publicToken is required.");
+    }
+    if (!userId || typeof userId !== "string") {
+      throw new HttpsError("invalid-argument", "userId is required.");
+    }
+
+    const plaid = makePlaidClient(
+      PLAID_CLIENT_ID.value(),
+      PLAID_SECRET.value()
+    );
+
+    const response = await plaid.itemPublicTokenExchange({
+      public_token: publicToken,
+    });
+
+    return {
+      accessToken: response.data.access_token,
+      itemId: response.data.item_id,
+    };
+  }
+);
