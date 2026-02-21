@@ -14,6 +14,7 @@ import {
 import { router } from "expo-router";
 import { useAppStore } from "../src/store/useAppStore";
 import { parseDollars } from "../src/lib/moneyInput";
+import { formatMoney } from "../src/lib/moneyFormat";
 import { MoneyInput } from "../src/ui/components/MoneyInput";
 import { buildAccountPickerList } from "../src/lib/accountStatus";
 import { loadPlaidTokens, type PlaidTokenData } from "../src/infra/local/secureTokens";
@@ -82,6 +83,18 @@ export default function AddTransactionScreen() {
       setSaving(false);
     }
   }
+
+  const parsedPreview = parseDollars(rawAmount);
+  const previewCents =
+    parsedPreview.ok && parsedPreview.cents > 0
+      ? kind === "expense"
+        ? -parsedPreview.cents
+        : parsedPreview.cents
+      : null;
+  const previewLabel =
+    previewCents !== null
+      ? `${previewCents > 0 ? "+" : "-"}$${formatMoney(Math.abs(previewCents))}`
+      : `${kind === "expense" ? "-" : "+"}$0.00`;
 
   return (
     <KeyboardAvoidingView
@@ -203,6 +216,20 @@ export default function AddTransactionScreen() {
           onErrorClear={() => setAmountError(null)}
           accessibilityLabel="Amount in dollars"
         />
+
+        <Text
+          style={[
+            styles.preview,
+            previewCents !== null
+              ? kind === "expense"
+                ? styles.previewExpense
+                : styles.previewIncome
+              : styles.previewMuted,
+          ]}
+          accessibilityLabel={`Preview: ${previewLabel}`}
+        >
+          {previewLabel}
+        </Text>
 
         <Text style={styles.sectionLabel}>Description <Text style={styles.optional}>(optional)</Text></Text>
         <TextInput
@@ -334,4 +361,8 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
   },
   cancelText: { fontSize: 15, color: "#888" },
+  preview: { textAlign: "center", fontSize: 28, fontWeight: "800", marginVertical: 8 },
+  previewMuted: { color: "#ccc" },
+  previewIncome: { color: "#2d9e6b" },
+  previewExpense: { color: "#d94f4f" },
 });

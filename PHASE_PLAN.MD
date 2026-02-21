@@ -149,8 +149,8 @@
 
 - [x] MS-16.3 Parsing contract ({ ok, cents, error })
 - [x] MS-16.1 MoneyInput component
-- [ ] MS-16.2 Formatting + tests
-- [ ] MS-16.4 Income/expense clarity
+- [x] MS-16.2 Formatting + tests
+- [x] MS-16.4 Income/expense clarity
 - [ ] MS-16.5 Keyboard handling
 - [ ] MS-16.6 Empty state pass
 - [ ] MS-16.7 Envelope validation polish
