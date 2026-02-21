@@ -4,15 +4,30 @@ import type { AppStateV1 } from "./appState";
 
 /**
  * Adds an envelope to the budget.
- * We keep it simple: name + starting balance 0.
+ * Normalizes the name (trim + collapse internal spaces) and enforces:
+ *   - name must be non-blank after normalization
+ *   - name must be unique (case-insensitive) among existing envelopes
  */
 export function createEnvelope(
   state: AppStateV1,
   args: { name: string },
 ): AppStateV1 {
+  const normalizedName = args.name.trim().replace(/\s+/g, " ");
+
+  if (!normalizedName) {
+    throw new Error("Envelope name is required.");
+  }
+
+  const duplicate = state.budget.envelopes.find(
+    (e) => e.name.toLowerCase() === normalizedName.toLowerCase(),
+  );
+  if (duplicate) {
+    throw new Error(`An envelope named "${duplicate.name}" already exists.`);
+  }
+
   const envelope = {
     id: makeId("env"),
-    name: args.name,
+    name: normalizedName,
     balance: Money.zero(),
   };
 

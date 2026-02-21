@@ -20,15 +20,15 @@ export default function CreateEnvelopeScreen() {
   const [saving, setSaving] = React.useState(false);
 
   async function handleSave() {
-    const trimmed = name.trim();
+    const normalized = name.trim().replace(/\s+/g, " ");
 
-    if (!trimmed) {
+    if (!normalized) {
       setError("Name is required.");
       return;
     }
 
     const duplicate = state?.budget.envelopes.find(
-      (e) => e.name.toLowerCase() === trimmed.toLowerCase(),
+      (e) => e.name.toLowerCase() === normalized.toLowerCase(),
     );
     if (duplicate) {
       setError(`An envelope named "${duplicate.name}" already exists.`);
@@ -37,7 +37,7 @@ export default function CreateEnvelopeScreen() {
 
     setSaving(true);
     try {
-      await createEnvelope(trimmed);
+      await createEnvelope(normalized);
       router.back();
     } finally {
       setSaving(false);
