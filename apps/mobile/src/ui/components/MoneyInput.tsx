@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, TextInput, StyleSheet } from "react-native";
+import { View, Text, TextInput, StyleSheet, type TextInputProps } from "react-native";
 
 type Props = {
   value: string;
@@ -10,6 +10,8 @@ type Props = {
   placeholder?: string;
   editable?: boolean;
   accessibilityLabel?: string;
+  returnKeyType?: TextInputProps["returnKeyType"];
+  onSubmitEditing?: () => void;
 };
 
 /**
@@ -20,16 +22,21 @@ type Props = {
  * - Clears error on any text change (caller controls when to re-validate)
  * - Never stores floats; caller owns raw string + parsed cents
  */
-export function MoneyInput({
-  value,
-  onChangeText,
-  error,
-  onErrorClear,
-  label,
-  placeholder = "e.g. 10.50",
-  editable = true,
-  accessibilityLabel = "Amount in dollars",
-}: Props) {
+export const MoneyInput = React.forwardRef<TextInput, Props>(function MoneyInput(
+  {
+    value,
+    onChangeText,
+    error,
+    onErrorClear,
+    label,
+    placeholder = "e.g. 10.50",
+    editable = true,
+    accessibilityLabel = "Amount in dollars",
+    returnKeyType = "done",
+    onSubmitEditing,
+  },
+  ref,
+) {
   function handleChange(v: string) {
     if (error) onErrorClear();
     onChangeText(v);
@@ -47,13 +54,15 @@ export function MoneyInput({
       >
         <Text style={[styles.prefix, !editable && styles.prefixDisabled]}>$</Text>
         <TextInput
+          ref={ref}
           value={value}
           onChangeText={handleChange}
           placeholder={placeholder}
           placeholderTextColor="#bbb"
           keyboardType="decimal-pad"
           autoCorrect={false}
-          returnKeyType="done"
+          returnKeyType={returnKeyType}
+          onSubmitEditing={onSubmitEditing}
           editable={editable}
           style={[styles.input, !editable && styles.inputDisabled]}
           accessibilityLabel={accessibilityLabel}
@@ -62,7 +71,7 @@ export function MoneyInput({
       {error ? <Text style={styles.errorText}>{error}</Text> : null}
     </View>
   );
-}
+});
 
 const styles = StyleSheet.create({
   label: {

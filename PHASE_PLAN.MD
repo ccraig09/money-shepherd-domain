@@ -151,7 +151,7 @@
 - [x] MS-16.1 MoneyInput component
 - [x] MS-16.2 Formatting + tests
 - [x] MS-16.4 Income/expense clarity
-- [ ] MS-16.5 Keyboard handling
+- [x] MS-16.5 Keyboard handling
 - [ ] MS-16.6 Empty state pass
 - [ ] MS-16.7 Envelope validation polish
 - [ ] MS-16.9 Manual checklist

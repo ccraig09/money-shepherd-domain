@@ -10,6 +10,7 @@ import {
   Platform,
   Modal,
   FlatList,
+  Keyboard,
 } from "react-native";
 import { router } from "expo-router";
 import { useAppStore } from "../src/store/useAppStore";
@@ -46,6 +47,8 @@ export default function AddTransactionScreen() {
     accounts[0]?.id ?? "",
   );
   const [accountPickerOpen, setAccountPickerOpen] = React.useState(false);
+  const descriptionRef = React.useRef<TextInput>(null);
+
   const [rawAmount, setRawAmount] = React.useState("");
   const [kind, setKind] = React.useState<TxKind>("expense");
   const [description, setDescription] = React.useState("");
@@ -53,6 +56,7 @@ export default function AddTransactionScreen() {
   const [saving, setSaving] = React.useState(false);
 
   async function handleSave() {
+    Keyboard.dismiss();
     setAmountError(null);
 
     const parsed = parseDollars(rawAmount);
@@ -215,6 +219,8 @@ export default function AddTransactionScreen() {
           error={amountError}
           onErrorClear={() => setAmountError(null)}
           accessibilityLabel="Amount in dollars"
+          returnKeyType="next"
+          onSubmitEditing={() => descriptionRef.current?.focus()}
         />
 
         <Text
@@ -233,12 +239,14 @@ export default function AddTransactionScreen() {
 
         <Text style={styles.sectionLabel}>Description <Text style={styles.optional}>(optional)</Text></Text>
         <TextInput
+          ref={descriptionRef}
           value={description}
           onChangeText={setDescription}
           placeholder="e.g. Paycheck, Groceries"
           style={styles.input}
           accessibilityLabel="Transaction description"
           returnKeyType="done"
+          onSubmitEditing={handleSave}
         />
 
         <Pressable
