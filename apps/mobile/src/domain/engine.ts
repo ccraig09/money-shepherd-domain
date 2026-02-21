@@ -151,6 +151,17 @@ export function createEngine(): Engine {
   }
 
   async function reset(): Promise<void> {
+    // Clear remote (Firestore) first — syncMeta still available at this point
+    const syncMeta = await loadSyncMeta();
+    if (syncMeta) {
+      try {
+        const repo = new HouseholdStateRepo(syncMeta.householdId);
+        await ensureAnonAuth();
+        await repo.clear();
+      } catch (err) {
+        console.warn("Failed to clear remote state (continuing local reset):", err);
+      }
+    }
     await clearAppState();
   }
 
@@ -179,28 +190,16 @@ export function createEngine(): Engine {
       return remote.state;
     }
 
-    // If no remote → seed local then push
+    // No remote state — seed or push local.
+    // seed() → recompute() already handles saving + pushing to Firestore,
+    // so we don't push again here (that would cause SYNC_CONFLICT).
     const local = await loadAppState();
 
     if (!local) {
-      const seeded = await seed();
-      await saveAppState(seeded);
-
-      const pushed = await repo.push({
-        expectedRev: 0,
-        nextState: seeded,
-        updatedBy: syncMeta.userId,
-      });
-
-      await saveSyncMeta({
-        ...syncMeta,
-        rev: pushed.rev,
-      });
-
-      return seeded;
+      return seed();
     }
 
-    // local exists but remote doesn't
+    // local exists but remote doesn't — push it up
     const pushed = await repo.push({
       expectedRev: 0,
       nextState: local,

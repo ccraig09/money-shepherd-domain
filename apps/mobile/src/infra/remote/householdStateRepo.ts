@@ -1,5 +1,6 @@
 import {
   doc,
+  deleteDoc,
   getDoc,
   runTransaction,
   serverTimestamp,
@@ -117,6 +118,11 @@ export class HouseholdStateRepo {
       rev: data.rev,
       state: deserializeState(data.state),
     };
+  }
+
+  async clear(): Promise<void> {
+    await ensureAnonAuth();
+    await deleteDoc(this.ref());
   }
 
   async push(args: PushArgs): Promise<{ rev: number }> {

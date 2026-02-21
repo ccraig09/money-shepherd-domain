@@ -3,7 +3,7 @@ import { createEngine } from "../domain/engine";
 import type { AppStateV1 } from "../domain/appState";
 import { clearSyncMeta, loadSyncMeta, saveSyncMeta } from "../infra/local/syncMeta";
 import { clearPin } from "../infra/local/pin";
-import { loadPlaidTokens } from "../infra/local/secureTokens";
+import { loadPlaidTokens, clearAllPlaidTokens } from "../infra/local/secureTokens";
 import { syncTransactions } from "../infra/plaid/plaidClient";
 import { mapPlaidTransactions } from "../infra/plaid/mapTransaction";
 import { classifyPlaidError, makePlaidError, type PlaidErrorInfo } from "../infra/plaid/errors";
@@ -83,6 +83,8 @@ export const useAppStore = create<AppStore>((set, get) => ({
       await engine.reset();
       await clearSyncMeta();
       await clearPin();
+      await clearAllPlaidTokens("user-los");
+      await clearAllPlaidTokens("user-jackia");
       set({ state: null, status: "idle", guardState: "needs-setup", errorMessage: null });
     } catch (err: any) {
       set({ status: "error", errorMessage: err?.message ?? "Failed to reset" });
@@ -192,7 +194,9 @@ export const useAppStore = create<AppStore>((set, get) => ({
           const syncResult = await syncTransactions(token.accessToken);
           // Build account mapping from plaidAccountId -> internalAccountId
           const accountMap: Record<string, string> = {};
-          accountMap[token.itemId] = `plaid-${token.itemId}`;
+          if (token.accountIdMap) {
+            Object.assign(accountMap, token.accountIdMap);
+          }
 
           const mapped = mapPlaidTransactions(
             [...syncResult.added, ...syncResult.modified],
