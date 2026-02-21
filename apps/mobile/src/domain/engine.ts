@@ -12,6 +12,7 @@ import type { AppStateV1 } from "./appState";
 import { APP_STATE_VERSION } from "./appState";
 import { loadAppState, saveAppState, clearAppState } from "./storage";
 import { nowIso, makeId } from "../lib/id";
+import { mergeTransactions } from "./mergeTransactions";
 
 // NOTE: applyTransactionsToAccounts might be in your domain already.
 // If it exists, import and use it. If not, we’ll add it next.
@@ -46,6 +47,10 @@ export type Engine = {
 
   importPlaidAccounts(args: {
     newAccounts: Account[];
+  }): Promise<AppStateV1>;
+
+  importPlaidTransactions(args: {
+    transactions: import("@money-shepherd/domain").Transaction[];
   }): Promise<AppStateV1>;
 };
 
@@ -327,6 +332,18 @@ export function createEngine(): Engine {
     return recompute(next);
   }
 
+  async function importPlaidTransactions(args: {
+    transactions: import("@money-shepherd/domain").Transaction[];
+  }): Promise<AppStateV1> {
+    const state = await getState();
+    const merged = mergeTransactions(state.transactions, args.transactions);
+
+    if (merged.length === state.transactions.length) return state;
+
+    const next: AppStateV1 = { ...state, transactions: merged };
+    return recompute(next);
+  }
+
   return {
     getState,
     seed,
@@ -337,5 +354,6 @@ export function createEngine(): Engine {
     assignTransaction: assignTransactionAction,
     allocateToEnvelope: allocateToEnvelopeAction,
     importPlaidAccounts,
+    importPlaidTransactions,
   };
 }
