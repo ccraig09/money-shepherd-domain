@@ -148,7 +148,7 @@
 <!--
 ### Recommended build order
 - [x] MS-16.3 Parsing contract ({ ok, cents, error })
-- [ ] MS-16.1 MoneyInput component
+- [x] MS-16.1 MoneyInput component
 - [ ] MS-16.2 Formatting + tests
 - [ ] MS-16.4 Income/expense clarity
 - [ ] MS-16.5 Keyboard handling
