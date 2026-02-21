@@ -8,10 +8,15 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
+  Modal,
+  FlatList,
 } from "react-native";
 import { router } from "expo-router";
 import { useAppStore } from "../src/store/useAppStore";
 import { parseDollars } from "../src/lib/moneyInput";
+import { buildAccountPickerList } from "../src/lib/accountStatus";
+import { loadPlaidTokens, type PlaidTokenData } from "../src/infra/local/secureTokens";
+import { loadSyncMeta } from "../src/infra/local/syncMeta";
 
 type TxKind = "income" | "expense";
 
@@ -19,10 +24,26 @@ export default function AddTransactionScreen() {
   const state = useAppStore((s) => s.state);
   const addManualTransaction = useAppStore((s) => s.addManualTransaction);
 
-  const accounts = state?.accounts ?? [];
+  const accounts = React.useMemo(() => state?.accounts ?? [], [state?.accounts]);
+  const [tokens, setTokens] = React.useState<PlaidTokenData[]>([]);
+
+  React.useEffect(() => {
+    loadSyncMeta().then((meta) => {
+      if (meta?.userId) {
+        loadPlaidTokens(meta.userId).then(setTokens);
+      }
+    });
+  }, []);
+
+  const pickerItems = React.useMemo(
+    () => buildAccountPickerList(accounts, tokens),
+    [accounts, tokens],
+  );
+
   const [selectedAccountId, setSelectedAccountId] = React.useState<string>(
     accounts[0]?.id ?? "",
   );
+  const [accountPickerOpen, setAccountPickerOpen] = React.useState(false);
   const [rawAmount, setRawAmount] = React.useState("");
   const [kind, setKind] = React.useState<TxKind>("expense");
   const [description, setDescription] = React.useState("");
@@ -68,27 +89,74 @@ export default function AddTransactionScreen() {
     >
       <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
         <Text style={styles.sectionLabel}>Account</Text>
-        <View style={styles.row}>
-          {accounts.map((acct) => (
-            <Pressable
-              key={acct.id}
-              onPress={() => setSelectedAccountId(acct.id)}
-              style={[
-                styles.toggleBtn,
-                selectedAccountId === acct.id && styles.toggleBtnActive,
-              ]}
-            >
-              <Text
-                style={[
-                  styles.toggleText,
-                  selectedAccountId === acct.id && styles.toggleTextActive,
-                ]}
-              >
-                {acct.name}
-              </Text>
+        <Pressable
+          style={styles.selectField}
+          onPress={() => setAccountPickerOpen(true)}
+          accessibilityLabel="Select account"
+        >
+          <Text style={styles.selectFieldText} numberOfLines={1}>
+            {(() => {
+              const item = pickerItems.find((i) => i.account.id === selectedAccountId);
+              if (!item) return "Select an account";
+              const suffix = item.isPlaid && !item.isConnected ? " (Disconnected)" : "";
+              return item.account.name + suffix;
+            })()}
+          </Text>
+          <Text style={styles.selectChevron}>›</Text>
+        </Pressable>
+
+        <Modal
+          visible={accountPickerOpen}
+          animationType="slide"
+          presentationStyle="pageSheet"
+          onRequestClose={() => setAccountPickerOpen(false)}
+        >
+          <View style={styles.modalHeader}>
+            <Text style={styles.modalTitle}>Select Account</Text>
+            <Pressable onPress={() => setAccountPickerOpen(false)} hitSlop={12}>
+              <Text style={styles.modalClose}>Done</Text>
             </Pressable>
-          ))}
-        </View>
+          </View>
+          <FlatList
+            data={pickerItems}
+            keyExtractor={(i) => i.account.id}
+            renderItem={({ item }) => {
+              const isSelected = item.account.id === selectedAccountId;
+              const isDisconnected = item.isPlaid && !item.isConnected;
+              return (
+                <Pressable
+                  style={[
+                    styles.modalRow,
+                    isSelected && styles.modalRowSelected,
+                  ]}
+                  onPress={() => {
+                    setSelectedAccountId(item.account.id);
+                    setAccountPickerOpen(false);
+                  }}
+                >
+                  <View style={styles.modalRowContent}>
+                    <Text
+                      style={[
+                        styles.modalRowText,
+                        isSelected && styles.modalRowTextSelected,
+                        isDisconnected && styles.modalRowTextDisconnected,
+                      ]}
+                      numberOfLines={1}
+                    >
+                      {item.account.name}
+                    </Text>
+                    {isDisconnected && (
+                      <Text style={styles.disconnectedLabel}>Disconnected</Text>
+                    )}
+                  </View>
+                  {isSelected && (
+                    <Text style={styles.modalCheck}>✓</Text>
+                  )}
+                </Pressable>
+              );
+            }}
+          />
+        </Modal>
 
         <Text style={styles.sectionLabel}>Type</Text>
         <View style={styles.row}>
@@ -191,6 +259,45 @@ const styles = StyleSheet.create({
   },
   optional: { fontWeight: "400", textTransform: "none", color: "#999" },
   row: { flexDirection: "row", gap: 10 },
+  selectField: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    borderWidth: 1,
+    borderColor: "#ddd",
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 13,
+    backgroundColor: "#fff",
+  },
+  selectFieldText: { fontSize: 16, color: "#111", flex: 1 },
+  selectChevron: { fontSize: 20, color: "#bbb", marginLeft: 8 },
+  modalHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: 16,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderColor: "#ddd",
+  },
+  modalTitle: { fontSize: 17, fontWeight: "700", color: "#111" },
+  modalClose: { fontSize: 16, color: "#4f8ef7", fontWeight: "600" },
+  modalRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderColor: "#eee",
+  },
+  modalRowSelected: { backgroundColor: "#edf3fe" },
+  modalRowContent: { flex: 1 },
+  modalRowText: { fontSize: 16, color: "#111" },
+  modalRowTextSelected: { color: "#4f8ef7", fontWeight: "600" },
+  modalRowTextDisconnected: { color: "#aaa" },
+  disconnectedLabel: { fontSize: 12, color: "#bbb", marginTop: 2 },
+  modalCheck: { fontSize: 16, color: "#4f8ef7", marginLeft: 8 },
   toggleBtn: {
     flex: 1,
     paddingVertical: 12,

@@ -6,6 +6,10 @@ export interface PlaidTokenData {
   accessToken: string;
   itemId: string;
   institutionName: string;
+  /** @deprecated Use accountIdMap instead */
+  accountIds?: string[];
+  /** Maps plaidAccountId → internalAccountId (survives reconnects) */
+  accountIdMap?: Record<string, string>;
 }
 
 function keyFor(userId: string): string {
@@ -33,8 +37,10 @@ export async function addPlaidToken(
   data: PlaidTokenData
 ): Promise<void> {
   const existing = await readTokens(userId);
-  // Replace if same itemId already stored (re-connect), otherwise append
-  const filtered = existing.filter((t) => t.itemId !== data.itemId);
+  // Replace by itemId OR institutionName (reconnect creates a new Item for the same bank)
+  const filtered = existing.filter(
+    (t) => t.itemId !== data.itemId && t.institutionName !== data.institutionName
+  );
   filtered.push(data);
   await AsyncStorage.setItem(keyFor(userId), JSON.stringify(filtered));
 }

@@ -11,6 +11,8 @@ export interface AccountMapping {
 export interface MapAccountsResult {
   accounts: Account[];
   mappings: AccountMapping[];
+  /** Maps plaidAccountId → internalAccountId (handles reconnect ID changes) */
+  accountIdMap: Record<string, string>;
 }
 
 /**
@@ -28,25 +30,50 @@ export function mapPlaidAccounts(
   const existingById = new Map(existingAccounts.map((a) => [a.id, a]));
   const mergedAccounts = [...existingAccounts];
   const mappings: AccountMapping[] = [];
+  const accountIdMap: Record<string, string> = {};
+
+  // Build name→account index for reconnect matching (plaid-* accounts only)
+  const existingByName = new Map<string, Account>();
+  for (const a of existingAccounts) {
+    if (a.id.startsWith("plaid-")) {
+      existingByName.set(a.name, a);
+    }
+  }
 
   for (const pa of plaidAccounts) {
-    const internalId = `plaid-${pa.plaidAccountId}`;
+    const directId = `plaid-${pa.plaidAccountId}`;
     const displayName = pa.officialName ?? pa.name;
 
-    if (!existingById.has(internalId)) {
-      mergedAccounts.push({
-        id: internalId,
-        name: displayName,
-        balance: Money.fromCents(0),
-      });
+    let resolvedId: string;
+
+    if (existingById.has(directId)) {
+      // Exact ID match — same Plaid account ID as before
+      resolvedId = directId;
+    } else {
+      // Reconnect case: Plaid assigned a new account ID. Try matching by name.
+      const nameMatch = existingByName.get(displayName);
+      if (nameMatch) {
+        resolvedId = nameMatch.id;
+      } else {
+        // Genuinely new account
+        resolvedId = directId;
+        mergedAccounts.push({
+          id: resolvedId,
+          name: displayName,
+          balance: Money.fromCents(0),
+        });
+        existingById.set(resolvedId, mergedAccounts[mergedAccounts.length - 1]);
+      }
     }
+
+    accountIdMap[pa.plaidAccountId] = resolvedId;
 
     mappings.push({
       plaidAccountId: pa.plaidAccountId,
-      internalAccountId: internalId,
+      internalAccountId: resolvedId,
       userId,
     });
   }
 
-  return { accounts: mergedAccounts, mappings };
+  return { accounts: mergedAccounts, mappings, accountIdMap };
 }

@@ -89,4 +89,40 @@ describe("mergeTransactions", () => {
       expect(mergeTransactions([], [])).toEqual([]);
     });
   });
+
+  describe("fingerprint dedup (reconnect scenario)", () => {
+    it("deduplicates plaid-tx with different IDs but same fingerprint", () => {
+      const existing = [
+        makeTx("plaid-tx-old-001", "2024-01-15T00:00:00.000Z", -2500),
+      ];
+      const incoming = [
+        makeTx("plaid-tx-new-999", "2024-01-15T00:00:00.000Z", -2500),
+      ];
+      const result = mergeTransactions(existing, incoming);
+      expect(result).toHaveLength(1);
+      expect(result[0].id).toBe("plaid-tx-old-001");
+    });
+
+    it("does not fingerprint-dedup manual transactions", () => {
+      const existing = [
+        makeTx("manual-001", "2024-01-15T00:00:00.000Z", -2500),
+      ];
+      const incoming = [
+        makeTx("manual-002", "2024-01-15T00:00:00.000Z", -2500),
+      ];
+      const result = mergeTransactions(existing, incoming);
+      expect(result).toHaveLength(2);
+    });
+
+    it("allows plaid-tx with same date but different amount", () => {
+      const existing = [
+        makeTx("plaid-tx-old-001", "2024-01-15T00:00:00.000Z", -2500),
+      ];
+      const incoming = [
+        makeTx("plaid-tx-new-999", "2024-01-15T00:00:00.000Z", -5000),
+      ];
+      const result = mergeTransactions(existing, incoming);
+      expect(result).toHaveLength(2);
+    });
+  });
 });

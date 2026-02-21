@@ -61,12 +61,12 @@ export default function ConnectAccountsScreen() {
           try {
             const { accessToken, itemId } = await exchangePublicToken(publicToken, userId);
             const institutionName = linkMetadata.institution?.name ?? "Your bank";
-            await addPlaidToken(userId, { accessToken, itemId, institutionName });
 
-            // Fetch Plaid accounts and import into domain state
+            // Fetch Plaid accounts before storing token so we can record accountIdMap
             const plaidAccounts = await fetchAccounts(accessToken);
             const state = await engine.getState();
-            const { accounts: mergedAccounts } = mapPlaidAccounts(plaidAccounts, userId, state.accounts);
+            const { accounts: mergedAccounts, accountIdMap } = mapPlaidAccounts(plaidAccounts, userId, state.accounts);
+            await addPlaidToken(userId, { accessToken, itemId, institutionName, accountIdMap });
             await engine.importPlaidAccounts({ newAccounts: mergedAccounts });
 
             // Refresh token list
