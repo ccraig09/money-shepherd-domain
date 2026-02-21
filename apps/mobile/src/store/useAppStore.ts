@@ -3,6 +3,9 @@ import { createEngine } from "../domain/engine";
 import type { AppStateV1 } from "../domain/appState";
 import { clearSyncMeta, loadSyncMeta, saveSyncMeta } from "../infra/local/syncMeta";
 import { clearPin } from "../infra/local/pin";
+import { loadPlaidTokens } from "../infra/local/secureTokens";
+import { syncTransactions } from "../infra/plaid/plaidClient";
+import { mapPlaidTransactions } from "../infra/plaid/mapTransaction";
 
 type LoadState = "idle" | "loading" | "ready" | "error";
 type GuardState = "checking" | "needs-setup" | "needs-pin-setup" | "needs-pin" | "ready";
@@ -37,6 +40,7 @@ type AppStore = {
     description: string;
     postedAt?: string;
   }) => Promise<void>;
+  refreshFromPlaid: () => Promise<{ imported: number }>;
 };
 
 const engine = createEngine();
@@ -166,6 +170,46 @@ export const useAppStore = create<AppStore>((set, get) => ({
         status: "error",
         errorMessage: err?.message ?? "Failed to add transaction",
       });
+    }
+  },
+
+  refreshFromPlaid: async () => {
+    set({ status: "loading", errorMessage: null });
+    try {
+      const USER_IDS = ["user-los", "user-jackia"];
+      const allNewTransactions: import("@money-shepherd/domain").Transaction[] = [];
+
+      for (const userId of USER_IDS) {
+        const tokens = await loadPlaidTokens(userId);
+        for (const token of tokens) {
+          const syncResult = await syncTransactions(token.accessToken);
+          // Build account mapping from plaidAccountId -> internalAccountId
+          const accountMap: Record<string, string> = {};
+          accountMap[token.itemId] = `plaid-${token.itemId}`;
+
+          const mapped = mapPlaidTransactions(
+            [...syncResult.added, ...syncResult.modified],
+            accountMap
+          );
+          allNewTransactions.push(...mapped);
+        }
+      }
+
+      let state = get().state;
+      if (!state) {
+        set({ status: "ready" });
+        return { imported: 0 };
+      }
+
+      const before = state.transactions.length;
+      state = await engine.importPlaidTransactions({ transactions: allNewTransactions });
+      const imported = state.transactions.length - before;
+
+      set({ state, status: "ready", lastSyncAt: new Date().toISOString() });
+      return { imported };
+    } catch (err: any) {
+      set({ status: "error", errorMessage: err?.message ?? "Failed to refresh" });
+      return { imported: 0 };
     }
   },
 }));

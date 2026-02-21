@@ -75,6 +75,38 @@ export async function fetchAccounts(
   return result.data.accounts;
 }
 
+export interface PlaidSyncedTransaction {
+  transaction_id: string;
+  account_id: string;
+  amount: number;
+  date: string;
+  merchant_name: string | null;
+  name: string | null;
+}
+
+export interface SyncTransactionsResult {
+  added: PlaidSyncedTransaction[];
+  modified: PlaidSyncedTransaction[];
+  removed: string[];
+  nextCursor: string;
+  hasMore: boolean;
+}
+
+/**
+ * Fetches new/modified/removed transactions for a connected Plaid item.
+ */
+export async function syncTransactions(
+  accessToken: string,
+  cursor?: string
+): Promise<SyncTransactionsResult> {
+  const fn = httpsCallable<
+    { accessToken: string; cursor?: string },
+    SyncTransactionsResult
+  >(functions, "syncTransactions");
+  const result = await fn({ accessToken, cursor });
+  return result.data;
+}
+
 export interface PlaidLinkCallbacks {
   onSuccess: (publicToken: string, metadata: LinkSuccess["metadata"]) => void;
   onExit: (error: LinkExit["error"] | null) => void;

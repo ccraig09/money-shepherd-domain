@@ -174,3 +174,80 @@ export const getAccounts = onCall<
     return { accounts };
   }
 );
+
+interface SyncTransactionsRequest {
+  accessToken: string;
+  cursor?: string;
+}
+
+interface PlaidTransactionResult {
+  transaction_id: string;
+  account_id: string;
+  amount: number;
+  date: string;
+  merchant_name: string | null;
+  name: string | null;
+}
+
+interface SyncTransactionsResponse {
+  added: PlaidTransactionResult[];
+  modified: PlaidTransactionResult[];
+  removed: string[]; // transaction_ids
+  nextCursor: string;
+  hasMore: boolean;
+}
+
+/**
+ * Fetches new/modified/removed transactions for a Plaid item.
+ * Uses /transactions/sync for efficient incremental updates.
+ */
+export const syncTransactions = onCall<
+  SyncTransactionsRequest,
+  Promise<SyncTransactionsResponse>
+>(
+  { secrets: [PLAID_CLIENT_ID, PLAID_SECRET] },
+  async (request) => {
+    if (!request.auth) {
+      throw new HttpsError("unauthenticated", "Must be signed in.");
+    }
+
+    const { accessToken, cursor } = request.data;
+    if (!accessToken || typeof accessToken !== "string") {
+      throw new HttpsError("invalid-argument", "accessToken is required.");
+    }
+
+    const plaid = makePlaidClient(
+      PLAID_CLIENT_ID.value(),
+      PLAID_SECRET.value()
+    );
+
+    const response = await plaid.transactionsSync({
+      access_token: accessToken,
+      cursor: cursor ?? undefined,
+    });
+
+    const mapTx = (t: {
+      transaction_id: string;
+      account_id: string;
+      amount: number;
+      date: string;
+      merchant_name?: string | null;
+      name: string;
+    }): PlaidTransactionResult => ({
+      transaction_id: t.transaction_id,
+      account_id: t.account_id,
+      amount: t.amount,
+      date: t.date,
+      merchant_name: t.merchant_name ?? null,
+      name: t.name ?? null,
+    });
+
+    return {
+      added: response.data.added.map(mapTx),
+      modified: response.data.modified.map(mapTx),
+      removed: response.data.removed.map((r) => r.transaction_id),
+      nextCursor: response.data.next_cursor,
+      hasMore: response.data.has_more,
+    };
+  }
+);

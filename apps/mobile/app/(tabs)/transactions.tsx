@@ -1,10 +1,11 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
   FlatList,
   Pressable,
   StyleSheet,
+  ActivityIndicator,
 } from "react-native";
 import { router } from "expo-router";
 import { useAppStore } from "../../src/store/useAppStore";
@@ -12,6 +13,14 @@ import { formatCents } from "../../src/lib/moneyInput";
 
 export default function TransactionsScreen() {
   const state = useAppStore((s) => s.state);
+  const refreshFromPlaid = useAppStore((s) => s.refreshFromPlaid);
+  const [refreshing, setRefreshing] = useState(false);
+
+  async function handleRefresh() {
+    setRefreshing(true);
+    await refreshFromPlaid();
+    setRefreshing(false);
+  }
 
   if (!state) {
     return (
@@ -45,13 +54,27 @@ export default function TransactionsScreen() {
     <View style={styles.root}>
       <View style={styles.header}>
         <Text style={styles.title}>Transactions</Text>
-        <Pressable
-          onPress={() => router.push("/add-transaction")}
-          style={styles.addBtn}
-          accessibilityLabel="Add transaction"
-        >
-          <Text style={styles.addBtnText}>+ Add</Text>
-        </Pressable>
+        <View style={styles.headerActions}>
+          <Pressable
+            onPress={handleRefresh}
+            style={[styles.refreshBtn, refreshing && styles.refreshBtnDisabled]}
+            accessibilityLabel="Refresh from Plaid"
+            disabled={refreshing}
+          >
+            {refreshing ? (
+              <ActivityIndicator size="small" color="#4f8ef7" />
+            ) : (
+              <Text style={styles.refreshBtnText}>↻ Sync</Text>
+            )}
+          </Pressable>
+          <Pressable
+            onPress={() => router.push("/add-transaction")}
+            style={styles.addBtn}
+            accessibilityLabel="Add transaction"
+          >
+            <Text style={styles.addBtnText}>+ Add</Text>
+          </Pressable>
+        </View>
       </View>
 
       {transactions.length === 0 ? (
@@ -110,6 +133,23 @@ const styles = StyleSheet.create({
     borderColor: "#ddd",
   },
   title: { fontSize: 24, fontWeight: "700" },
+  headerActions: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  refreshBtn: {
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: "#4f8ef7",
+    minWidth: 72,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  refreshBtnDisabled: { opacity: 0.5 },
+  refreshBtnText: { color: "#4f8ef7", fontWeight: "600", fontSize: 15 },
   addBtn: {
     paddingHorizontal: 16,
     paddingVertical: 8,
