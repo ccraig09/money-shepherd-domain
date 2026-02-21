@@ -131,7 +131,7 @@
 - [x] MS-15.9 Dedup merge
 - [x] MS-15.6 Refresh UI + engine method
 - [x] MS-15.10 Error UX
-- [ ] MS-15.11 Cost guardrails
+- [x] MS-15.11 Cost guardrails
 
 ### Phase 15 Smoke Check
 
