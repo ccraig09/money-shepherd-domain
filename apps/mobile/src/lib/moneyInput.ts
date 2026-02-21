@@ -8,13 +8,13 @@ export type ParseResult =
   | { ok: true; cents: number }
   | { ok: false; error: string };
 
-/** Matches non-negative dollar strings with at most two decimal places. */
-const VALID_AMOUNT = /^\d+(\.\d{1,2})?$/;
+/** Matches dollar strings like "10", "10.5", "10.50", or ".50". */
+const VALID_AMOUNT = /^\d+(\.\d{1,2})?$|^\.\d{1,2}$/;
 
 /**
- * Parse a raw UI string (e.g. "10", "10.5", "10.50") into integer cents.
+ * Parse a raw UI string (e.g. "10", "10.5", "10.50", ".50") into integer cents.
  *
- * Rejects: empty, negative, more than two decimal places, non-numeric.
+ * Rejects: empty, negative, lone dot, multiple dots, 3+ decimal places, non-numeric.
  * UI is responsible for sign (income vs. expense toggle).
  */
 export function parseDollars(raw: string): ParseResult {
@@ -24,13 +24,25 @@ export function parseDollars(raw: string): ParseResult {
     return { ok: false, error: "Amount is required." };
   }
 
+  if (trimmed === ".") {
+    return { ok: false, error: "Enter an amount like 10.50." };
+  }
+
+  if ((trimmed.match(/\./g) ?? []).length > 1) {
+    return { ok: false, error: "Enter an amount like 10.50." };
+  }
+
+  if (/\.\d{3,}/.test(trimmed)) {
+    return { ok: false, error: "Use at most 2 decimal places." };
+  }
+
   if (!VALID_AMOUNT.test(trimmed)) {
     return { ok: false, error: "Enter a valid amount (e.g. 10 or 10.50)." };
   }
 
   const [intPart, decPart = ""] = trimmed.split(".");
-  const wholeCents = parseInt(intPart, 10) * 100;
-  const fractionalCents = parseInt(decPart.padEnd(2, "0"), 10);
+  const wholeCents = (intPart === "" ? 0 : parseInt(intPart, 10)) * 100;
+  const fractionalCents = decPart === "" ? 0 : parseInt(decPart.padEnd(2, "0"), 10);
 
   return { ok: true, cents: wholeCents + fractionalCents };
 }

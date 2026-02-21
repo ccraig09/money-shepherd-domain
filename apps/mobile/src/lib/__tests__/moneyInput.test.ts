@@ -29,6 +29,14 @@ describe("parseDollars — accepted inputs", () => {
     const result = parseDollars("  10.50  ");
     expect(result).toEqual({ ok: true, cents: 1050 });
   });
+
+  it("accepts .50 shorthand as 50 cents", () => {
+    expect(parseDollars(".50")).toEqual({ ok: true, cents: 50 });
+  });
+
+  it("accepts .5 shorthand as 50 cents", () => {
+    expect(parseDollars(".5")).toEqual({ ok: true, cents: 50 });
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -37,13 +45,23 @@ describe("parseDollars — accepted inputs", () => {
 
 describe("parseDollars — rejected inputs", () => {
   it("rejects an empty string", () => {
-    const result = parseDollars("");
-    expect(result.ok).toBe(false);
+    expect(parseDollars("")).toEqual({ ok: false, error: "Amount is required." });
   });
 
   it("rejects a whitespace-only string", () => {
-    const result = parseDollars("   ");
-    expect(result.ok).toBe(false);
+    expect(parseDollars("   ")).toEqual({ ok: false, error: "Amount is required." });
+  });
+
+  it("rejects a lone dot", () => {
+    expect(parseDollars(".")).toEqual({ ok: false, error: "Enter an amount like 10.50." });
+  });
+
+  it("rejects multiple dots", () => {
+    expect(parseDollars("1.2.3")).toEqual({ ok: false, error: "Enter an amount like 10.50." });
+  });
+
+  it("rejects three decimal places with specific message", () => {
+    expect(parseDollars("10.505")).toEqual({ ok: false, error: "Use at most 2 decimal places." });
   });
 
   it("rejects a negative value", () => {
@@ -51,19 +69,12 @@ describe("parseDollars — rejected inputs", () => {
     expect(result.ok).toBe(false);
   });
 
-  it("rejects three decimal places", () => {
-    const result = parseDollars("10.505");
-    expect(result.ok).toBe(false);
-  });
-
   it("rejects non-numeric input", () => {
-    const result = parseDollars("abc");
-    expect(result.ok).toBe(false);
+    expect(parseDollars("abc")).toEqual({ ok: false, error: "Enter a valid amount (e.g. 10 or 10.50)." });
   });
 
   it("rejects input with a currency symbol", () => {
-    const result = parseDollars("$10");
-    expect(result.ok).toBe(false);
+    expect(parseDollars("$10")).toEqual({ ok: false, error: "Enter a valid amount (e.g. 10 or 10.50)." });
   });
 });
 
