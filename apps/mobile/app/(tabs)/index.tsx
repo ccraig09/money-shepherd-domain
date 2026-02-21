@@ -84,21 +84,30 @@ export default function DashboardScreen() {
         </Pressable>
       )}
 
-      {/* CTA buttons */}
+      {/* Quick actions */}
       <View style={styles.ctaRow}>
         <Pressable
-          style={styles.ctaPrimary}
-          onPress={() => router.push("/add-transaction")}
-          accessibilityLabel="Add transaction"
+          style={styles.ctaExpense}
+          onPress={() => router.push({ pathname: "/add-transaction", params: { kind: "expense" } })}
+          accessibilityLabel="Add expense"
         >
-          <Text style={styles.ctaPrimaryText}>+ Add Transaction</Text>
+          <Text style={styles.ctaExpenseText}>− Expense</Text>
         </Pressable>
         <Pressable
-          style={styles.ctaSecondary}
-          onPress={() => router.push("/create-envelope")}
-          accessibilityLabel="Create envelope"
+          style={styles.ctaIncome}
+          onPress={() => router.push({ pathname: "/add-transaction", params: { kind: "income" } })}
+          accessibilityLabel="Add income"
         >
-          <Text style={styles.ctaSecondaryText}>+ New Envelope</Text>
+          <Text style={styles.ctaIncomeText}>+ Income</Text>
+        </Pressable>
+      </View>
+      <View style={styles.ctaRowSingle}>
+        <Pressable
+          style={styles.ctaAllocate}
+          onPress={() => router.push("/allocate")}
+          accessibilityLabel="Allocate funds"
+        >
+          <Text style={styles.ctaAllocateText}>$ Allocate</Text>
         </Pressable>
       </View>
 
@@ -204,30 +213,44 @@ const styles = StyleSheet.create({
   nudgeText: { fontSize: 14, fontWeight: "500", color: "#795548" },
   nudgeArrow: { fontSize: 16, color: "#795548" },
 
-  // CTA
+  // Quick actions
   ctaRow: {
     flexDirection: "row",
     gap: 10,
     marginHorizontal: 16,
+    marginBottom: 10,
+  },
+  ctaRowSingle: {
+    marginHorizontal: 16,
     marginBottom: 24,
   },
-  ctaPrimary: {
-    flex: 1,
-    backgroundColor: "#4f8ef7",
-    borderRadius: 14,
-    paddingVertical: 14,
-    alignItems: "center",
-  },
-  ctaPrimaryText: { color: "#fff", fontWeight: "700", fontSize: 15 },
-  ctaSecondary: {
+  ctaExpense: {
     flex: 1,
     borderRadius: 14,
     paddingVertical: 14,
     alignItems: "center",
     borderWidth: 1,
-    borderColor: "#4f8ef7",
+    borderColor: "#d94f4f",
+    backgroundColor: "#fdeaea",
   },
-  ctaSecondaryText: { color: "#4f8ef7", fontWeight: "700", fontSize: 15 },
+  ctaExpenseText: { color: "#d94f4f", fontWeight: "700", fontSize: 15 },
+  ctaIncome: {
+    flex: 1,
+    borderRadius: 14,
+    paddingVertical: 14,
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#2d9e6b",
+    backgroundColor: "#edfaf3",
+  },
+  ctaIncomeText: { color: "#2d9e6b", fontWeight: "700", fontSize: 15 },
+  ctaAllocate: {
+    borderRadius: 14,
+    paddingVertical: 14,
+    alignItems: "center",
+    backgroundColor: "#4f8ef7",
+  },
+  ctaAllocateText: { color: "#fff", fontWeight: "700", fontSize: 15 },
 
   // Section
   sectionLabel: {

@@ -12,7 +12,7 @@ import {
   FlatList,
   Keyboard,
 } from "react-native";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { useAppStore } from "../src/store/useAppStore";
 import { parseDollars } from "../src/lib/moneyInput";
 import { formatMoney } from "../src/lib/moneyFormat";
@@ -24,6 +24,7 @@ import { loadSyncMeta } from "../src/infra/local/syncMeta";
 type TxKind = "income" | "expense";
 
 export default function AddTransactionScreen() {
+  const { kind: kindParam } = useLocalSearchParams<{ kind?: string }>();
   const state = useAppStore((s) => s.state);
   const addManualTransaction = useAppStore((s) => s.addManualTransaction);
 
@@ -50,7 +51,9 @@ export default function AddTransactionScreen() {
   const descriptionRef = React.useRef<TextInput>(null);
 
   const [rawAmount, setRawAmount] = React.useState("");
-  const [kind, setKind] = React.useState<TxKind>("expense");
+  const [kind, setKind] = React.useState<TxKind>(
+    kindParam === "income" ? "income" : "expense",
+  );
   const [description, setDescription] = React.useState("");
   const [amountError, setAmountError] = React.useState<string | null>(null);
   const [saving, setSaving] = React.useState(false);
