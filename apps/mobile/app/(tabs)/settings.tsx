@@ -8,10 +8,12 @@ import {
   ActivityIndicator,
   ScrollView,
 } from "react-native";
+import { useRouter } from "expo-router";
 import { loadSyncMeta, type SyncMeta } from "../../src/infra/local/syncMeta";
 import { useAppStore } from "../../src/store/useAppStore";
 
 export default function SettingsScreen() {
+  const router = useRouter();
   const resetAll = useAppStore((s) => s.resetAll);
   const switchUser = useAppStore((s) => s.switchUser);
   const lastSyncAt = useAppStore((s) => s.lastSyncAt);
@@ -99,6 +101,16 @@ export default function SettingsScreen() {
       <View style={styles.card}>
         <Text style={styles.cardTitle}>Device</Text>
         <Row label="Household" value={meta?.householdId ?? "—"} />
+      </View>
+
+      {/* Plaid */}
+      <View style={styles.card}>
+        <Text style={styles.cardTitle}>Bank Connections</Text>
+        <ActionButton
+          label="Connect Accounts"
+          onPress={() => router.push("/settings/connect-accounts")}
+          disabled={isBusy}
+        />
       </View>
 
       {/* Actions */}

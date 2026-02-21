@@ -119,11 +119,11 @@
 > NOTE: These are the planned ticket order for later reference.
 > Keep them commented until you start Phase 15.
 
-<!--
 ### Recommended build order
+
 - [x] MS-15.1 Strategy decision
 - [x] MS-15.2 Env + safety
-- [ ] MS-15.3 Connect screen
+- [x] MS-15.3 Connect screen
 - [ ] MS-15.4 Link flow
 - [ ] MS-15.5 Token exchange + secure storage
 - [ ] MS-15.8 Account mapping
@@ -134,12 +134,12 @@
 - [ ] MS-15.11 Cost guardrails
 
 ### Phase 15 Smoke Check
+
 - [ ] Connect Plaid (Los)
 - [ ] Pull accounts -> map to domain accounts
 - [ ] Pull transactions -> merge without duplicates
 - [ ] Pull-to-refresh updates with no spam calls
 - [ ] App relaunch preserves token + mappings (secure storage)
--->
 
 ---
 

@@ -116,6 +116,10 @@ export default function RootLayout() {
             name="envelope/[envelopeId]"
             options={{ headerBackTitle: "Envelopes" }}
           />
+          <Stack.Screen
+            name="settings/connect-accounts"
+            options={{ title: "Connect Accounts", headerBackTitle: "Settings" }}
+          />
         </Stack>
 
         {isReady && (status === "loading" || status === "idle") && (
