@@ -52,6 +52,29 @@ export async function exchangePublicToken(
   return result.data;
 }
 
+export interface PlaidAccountInfo {
+  plaidAccountId: string;
+  name: string;
+  officialName: string | null;
+  type: string;
+  subtype: string | null;
+  mask: string | null;
+}
+
+/**
+ * Fetches the accounts for a connected Plaid item.
+ */
+export async function fetchAccounts(
+  accessToken: string
+): Promise<PlaidAccountInfo[]> {
+  const fn = httpsCallable<
+    { accessToken: string },
+    { accounts: PlaidAccountInfo[] }
+  >(functions, "getAccounts");
+  const result = await fn({ accessToken });
+  return result.data.accounts;
+}
+
 export interface PlaidLinkCallbacks {
   onSuccess: (publicToken: string, metadata: LinkSuccess["metadata"]) => void;
   onExit: (error: LinkExit["error"] | null) => void;

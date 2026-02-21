@@ -117,3 +117,60 @@ export const exchangePublicToken = onCall<
     };
   }
 );
+
+interface GetAccountsRequest {
+  accessToken: string;
+}
+
+interface PlaidAccountInfo {
+  plaidAccountId: string;
+  name: string;
+  officialName: string | null;
+  type: string;
+  subtype: string | null;
+  mask: string | null;
+}
+
+interface GetAccountsResponse {
+  accounts: PlaidAccountInfo[];
+}
+
+/**
+ * Fetches the list of accounts for a connected Plaid item.
+ */
+export const getAccounts = onCall<
+  GetAccountsRequest,
+  Promise<GetAccountsResponse>
+>(
+  { secrets: [PLAID_CLIENT_ID, PLAID_SECRET] },
+  async (request) => {
+    if (!request.auth) {
+      throw new HttpsError("unauthenticated", "Must be signed in.");
+    }
+
+    const { accessToken } = request.data;
+    if (!accessToken || typeof accessToken !== "string") {
+      throw new HttpsError("invalid-argument", "accessToken is required.");
+    }
+
+    const plaid = makePlaidClient(
+      PLAID_CLIENT_ID.value(),
+      PLAID_SECRET.value()
+    );
+
+    const response = await plaid.accountsGet({
+      access_token: accessToken,
+    });
+
+    const accounts: PlaidAccountInfo[] = response.data.accounts.map((a) => ({
+      plaidAccountId: a.account_id,
+      name: a.name,
+      officialName: a.official_name ?? null,
+      type: a.type,
+      subtype: a.subtype ?? null,
+      mask: a.mask ?? null,
+    }));
+
+    return { accounts };
+  }
+);

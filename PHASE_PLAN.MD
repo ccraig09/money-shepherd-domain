@@ -126,7 +126,7 @@
 - [x] MS-15.3 Connect screen
 - [x] MS-15.4 Link flow
 - [x] MS-15.5 Token exchange + secure storage
-- [ ] MS-15.8 Account mapping
+- [x] MS-15.8 Account mapping
 - [ ] MS-15.7 Transaction mapping
 - [ ] MS-15.9 Dedup merge
 - [ ] MS-15.6 Refresh UI + engine method

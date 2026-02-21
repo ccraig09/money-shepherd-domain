@@ -10,13 +10,15 @@ import {
 } from "react-native";
 import { loadSyncMeta, type SyncMeta } from "../../src/infra/local/syncMeta";
 import { plaidConfigured } from "../../src/infra/plaid/config";
-import { requestLinkToken, openPlaidLink, exchangePublicToken } from "../../src/infra/plaid/plaidClient";
+import { requestLinkToken, openPlaidLink, exchangePublicToken, fetchAccounts } from "../../src/infra/plaid/plaidClient";
 import {
-  savePlaidToken,
-  loadPlaidToken,
-  clearPlaidToken,
+  addPlaidToken,
+  loadPlaidTokens,
+  removePlaidToken,
   type PlaidTokenData,
 } from "../../src/infra/local/secureTokens";
+import { mapPlaidAccounts } from "../../src/infra/plaid/mapAccounts";
+import { createEngine } from "../../src/domain/engine";
 
 type UserEntry = {
   id: string;
@@ -28,10 +30,12 @@ const USERS: UserEntry[] = [
   { id: "user-jackia", label: "Jackia" },
 ];
 
+const engine = createEngine();
+
 export default function ConnectAccountsScreen() {
   const [meta, setMeta] = React.useState<SyncMeta | null>(null);
   const [connecting, setConnecting] = React.useState<string | null>(null);
-  const [tokens, setTokens] = React.useState<Record<string, PlaidTokenData | null>>({});
+  const [tokens, setTokens] = React.useState<Record<string, PlaidTokenData[]>>({});
 
   React.useEffect(() => {
     loadSyncMeta().then(setMeta);
@@ -39,9 +43,9 @@ export default function ConnectAccountsScreen() {
   }, []);
 
   async function loadAllTokens() {
-    const entries: Record<string, PlaidTokenData | null> = {};
+    const entries: Record<string, PlaidTokenData[]> = {};
     for (const user of USERS) {
-      entries[user.id] = await loadPlaidToken(user.id);
+      entries[user.id] = await loadPlaidTokens(user.id);
     }
     setTokens(entries);
   }
@@ -56,12 +60,18 @@ export default function ConnectAccountsScreen() {
           try {
             const { accessToken, itemId } = await exchangePublicToken(publicToken, userId);
             const institutionName = linkMetadata.institution?.name ?? "Your bank";
-            await savePlaidToken(userId, { accessToken, itemId, institutionName });
-            setTokens((prev) => ({
-              ...prev,
-              [userId]: { accessToken, itemId, institutionName },
-            }));
-            Alert.alert("Bank connected!", `${institutionName} was linked successfully.`);
+            await addPlaidToken(userId, { accessToken, itemId, institutionName });
+
+            // Fetch Plaid accounts and import into domain state
+            const plaidAccounts = await fetchAccounts(accessToken);
+            const state = await engine.getState();
+            const { accounts: mergedAccounts } = mapPlaidAccounts(plaidAccounts, userId, state.accounts);
+            await engine.importPlaidAccounts({ newAccounts: mergedAccounts });
+
+            // Refresh token list
+            const updated = await loadPlaidTokens(userId);
+            setTokens((prev) => ({ ...prev, [userId]: updated }));
+            Alert.alert("Bank connected!", `${institutionName} was linked with ${plaidAccounts.length} account(s).`);
           } catch (err: unknown) {
             const message = err instanceof Error ? err.message : "Token exchange failed.";
             Alert.alert("Exchange error", message);
@@ -83,9 +93,9 @@ export default function ConnectAccountsScreen() {
     }
   }
 
-  async function handleDisconnect(userId: string) {
+  async function handleDisconnect(userId: string, itemId: string, institutionName: string) {
     Alert.alert(
-      "Disconnect bank?",
+      `Disconnect ${institutionName}?`,
       "This will remove the stored connection. You can reconnect later.",
       [
         { text: "Cancel", style: "cancel" },
@@ -93,8 +103,9 @@ export default function ConnectAccountsScreen() {
           text: "Disconnect",
           style: "destructive",
           onPress: async () => {
-            await clearPlaidToken(userId);
-            setTokens((prev) => ({ ...prev, [userId]: null }));
+            await removePlaidToken(userId, itemId);
+            const updated = await loadPlaidTokens(userId);
+            setTokens((prev) => ({ ...prev, [userId]: updated }));
           },
         },
       ]
@@ -111,16 +122,16 @@ export default function ConnectAccountsScreen() {
 
       {USERS.map((user) => {
         const isCurrentUser = meta?.userId === user.id;
-        const tokenData = tokens[user.id] ?? null;
+        const userTokens = tokens[user.id] ?? [];
         return (
           <UserCard
             key={user.id}
             user={user}
             isCurrentUser={isCurrentUser}
             isConnecting={connecting === user.id}
-            tokenData={tokenData}
+            connectedBanks={userTokens}
             onConnect={() => handleConnect(user.id)}
-            onDisconnect={() => handleDisconnect(user.id)}
+            onDisconnect={(itemId, name) => handleDisconnect(user.id, itemId, name)}
           />
         );
       })}
@@ -142,18 +153,18 @@ function UserCard({
   user,
   isCurrentUser,
   isConnecting,
-  tokenData,
+  connectedBanks,
   onConnect,
   onDisconnect,
 }: {
   user: UserEntry;
   isCurrentUser: boolean;
   isConnecting: boolean;
-  tokenData: PlaidTokenData | null;
+  connectedBanks: PlaidTokenData[];
   onConnect: () => void;
-  onDisconnect: () => void;
+  onDisconnect: (itemId: string, institutionName: string) => void;
 }) {
-  const connected = tokenData !== null;
+  const hasConnections = connectedBanks.length > 0;
   const disabled = !plaidConfigured || isConnecting;
 
   return (
@@ -164,49 +175,50 @@ function UserCard({
           {isCurrentUser && (
             <Text style={styles.currentBadge}>This device</Text>
           )}
-          {connected && (
-            <Text style={styles.institutionLabel}>{tokenData.institutionName}</Text>
-          )}
         </View>
-        <StatusPill connected={connected} />
+        <StatusPill connected={hasConnections} />
       </View>
+
+      {hasConnections && (
+        <View style={styles.bankList}>
+          {connectedBanks.map((bank) => (
+            <View key={bank.itemId} style={styles.bankRow}>
+              <Text style={styles.institutionLabel}>{bank.institutionName}</Text>
+              <Pressable
+                onPress={() => onDisconnect(bank.itemId, bank.institutionName)}
+                hitSlop={8}
+              >
+                <Text style={styles.removeLink}>Remove</Text>
+              </Pressable>
+            </View>
+          ))}
+        </View>
+      )}
 
       <View style={styles.divider} />
 
-      {connected ? (
-        <Pressable
-          style={({ pressed }) => [
-            styles.disconnectBtn,
-            pressed && styles.disconnectBtnPressed,
-          ]}
-          onPress={onDisconnect}
-        >
-          <Text style={styles.disconnectBtnText}>Disconnect</Text>
-        </Pressable>
-      ) : (
-        <Pressable
-          style={({ pressed }) => [
-            styles.connectBtn,
-            pressed && styles.connectBtnPressed,
-            disabled && styles.connectBtnDisabled,
-          ]}
-          onPress={onConnect}
-          disabled={disabled}
-        >
-          {isConnecting ? (
-            <ActivityIndicator color="#aaa" size="small" />
-          ) : (
-            <Text
-              style={[
-                styles.connectBtnText,
-                disabled && styles.connectBtnTextDisabled,
-              ]}
-            >
-              Connect Bank
-            </Text>
-          )}
-        </Pressable>
-      )}
+      <Pressable
+        style={({ pressed }) => [
+          styles.connectBtn,
+          pressed && styles.connectBtnPressed,
+          disabled && styles.connectBtnDisabled,
+        ]}
+        onPress={onConnect}
+        disabled={disabled}
+      >
+        {isConnecting ? (
+          <ActivityIndicator color="#aaa" size="small" />
+        ) : (
+          <Text
+            style={[
+              styles.connectBtnText,
+              disabled && styles.connectBtnTextDisabled,
+            ]}
+          >
+            {hasConnections ? "Add Another Bank" : "Connect Bank"}
+          </Text>
+        )}
+      </Pressable>
     </View>
   );
 }
@@ -271,11 +283,24 @@ const styles = StyleSheet.create({
   pillText: { fontSize: 12, fontWeight: "600" },
   pillTextConnected: { color: "#1a9e5c" },
   pillTextEmpty: { color: "#999" },
+  bankList: {
+    gap: 8,
+    marginBottom: 12,
+  },
+  bankRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
   institutionLabel: {
     fontSize: 13,
     color: "#1a9e5c",
     fontWeight: "500",
-    marginTop: 2,
+  },
+  removeLink: {
+    fontSize: 12,
+    color: "#d32f2f",
+    fontWeight: "600",
   },
   divider: { height: 1, backgroundColor: "#f0f0f0", marginBottom: 12 },
   connectBtn: {
@@ -288,16 +313,6 @@ const styles = StyleSheet.create({
   connectBtnDisabled: { backgroundColor: "#e0e0e8" },
   connectBtnText: { fontSize: 15, fontWeight: "600", color: "#fff" },
   connectBtnTextDisabled: { color: "#aaa" },
-  disconnectBtn: {
-    alignItems: "center",
-    paddingVertical: 12,
-    borderRadius: 10,
-    backgroundColor: "#fff",
-    borderWidth: 1,
-    borderColor: "#e0e0e8",
-  },
-  disconnectBtnPressed: { opacity: 0.7 },
-  disconnectBtnText: { fontSize: 15, fontWeight: "600", color: "#d32f2f" },
   warningCard: {
     backgroundColor: "#fff8e1",
     borderRadius: 12,

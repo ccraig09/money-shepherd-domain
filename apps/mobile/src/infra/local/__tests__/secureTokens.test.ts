@@ -1,8 +1,8 @@
 import {
-  savePlaidToken,
-  loadPlaidToken,
-  clearPlaidToken,
-  hasPlaidToken,
+  addPlaidToken,
+  loadPlaidTokens,
+  removePlaidToken,
+  clearAllPlaidTokens,
   type PlaidTokenData,
 } from "../secureTokens";
 
@@ -30,78 +30,104 @@ beforeEach(() => {
   store.clear();
 });
 
-const LOS_TOKEN: PlaidTokenData = {
-  accessToken: "access-sandbox-los-123",
-  itemId: "item-los-abc",
+const CHASE: PlaidTokenData = {
+  accessToken: "access-sandbox-chase-123",
+  itemId: "item-chase-abc",
   institutionName: "Chase",
 };
 
-const JACKIA_TOKEN: PlaidTokenData = {
-  accessToken: "access-sandbox-jackia-456",
-  itemId: "item-jackia-def",
+const WELLS: PlaidTokenData = {
+  accessToken: "access-sandbox-wells-456",
+  itemId: "item-wells-def",
   institutionName: "Wells Fargo",
 };
 
-describe("secureTokens", () => {
-  describe("savePlaidToken + loadPlaidToken", () => {
-    it("stores and retrieves token data for a user", async () => {
-      await savePlaidToken("user-los", LOS_TOKEN);
-      const loaded = await loadPlaidToken("user-los");
-      expect(loaded).toEqual(LOS_TOKEN);
+
+describe("secureTokens (multi-item)", () => {
+  describe("addPlaidToken + loadPlaidTokens", () => {
+    it("stores and retrieves a single token", async () => {
+      await addPlaidToken("user-los", CHASE);
+      const tokens = await loadPlaidTokens("user-los");
+      expect(tokens).toEqual([CHASE]);
     });
 
-    it("returns null when no token is stored", async () => {
-      const loaded = await loadPlaidToken("user-los");
-      expect(loaded).toBeNull();
+    it("appends a second bank without overwriting the first", async () => {
+      await addPlaidToken("user-los", CHASE);
+      await addPlaidToken("user-los", WELLS);
+      const tokens = await loadPlaidTokens("user-los");
+      expect(tokens).toEqual([CHASE, WELLS]);
+    });
+
+    it("replaces a token when re-connecting the same bank (same itemId)", async () => {
+      await addPlaidToken("user-los", CHASE);
+      const updatedChase = { ...CHASE, accessToken: "access-new-token" };
+      await addPlaidToken("user-los", updatedChase);
+      const tokens = await loadPlaidTokens("user-los");
+      expect(tokens).toEqual([updatedChase]);
+    });
+
+    it("returns empty array when no tokens stored", async () => {
+      const tokens = await loadPlaidTokens("user-los");
+      expect(tokens).toEqual([]);
     });
   });
 
   describe("user isolation", () => {
     it("keeps tokens separate between users", async () => {
-      await savePlaidToken("user-los", LOS_TOKEN);
-      await savePlaidToken("user-jackia", JACKIA_TOKEN);
+      await addPlaidToken("user-los", CHASE);
+      await addPlaidToken("user-jackia", WELLS);
 
-      expect(await loadPlaidToken("user-los")).toEqual(LOS_TOKEN);
-      expect(await loadPlaidToken("user-jackia")).toEqual(JACKIA_TOKEN);
-    });
-
-    it("clearing one user does not affect the other", async () => {
-      await savePlaidToken("user-los", LOS_TOKEN);
-      await savePlaidToken("user-jackia", JACKIA_TOKEN);
-
-      await clearPlaidToken("user-los");
-
-      expect(await loadPlaidToken("user-los")).toBeNull();
-      expect(await loadPlaidToken("user-jackia")).toEqual(JACKIA_TOKEN);
+      expect(await loadPlaidTokens("user-los")).toEqual([CHASE]);
+      expect(await loadPlaidTokens("user-jackia")).toEqual([WELLS]);
     });
   });
 
-  describe("clearPlaidToken", () => {
-    it("removes the stored token", async () => {
-      await savePlaidToken("user-los", LOS_TOKEN);
-      await clearPlaidToken("user-los");
-      expect(await loadPlaidToken("user-los")).toBeNull();
+  describe("removePlaidToken", () => {
+    it("removes a specific bank by itemId", async () => {
+      await addPlaidToken("user-los", CHASE);
+      await addPlaidToken("user-los", WELLS);
+      await removePlaidToken("user-los", CHASE.itemId);
+
+      const tokens = await loadPlaidTokens("user-los");
+      expect(tokens).toEqual([WELLS]);
     });
 
-    it("does not throw when clearing a non-existent token", async () => {
-      await expect(clearPlaidToken("user-los")).resolves.toBeUndefined();
+    it("does not throw when removing a non-existent itemId", async () => {
+      await addPlaidToken("user-los", CHASE);
+      await expect(removePlaidToken("user-los", "no-such-item")).resolves.toBeUndefined();
+      expect(await loadPlaidTokens("user-los")).toEqual([CHASE]);
     });
   });
 
-  describe("hasPlaidToken", () => {
-    it("returns true when a token is stored", async () => {
-      await savePlaidToken("user-los", LOS_TOKEN);
-      expect(await hasPlaidToken("user-los")).toBe(true);
+  describe("clearAllPlaidTokens", () => {
+    it("removes all tokens for a user", async () => {
+      await addPlaidToken("user-los", CHASE);
+      await addPlaidToken("user-los", WELLS);
+      await clearAllPlaidTokens("user-los");
+      expect(await loadPlaidTokens("user-los")).toEqual([]);
     });
 
-    it("returns false when no token is stored", async () => {
-      expect(await hasPlaidToken("user-los")).toBe(false);
-    });
+    it("does not affect another user", async () => {
+      await addPlaidToken("user-los", CHASE);
+      await addPlaidToken("user-jackia", WELLS);
+      await clearAllPlaidTokens("user-los");
 
-    it("returns false after clearing a token", async () => {
-      await savePlaidToken("user-los", LOS_TOKEN);
-      await clearPlaidToken("user-los");
-      expect(await hasPlaidToken("user-los")).toBe(false);
+      expect(await loadPlaidTokens("user-los")).toEqual([]);
+      expect(await loadPlaidTokens("user-jackia")).toEqual([WELLS]);
+    });
+  });
+
+  describe("migration from single-object format", () => {
+    it("auto-migrates old single-object format to array on read", async () => {
+      // Simulate old format: a single object, not an array
+      store.set("plaid_token_user-los", JSON.stringify(CHASE));
+
+      const tokens = await loadPlaidTokens("user-los");
+      expect(tokens).toEqual([CHASE]);
+
+      // Verify it was migrated in storage
+      const raw = store.get("plaid_token_user-los");
+      expect(JSON.parse(raw!)).toEqual([CHASE]);
     });
   });
 });

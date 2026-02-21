@@ -17,6 +17,8 @@ import { nowIso, makeId } from "../lib/id";
 // If it exists, import and use it. If not, we’ll add it next.
 import { applyTransactionsToAccounts } from "@money-shepherd/domain";
 
+import type { Account } from "@money-shepherd/domain";
+
 export type Engine = {
   getState(): Promise<AppStateV1>;
   seed(): Promise<AppStateV1>;
@@ -40,6 +42,10 @@ export type Engine = {
   allocateToEnvelope(args: {
     envelopeId: string;
     amountCents: number;
+  }): Promise<AppStateV1>;
+
+  importPlaidAccounts(args: {
+    newAccounts: Account[];
   }): Promise<AppStateV1>;
 };
 
@@ -304,6 +310,23 @@ export function createEngine(): Engine {
     return recompute(next);
   }
 
+  async function importPlaidAccounts(args: {
+    newAccounts: Account[];
+  }): Promise<AppStateV1> {
+    const state = await getState();
+    const existingIds = new Set(state.accounts.map((a) => a.id));
+    const toAdd = args.newAccounts.filter((a) => !existingIds.has(a.id));
+
+    if (toAdd.length === 0) return state;
+
+    const next: AppStateV1 = {
+      ...state,
+      accounts: [...state.accounts, ...toAdd],
+    };
+
+    return recompute(next);
+  }
+
   return {
     getState,
     seed,
@@ -313,5 +336,6 @@ export function createEngine(): Engine {
     createEnvelope: createEnvelopeAction,
     assignTransaction: assignTransactionAction,
     allocateToEnvelope: allocateToEnvelopeAction,
+    importPlaidAccounts,
   };
 }
