@@ -154,7 +154,7 @@
 - [x] MS-16.5 Keyboard handling
 - [x] MS-16.6 Empty state pass
 - [x] MS-16.7 Envelope validation polish
-- [ ] MS-16.9 Manual checklist
+- [x] MS-16.9 Manual checklist
 - [ ] MS-16.8 Quick actions (optional)
 
 ### Phase 16 Smoke Check
