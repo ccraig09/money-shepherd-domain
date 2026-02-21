@@ -10,14 +10,23 @@ import {
 import { router } from "expo-router";
 import { useAppStore } from "../../src/store/useAppStore";
 import { formatCents } from "../../src/lib/moneyInput";
+import { formatTimeAgo } from "../../src/lib/timeAgo";
 import { InlineNotice } from "../../src/ui/components/InlineNotice";
 
 export default function TransactionsScreen() {
   const state = useAppStore((s) => s.state);
   const refreshFromPlaid = useAppStore((s) => s.refreshFromPlaid);
+  const lastPlaidRefreshAt = useAppStore((s) => s.lastPlaidRefreshAt);
   const plaidSyncError = useAppStore((s) => s.plaidSyncError);
   const clearPlaidSyncError = useAppStore((s) => s.clearPlaidSyncError);
   const [refreshing, setRefreshing] = useState(false);
+
+  // Re-render every 30s so "Xm ago" stays fresh
+  const [, setTick] = useState(0);
+  React.useEffect(() => {
+    const id = setInterval(() => setTick((t) => t + 1), 30_000);
+    return () => clearInterval(id);
+  }, []);
 
   async function handleRefresh() {
     setRefreshing(true);
@@ -56,7 +65,14 @@ export default function TransactionsScreen() {
   return (
     <View style={styles.root}>
       <View style={styles.header}>
-        <Text style={styles.title}>Transactions</Text>
+        <View>
+          <Text style={styles.title}>Transactions</Text>
+          {lastPlaidRefreshAt && (
+            <Text style={styles.lastSynced}>
+              Last synced {formatTimeAgo(lastPlaidRefreshAt)}
+            </Text>
+          )}
+        </View>
         <View style={styles.headerActions}>
           <Pressable
             onPress={handleRefresh}
@@ -152,6 +168,7 @@ const styles = StyleSheet.create({
     borderColor: "#ddd",
   },
   title: { fontSize: 24, fontWeight: "700" },
+  lastSynced: { fontSize: 12, color: "#999", marginTop: 2 },
   headerActions: {
     flexDirection: "row",
     alignItems: "center",

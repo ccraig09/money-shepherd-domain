@@ -4,9 +4,12 @@ import type { AppStateV1 } from "../domain/appState";
 import { clearSyncMeta, loadSyncMeta, saveSyncMeta } from "../infra/local/syncMeta";
 import { clearPin } from "../infra/local/pin";
 import { loadPlaidTokens, clearAllPlaidTokens } from "../infra/local/secureTokens";
+import { savePlaidRefreshAt, loadPlaidRefreshAt, clearPlaidRefreshAt } from "../infra/local/plaidMeta";
 import { syncTransactions } from "../infra/plaid/plaidClient";
 import { mapPlaidTransactions } from "../infra/plaid/mapTransaction";
 import { classifyPlaidError, makePlaidError, type PlaidErrorInfo } from "../infra/plaid/errors";
+
+const REFRESH_COOLDOWN_MS = 2 * 60 * 1000; // 2 minutes
 
 type LoadState = "idle" | "loading" | "ready" | "error";
 type GuardState = "checking" | "needs-setup" | "needs-pin-setup" | "needs-pin" | "ready";
@@ -18,6 +21,7 @@ type AppStore = {
   state: AppStateV1 | null;
   guardState: GuardState;
   lastSyncAt: string | null;
+  lastPlaidRefreshAt: string | null;
   plaidSyncError: PlaidErrorInfo | null;
 
   // actions
@@ -43,7 +47,7 @@ type AppStore = {
     description: string;
     postedAt?: string;
   }) => Promise<void>;
-  refreshFromPlaid: () => Promise<{ imported: number }>;
+  refreshFromPlaid: (opts?: { force?: boolean }) => Promise<{ imported: number }>;
 };
 
 const engine = createEngine();
@@ -60,6 +64,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
   state: null,
   guardState: "checking",
   lastSyncAt: null,
+  lastPlaidRefreshAt: null,
   plaidSyncError: null,
 
   setGuardReady: () => set({ guardState: "ready" }),
@@ -69,7 +74,16 @@ export const useAppStore = create<AppStore>((set, get) => ({
     set({ status: "loading", errorMessage: null });
     try {
       const state = await engine.getState();
-      set({ state, status: "ready", lastSyncAt: new Date().toISOString() });
+      const syncMeta = await loadSyncMeta();
+      const lastRefresh = syncMeta
+        ? await loadPlaidRefreshAt(syncMeta.userId)
+        : null;
+      set({
+        state,
+        status: "ready",
+        lastSyncAt: new Date().toISOString(),
+        lastPlaidRefreshAt: lastRefresh,
+      });
     } catch (err: any) {
       set({
         status: "error",
@@ -85,7 +99,9 @@ export const useAppStore = create<AppStore>((set, get) => ({
       await clearPin();
       await clearAllPlaidTokens("user-los");
       await clearAllPlaidTokens("user-jackia");
-      set({ state: null, status: "idle", guardState: "needs-setup", errorMessage: null });
+      await clearPlaidRefreshAt("user-los");
+      await clearPlaidRefreshAt("user-jackia");
+      set({ state: null, status: "idle", guardState: "needs-setup", errorMessage: null, lastPlaidRefreshAt: null });
     } catch (err: any) {
       set({ status: "error", errorMessage: err?.message ?? "Failed to reset" });
     }
@@ -180,7 +196,22 @@ export const useAppStore = create<AppStore>((set, get) => ({
     }
   },
 
-  refreshFromPlaid: async () => {
+  refreshFromPlaid: async (opts) => {
+    // Cooldown check: skip Plaid API call if refreshed recently
+    const meta = await loadSyncMeta();
+    const currentUserId = meta?.userId ?? "user-los";
+
+    if (!opts?.force) {
+      const lastRefresh = await loadPlaidRefreshAt(currentUserId);
+      if (lastRefresh) {
+        const elapsed = Date.now() - new Date(lastRefresh).getTime();
+        if (elapsed < REFRESH_COOLDOWN_MS) {
+          set({ lastPlaidRefreshAt: lastRefresh });
+          return { imported: 0 };
+        }
+      }
+    }
+
     set({ status: "loading", errorMessage: null, plaidSyncError: null });
     try {
       const USER_IDS = ["user-los", "user-jackia"];
@@ -221,7 +252,9 @@ export const useAppStore = create<AppStore>((set, get) => ({
       state = await engine.importPlaidTransactions({ transactions: allNewTransactions });
       const imported = state.transactions.length - before;
 
-      set({ state, status: "ready", lastSyncAt: new Date().toISOString() });
+      const now = new Date().toISOString();
+      await savePlaidRefreshAt(currentUserId, now);
+      set({ state, status: "ready", lastSyncAt: now, lastPlaidRefreshAt: now });
       return { imported };
     } catch (err: unknown) {
       const info = classifyPlaidError(err);
