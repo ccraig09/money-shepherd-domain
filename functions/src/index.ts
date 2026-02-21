@@ -1,0 +1,71 @@
+import { onCall, HttpsError } from "firebase-functions/v2/https";
+import { defineSecret } from "firebase-functions/params";
+import { initializeApp } from "firebase-admin/app";
+import { Configuration, PlaidApi, PlaidEnvironments, Products, CountryCode } from "plaid";
+
+initializeApp();
+
+const PLAID_CLIENT_ID = defineSecret("PLAID_CLIENT_ID");
+const PLAID_SECRET = defineSecret("PLAID_SECRET");
+
+function makePlaidClient(clientId: string, secret: string): PlaidApi {
+  const config = new Configuration({
+    basePath: PlaidEnvironments[process.env.PLAID_ENV ?? "sandbox"],
+    baseOptions: {
+      headers: {
+        "PLAID-CLIENT-ID": clientId,
+        "PLAID-SECRET": secret,
+      },
+    },
+  });
+  return new PlaidApi(config);
+}
+
+interface CreateLinkTokenRequest {
+  userId: string;
+}
+
+interface CreateLinkTokenResponse {
+  linkToken: string;
+  expiration: string;
+}
+
+/**
+ * Creates a short-lived Plaid link token for the given user.
+ * The link_token is used to open the Plaid Link UI on the mobile client.
+ * PLAID_SECRET stays server-side — never returned to the client.
+ */
+export const createLinkToken = onCall<
+  CreateLinkTokenRequest,
+  Promise<CreateLinkTokenResponse>
+>(
+  { secrets: [PLAID_CLIENT_ID, PLAID_SECRET] },
+  async (request) => {
+    if (!request.auth) {
+      throw new HttpsError("unauthenticated", "Must be signed in to connect a bank account.");
+    }
+
+    const { userId } = request.data;
+    if (!userId || typeof userId !== "string") {
+      throw new HttpsError("invalid-argument", "userId is required.");
+    }
+
+    const plaid = makePlaidClient(
+      PLAID_CLIENT_ID.value(),
+      PLAID_SECRET.value()
+    );
+
+    const response = await plaid.linkTokenCreate({
+      user: { client_user_id: userId },
+      client_name: "Money Shepherd",
+      products: [Products.Transactions],
+      country_codes: [CountryCode.Us],
+      language: "en",
+    });
+
+    return {
+      linkToken: response.data.link_token,
+      expiration: response.data.expiration,
+    };
+  }
+);

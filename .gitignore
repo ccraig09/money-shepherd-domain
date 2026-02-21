@@ -39,5 +39,13 @@ yarn-debug.log*
 yarn-error.log*
 firebase-debug.log
 
+# Personal dev notes (not for repo)
+DEV_CHEATSHEET.md
+
 # Auto-generated (do not commit)
-tsconfig.json
+/tsconfig.json
+
+# Cloud Functions
+functions/lib/
+functions/.env
+functions/.secret.local

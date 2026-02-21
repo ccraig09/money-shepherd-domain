@@ -6,9 +6,11 @@ import {
   StyleSheet,
   ScrollView,
   Alert,
+  ActivityIndicator,
 } from "react-native";
 import { loadSyncMeta, type SyncMeta } from "../../src/infra/local/syncMeta";
 import { plaidConfigured } from "../../src/infra/plaid/config";
+import { requestLinkToken, openPlaidLink } from "../../src/infra/plaid/plaidClient";
 
 type UserEntry = {
   id: string;
@@ -22,14 +24,39 @@ const USERS: UserEntry[] = [
 
 export default function ConnectAccountsScreen() {
   const [meta, setMeta] = React.useState<SyncMeta | null>(null);
+  const [connecting, setConnecting] = React.useState<string | null>(null);
 
   React.useEffect(() => {
     loadSyncMeta().then(setMeta);
   }, []);
 
-  function handleConnect(userId: string) {
-    // MS-15.4 will wire the Plaid Link flow here
-    Alert.alert("Coming soon", `Bank connection for ${userId} will be available in the next update.`);
+  async function handleConnect(userId: string) {
+    if (connecting) return;
+    setConnecting(userId);
+    try {
+      const linkToken = await requestLinkToken(userId);
+      openPlaidLink(linkToken, {
+        onSuccess: (publicToken, linkMetadata) => {
+          setConnecting(null);
+          // public_token handed off to MS-15.5 for server-side exchange
+          console.log("[Plaid] onSuccess", { publicToken, accounts: linkMetadata.accounts });
+          Alert.alert(
+            "Bank connected!",
+            `${linkMetadata.institution?.name ?? "Your bank"} was linked. Syncing accounts next.`
+          );
+        },
+        onExit: (error) => {
+          setConnecting(null);
+          if (error) {
+            Alert.alert("Connection error", error.displayMessage ?? "Something went wrong connecting your bank.");
+          }
+        },
+      });
+    } catch (err: unknown) {
+      setConnecting(null);
+      const message = err instanceof Error ? err.message : "Unable to start bank connection.";
+      Alert.alert("Error", message);
+    }
   }
 
   return (
@@ -47,6 +74,7 @@ export default function ConnectAccountsScreen() {
             key={user.id}
             user={user}
             isCurrentUser={isCurrentUser}
+            isConnecting={connecting === user.id}
             onConnect={() => handleConnect(user.id)}
           />
         );
@@ -68,12 +96,16 @@ export default function ConnectAccountsScreen() {
 function UserCard({
   user,
   isCurrentUser,
+  isConnecting,
   onConnect,
 }: {
   user: UserEntry;
   isCurrentUser: boolean;
+  isConnecting: boolean;
   onConnect: () => void;
 }) {
+  const disabled = !plaidConfigured || isConnecting;
+
   return (
     <View style={[styles.card, isCurrentUser && styles.cardActive]}>
       <View style={styles.cardHeader}>
@@ -92,19 +124,23 @@ function UserCard({
         style={({ pressed }) => [
           styles.connectBtn,
           pressed && styles.connectBtnPressed,
-          !plaidConfigured && styles.connectBtnDisabled,
+          disabled && styles.connectBtnDisabled,
         ]}
         onPress={onConnect}
-        disabled={!plaidConfigured}
+        disabled={disabled}
       >
-        <Text
-          style={[
-            styles.connectBtnText,
-            !plaidConfigured && styles.connectBtnTextDisabled,
-          ]}
-        >
-          Connect Bank
-        </Text>
+        {isConnecting ? (
+          <ActivityIndicator color="#aaa" size="small" />
+        ) : (
+          <Text
+            style={[
+              styles.connectBtnText,
+              disabled && styles.connectBtnTextDisabled,
+            ]}
+          >
+            Connect Bank
+          </Text>
+        )}
       </Pressable>
     </View>
   );
