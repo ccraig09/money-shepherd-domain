@@ -8,7 +8,7 @@ import {
 } from "react-native";
 import { router } from "expo-router";
 import { useAppStore } from "../../src/store/useAppStore";
-import { formatCents } from "../../src/lib/moneyInput";
+import { formatMoney } from "../../src/lib/moneyFormat";
 
 export default function DashboardScreen() {
   const state = useAppStore((s) => s.state);
@@ -59,12 +59,12 @@ export default function DashboardScreen() {
             availableCents < 0 && styles.heroAmountNegative,
           ]}
         >
-          ${formatCents(availableCents)}
+          ${formatMoney(availableCents)}
         </Text>
         <View style={styles.heroStat}>
           <Text style={styles.heroStatLabel}>Total in envelopes</Text>
           <Text style={styles.heroStatValue}>
-            ${formatCents(totalEnvelopeCents)}
+            ${formatMoney(totalEnvelopeCents)}
           </Text>
         </View>
       </View>
@@ -136,7 +136,7 @@ export default function DashboardScreen() {
                     isNegative && styles.envelopeBalanceNegative,
                   ]}
                 >
-                  ${formatCents(env.balance.cents)}
+                  ${formatMoney(env.balance.cents)}
                 </Text>
               </Pressable>
             );

@@ -135,18 +135,18 @@
 
 ### Phase 15 Smoke Check
 
-- [ ] Connect Plaid (Los)
-- [ ] Pull accounts -> map to domain accounts
-- [ ] Pull transactions -> merge without duplicates
-- [ ] Pull-to-refresh updates with no spam calls
-- [ ] App relaunch preserves token + mappings (secure storage)
+- [x] Connect Plaid (Los)
+- [x] Pull accounts -> map to domain accounts
+- [x] Pull transactions -> merge without duplicates
+- [x] Pull-to-refresh updates with no spam calls
+- [x] App relaunch preserves token + mappings (secure storage)
 
 ---
 
 ## Phase 16: Input + UX polish (MoneyInput component + formatting + clarity)
 
-<!--
 ### Recommended build order
+
 - [x] MS-16.3 Parsing contract ({ ok, cents, error })
 - [x] MS-16.1 MoneyInput component
 - [ ] MS-16.2 Formatting + tests
@@ -158,10 +158,10 @@
 - [ ] MS-16.8 Quick actions (optional)
 
 ### Phase 16 Smoke Check
+
 - [ ] Money input accepts "10", "10.5", "10.50", rejects invalid
 - [ ] Income vs expense is visually clear everywhere
 - [ ] Forms do not break when keyboard opens
--->
 
 ---
 

@@ -8,7 +8,7 @@ import {
 } from "react-native";
 import { router } from "expo-router";
 import { useAppStore } from "../../src/store/useAppStore";
-import { formatCents } from "../../src/lib/moneyInput";
+import { formatMoney } from "../../src/lib/moneyFormat";
 
 export default function EnvelopesScreen() {
   const state = useAppStore((s) => s.state);
@@ -73,7 +73,7 @@ export default function EnvelopesScreen() {
                 {item.name || "Unnamed envelope"}
               </Text>
               <Text style={styles.rowBalance}>
-                ${formatCents(item.balance.cents)}
+                ${formatMoney(item.balance.cents)}
               </Text>
             </Pressable>
           )}

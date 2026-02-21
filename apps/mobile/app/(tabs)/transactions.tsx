@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import { router } from "expo-router";
 import { useAppStore } from "../../src/store/useAppStore";
-import { formatCents } from "../../src/lib/moneyInput";
+import { formatMoney } from "../../src/lib/moneyFormat";
 import { formatTimeAgo } from "../../src/lib/timeAgo";
 import { InlineNotice } from "../../src/ui/components/InlineNotice";
 
@@ -143,7 +143,7 @@ export default function TransactionsScreen() {
                     isExpense ? styles.expense : styles.income,
                   ]}
                 >
-                  {isExpense ? "-" : "+"}${formatCents(Math.abs(item.amount.cents))}
+                  {isExpense ? "-" : "+"}${formatMoney(Math.abs(item.amount.cents))}
                 </Text>
               </View>
             );

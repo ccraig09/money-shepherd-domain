@@ -10,7 +10,8 @@ import {
 } from "react-native";
 import { router } from "expo-router";
 import { useAppStore } from "../src/store/useAppStore";
-import { parseDollars, formatCents } from "../src/lib/moneyInput";
+import { parseDollars } from "../src/lib/moneyInput";
+import { formatMoney } from "../src/lib/moneyFormat";
 import { MoneyInput } from "../src/ui/components/MoneyInput";
 
 export default function AllocateScreen() {
@@ -48,7 +49,7 @@ export default function AllocateScreen() {
     }
     if (parsed.cents > available) {
       setAmountError(
-        `Not enough available. You have $${formatCents(available)} left.`,
+        `Not enough available. You have $${formatMoney(available)} left.`,
       );
       return;
     }
@@ -73,7 +74,7 @@ export default function AllocateScreen() {
         <View style={styles.availableCard}>
           <Text style={styles.availableLabel}>Available to Assign</Text>
           <Text style={[styles.availableAmount, isZeroAvailable && styles.availableZero]}>
-            ${formatCents(available)}
+            ${formatMoney(available)}
           </Text>
           {isZeroAvailable && (
             <Text style={styles.zeroHint}>No funds to allocate. Add income first.</Text>
@@ -114,7 +115,7 @@ export default function AllocateScreen() {
                       {item.name}
                     </Text>
                     <Text style={[styles.envelopeBalance, isSelected && styles.envelopeBalanceSelected]}>
-                      ${formatCents(item.balance.cents)}
+                      ${formatMoney(item.balance.cents)}
                     </Text>
                   </Pressable>
                 );

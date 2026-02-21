@@ -8,7 +8,7 @@ import {
 } from "react-native";
 import { router, Stack, useLocalSearchParams } from "expo-router";
 import { useAppStore } from "../../src/store/useAppStore";
-import { formatCents } from "../../src/lib/moneyInput";
+import { formatMoney } from "../../src/lib/moneyFormat";
 import type { Transaction } from "@money-shepherd/domain";
 
 export default function EnvelopeDetailScreen() {
@@ -83,7 +83,7 @@ export default function EnvelopeDetailScreen() {
         </Text>
         <Text style={styles.balanceLabel}>Balance</Text>
         <Text style={styles.balance}>
-          ${formatCents(envelope.balance.cents)}
+          ${formatMoney(envelope.balance.cents)}
         </Text>
       </View>
 
@@ -122,7 +122,7 @@ export default function EnvelopeDetailScreen() {
                     isExpense ? styles.expense : styles.income,
                   ]}
                 >
-                  {isExpense ? "-" : "+"}${formatCents(Math.abs(item.amount.cents))}
+                  {isExpense ? "-" : "+"}${formatMoney(Math.abs(item.amount.cents))}
                 </Text>
               </View>
             );

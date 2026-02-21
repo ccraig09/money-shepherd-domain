@@ -10,7 +10,7 @@ import {
 import { router, useLocalSearchParams } from "expo-router";
 import { useAppStore } from "../src/store/useAppStore";
 import { loadSyncMeta } from "../src/infra/local/syncMeta";
-import { formatCents } from "../src/lib/moneyInput";
+import { formatMoney } from "../src/lib/moneyFormat";
 
 export default function AssignTransactionScreen() {
   const { transactionId } = useLocalSearchParams<{ transactionId: string }>();
@@ -70,7 +70,7 @@ export default function AssignTransactionScreen() {
       <View style={styles.summary}>
         <Text style={styles.summaryDesc} numberOfLines={1}>{desc}</Text>
         <Text style={[styles.summaryAmount, isExpense ? styles.expense : styles.income]}>
-          {isExpense ? "-" : "+"}${formatCents(Math.abs(tx.amount.cents))}
+          {isExpense ? "-" : "+"}${formatMoney(Math.abs(tx.amount.cents))}
         </Text>
       </View>
 
@@ -107,7 +107,7 @@ export default function AssignTransactionScreen() {
                   {item.name}
                 </Text>
                 <Text style={[styles.envelopeBalance, isSelected && styles.envelopeBalanceSelected]}>
-                  ${formatCents(item.balance.cents)}
+                  ${formatMoney(item.balance.cents)}
                 </Text>
               </Pressable>
             );

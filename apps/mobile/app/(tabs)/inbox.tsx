@@ -8,7 +8,7 @@ import {
 } from "react-native";
 import { router } from "expo-router";
 import { useAppStore } from "../../src/store/useAppStore";
-import { formatCents } from "../../src/lib/moneyInput";
+import { formatMoney } from "../../src/lib/moneyFormat";
 import type { Transaction } from "@money-shepherd/domain";
 
 export default function InboxScreen() {
@@ -98,7 +98,7 @@ export default function InboxScreen() {
                       isExpense ? styles.expense : styles.income,
                     ]}
                   >
-                    {isExpense ? "-" : "+"}${formatCents(Math.abs(item.amount.cents))}
+                    {isExpense ? "-" : "+"}${formatMoney(Math.abs(item.amount.cents))}
                   </Text>
                   <Text style={styles.assignHint}>Tap to assign</Text>
                 </View>
