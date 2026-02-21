@@ -114,9 +114,14 @@ export default function TransactionsScreen() {
 
       {transactions.length === 0 ? (
         <View style={styles.empty}>
-          <Text style={styles.emptyText}>
-            No transactions yet. Add your first one.
-          </Text>
+          <Text style={styles.emptyText}>No transactions yet.</Text>
+          <Pressable
+            onPress={() => router.push("/add-transaction")}
+            style={styles.emptyBtn}
+            accessibilityLabel="Add your first transaction"
+          >
+            <Text style={styles.emptyBtnText}>Add your first transaction</Text>
+          </Pressable>
         </View>
       ) : (
         <FlatList
@@ -201,6 +206,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 32,
   },
   emptyText: { fontSize: 17, fontWeight: "600", color: "#333", textAlign: "center" },
+  emptyBtn: {
+    marginTop: 8,
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 12,
+    backgroundColor: "#4f8ef7",
+  },
+  emptyBtnText: { color: "#fff", fontWeight: "600", fontSize: 15 },
   list: { paddingVertical: 8 },
   row: {
     flexDirection: "row",

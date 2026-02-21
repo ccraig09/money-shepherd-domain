@@ -77,7 +77,19 @@ export default function AllocateScreen() {
             ${formatMoney(available)}
           </Text>
           {isZeroAvailable && (
-            <Text style={styles.zeroHint}>No funds to allocate. Add income first.</Text>
+            <>
+              <Text style={styles.zeroHint}>Add income to begin allocating.</Text>
+              <Pressable
+                onPress={() => {
+                  router.back();
+                  router.push("/add-transaction");
+                }}
+                style={styles.addIncomeBtn}
+                accessibilityLabel="Add income"
+              >
+                <Text style={styles.addIncomeBtnText}>Add income</Text>
+              </Pressable>
+            </>
           )}
         </View>
 
@@ -179,6 +191,14 @@ const styles = StyleSheet.create({
   availableAmount: { fontSize: 28, fontWeight: "800", color: "#2d9e6b" },
   availableZero: { color: "#aaa" },
   zeroHint: { fontSize: 13, color: "#d94f4f", textAlign: "center", marginTop: 4 },
+  addIncomeBtn: {
+    marginTop: 10,
+    paddingHorizontal: 20,
+    paddingVertical: 9,
+    borderRadius: 10,
+    backgroundColor: "#2d9e6b",
+  },
+  addIncomeBtnText: { color: "#fff", fontWeight: "600", fontSize: 14 },
   sectionLabel: {
     fontSize: 13,
     fontWeight: "600",

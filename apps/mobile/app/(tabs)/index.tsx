@@ -107,9 +107,14 @@ export default function DashboardScreen() {
 
       {envelopes.length === 0 ? (
         <View style={styles.emptyEnvelopes}>
-          <Text style={styles.emptyText}>
-            No envelopes yet — create one to get started.
-          </Text>
+          <Text style={styles.emptyText}>No envelopes yet.</Text>
+          <Pressable
+            onPress={() => router.push("/create-envelope")}
+            style={styles.emptyEnvelopeBtn}
+            accessibilityLabel="Create your first envelope"
+          >
+            <Text style={styles.emptyEnvelopeBtnText}>Create your first envelope</Text>
+          </Pressable>
         </View>
       ) : (
         <View style={styles.envelopeList}>
@@ -244,6 +249,14 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   emptyText: { fontSize: 14, color: "#888", textAlign: "center" },
+  emptyEnvelopeBtn: {
+    marginTop: 12,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 10,
+    backgroundColor: "#4f8ef7",
+  },
+  emptyEnvelopeBtnText: { color: "#fff", fontWeight: "600", fontSize: 14 },
   envelopeList: {
     marginHorizontal: 16,
     borderRadius: 14,
