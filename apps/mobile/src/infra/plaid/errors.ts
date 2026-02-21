@@ -34,6 +34,10 @@ const MESSAGES: Record<PlaidErrorCategory, { message: string; cta: string }> = {
   },
 };
 
+export function makePlaidError(category: PlaidErrorCategory): PlaidErrorInfo {
+  return { category, ...MESSAGES[category] };
+}
+
 export function classifyPlaidError(err: unknown): PlaidErrorInfo {
   const message = err instanceof Error ? err.message : String(err);
   const lower = message.toLowerCase();

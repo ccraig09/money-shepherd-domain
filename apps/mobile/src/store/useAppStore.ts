@@ -6,7 +6,7 @@ import { clearPin } from "../infra/local/pin";
 import { loadPlaidTokens } from "../infra/local/secureTokens";
 import { syncTransactions } from "../infra/plaid/plaidClient";
 import { mapPlaidTransactions } from "../infra/plaid/mapTransaction";
-import { classifyPlaidError, type PlaidErrorInfo } from "../infra/plaid/errors";
+import { classifyPlaidError, makePlaidError, type PlaidErrorInfo } from "../infra/plaid/errors";
 
 type LoadState = "idle" | "loading" | "ready" | "error";
 type GuardState = "checking" | "needs-setup" | "needs-pin-setup" | "needs-pin" | "ready";
@@ -183,9 +183,11 @@ export const useAppStore = create<AppStore>((set, get) => ({
     try {
       const USER_IDS = ["user-los", "user-jackia"];
       const allNewTransactions: import("@money-shepherd/domain").Transaction[] = [];
+      let hasTokens = false;
 
       for (const userId of USER_IDS) {
         const tokens = await loadPlaidTokens(userId);
+        if (tokens.length > 0) hasTokens = true;
         for (const token of tokens) {
           const syncResult = await syncTransactions(token.accessToken);
           // Build account mapping from plaidAccountId -> internalAccountId
@@ -198,6 +200,11 @@ export const useAppStore = create<AppStore>((set, get) => ({
           );
           allNewTransactions.push(...mapped);
         }
+      }
+
+      if (!hasTokens) {
+        set({ status: "ready", plaidSyncError: makePlaidError("not-connected") });
+        return { imported: 0 };
       }
 
       let state = get().state;

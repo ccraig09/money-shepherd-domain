@@ -82,7 +82,7 @@ export default function TransactionsScreen() {
 
       {plaidSyncError && (
         <InlineNotice
-          variant="error"
+          variant={plaidSyncError.category === "not-connected" ? "info" : plaidSyncError.category === "unknown" ? "error" : "warning"}
           message={plaidSyncError.message}
           actionLabel={plaidSyncError.cta}
           onAction={() => {
