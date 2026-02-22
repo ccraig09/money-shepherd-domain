@@ -34,6 +34,7 @@ type AppStore = {
   createEnvelope: (name: string) => Promise<void>;
   renameEnvelope: (envelopeId: string, name: string) => Promise<void>;
   deleteEnvelope: (envelopeId: string) => Promise<void>;
+  setTransactionNote: (transactionId: string, note: string) => Promise<void>;
   assignTransaction: (args: {
     transactionId: string;
     envelopeId: string;
@@ -178,6 +179,22 @@ export const useAppStore = create<AppStore>((set, get) => ({
       set({
         status: "error",
         errorMessage: err?.message ?? "Failed to delete envelope",
+      });
+    }
+  },
+
+  setTransactionNote: async (transactionId: string, note: string) => {
+    const current = get().state;
+    if (!current) return;
+
+    set({ status: "loading", errorMessage: null });
+    try {
+      const state = await engine.setTransactionNote({ transactionId, note });
+      set({ state, status: "ready", lastSyncAt: new Date().toISOString() });
+    } catch (err: any) {
+      set({
+        status: "error",
+        errorMessage: err?.message ?? "Failed to save note",
       });
     }
   },

@@ -137,6 +137,42 @@ export function deleteEnvelope(
 }
 
 /**
+ * Sets or clears a user note on a transaction.
+ * Empty/blank note removes the entry from the map.
+ */
+export function setTransactionNote(
+  state: AppStateV1,
+  args: { transactionId: string; note: string },
+): AppStateV1 {
+  const tx = state.transactions.find((t) => t.id === args.transactionId);
+  if (!tx) {
+    throw new Error("Transaction not found.");
+  }
+
+  const trimmed = args.note.trim();
+  const existing = state.transactionNotes ?? {};
+
+  if (!trimmed) {
+    // Remove the note entry
+    const { [args.transactionId]: _, ...rest } = existing;
+    return {
+      ...state,
+      transactionNotes: rest,
+      updatedAt: nowIso(),
+    };
+  }
+
+  return {
+    ...state,
+    transactionNotes: {
+      ...existing,
+      [args.transactionId]: trimmed,
+    },
+    updatedAt: nowIso(),
+  };
+}
+
+/**
  * Records that a transaction is assigned to an envelope by a user.
  * This does NOT change money directly. The domain recompute will apply it.
  */

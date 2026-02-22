@@ -117,6 +117,10 @@ export default function RootLayout() {
             options={{ headerBackTitle: "Envelopes" }}
           />
           <Stack.Screen
+            name="transaction/[transactionId]"
+            options={{ headerBackTitle: "Back" }}
+          />
+          <Stack.Screen
             name="settings/connect-accounts"
             options={{ title: "Connect Accounts", headerBackTitle: "Settings" }}
           />

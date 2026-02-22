@@ -19,6 +19,9 @@ export type AppStateV1 = {
   transactions: Transaction[];
   inbox: TransactionInbox;
 
+  // User notes on transactions (transactionId → note text)
+  transactionNotes?: Record<string, string>;
+
   // Idempotency guards
   appliedAccountTransactionIds: string[];
   appliedBudgetTransactionIds: string[];

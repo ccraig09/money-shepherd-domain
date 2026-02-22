@@ -131,13 +131,27 @@ export default function TransactionsScreen() {
           renderItem={({ item }) => {
             const isExpense = item.amount.cents < 0;
             const desc = item.description || "Manual transaction";
+            const hasNote = !!state.transactionNotes?.[item.id];
             const meta = `${accountName(item.accountId)} · ${formatDate(item.postedAt)}`;
             return (
-              <View style={styles.row}>
+              <Pressable
+                style={styles.row}
+                onPress={() =>
+                  router.push(
+                    `/transaction/${item.id}` as any,
+                  )
+                }
+                accessibilityLabel={`View ${desc}`}
+              >
                 <View style={styles.rowMain}>
-                  <Text style={styles.rowDescription} numberOfLines={1}>
-                    {desc}
-                  </Text>
+                  <View style={styles.descRow}>
+                    <Text style={styles.rowDescription} numberOfLines={1}>
+                      {desc}
+                    </Text>
+                    {hasNote && (
+                      <View style={styles.noteDot} accessibilityLabel="Has note" />
+                    )}
+                  </View>
                   <Text style={styles.rowAccount} numberOfLines={1}>
                     {meta}
                   </Text>
@@ -150,7 +164,7 @@ export default function TransactionsScreen() {
                 >
                   {isExpense ? "-" : "+"}${formatMoney(Math.abs(item.amount.cents))}
                 </Text>
-              </View>
+              </Pressable>
             );
           }}
         />
@@ -224,7 +238,15 @@ const styles = StyleSheet.create({
     borderColor: "#eee",
   },
   rowMain: { flex: 1, gap: 2 },
-  rowDescription: { fontSize: 15, fontWeight: "500", color: "#111" },
+  descRow: { flexDirection: "row", alignItems: "center", gap: 6 },
+  rowDescription: { fontSize: 15, fontWeight: "500", color: "#111", flexShrink: 1 },
+  noteDot: {
+    width: 7,
+    height: 7,
+    borderRadius: 4,
+    backgroundColor: "#4f8ef7",
+    flexShrink: 0,
+  },
   rowAccount: { fontSize: 12, color: "#888" },
   rowAmount: { fontSize: 16, fontWeight: "600", minWidth: 80, textAlign: "right" },
   income: { color: "#2d9e6b" },

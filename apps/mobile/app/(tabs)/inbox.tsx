@@ -102,6 +102,19 @@ export default function InboxScreen() {
                   </Text>
                   <Text style={styles.assignHint}>Tap to assign</Text>
                 </View>
+                <Pressable
+                  onPress={(e) => {
+                    e.stopPropagation();
+                    router.push(
+                      `/transaction/${item.id}` as any,
+                    );
+                  }}
+                  style={styles.infoBtn}
+                  accessibilityLabel={`Details for ${desc}`}
+                  hitSlop={6}
+                >
+                  <Text style={styles.infoBtnText}>ⓘ</Text>
+                </Pressable>
               </Pressable>
             );
           }}
@@ -160,4 +173,14 @@ const styles = StyleSheet.create({
   income: { color: "#2d9e6b" },
   expense: { color: "#d94f4f" },
   assignHint: { fontSize: 11, color: "#aaa" },
+  infoBtn: {
+    marginLeft: 8,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#f0f0f0",
+  },
+  infoBtnText: { fontSize: 16, color: "#888" },
 });

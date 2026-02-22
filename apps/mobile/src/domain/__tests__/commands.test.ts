@@ -1,6 +1,6 @@
 import { Money } from "@money-shepherd/domain";
 import type { AppStateV1 } from "../appState";
-import { createEnvelope, renameEnvelope, deleteEnvelope } from "../commands";
+import { createEnvelope, renameEnvelope, deleteEnvelope, setTransactionNote } from "../commands";
 
 function makeState(envelopeNames: string[] = []): AppStateV1 {
   return {
@@ -213,5 +213,66 @@ describe("deleteEnvelope", () => {
     expect(() =>
       deleteEnvelope(state, { envelopeId: "env-999" }),
     ).toThrow("Envelope not found.");
+  });
+});
+
+function makeStateWithTx(): AppStateV1 {
+  const state = makeState();
+  state.transactions = [
+    {
+      id: "tx-1",
+      accountId: "acc-1",
+      amount: Money.fromCents(-1500),
+      description: "Coffee",
+      postedAt: "2024-01-15T10:00:00.000Z",
+    },
+  ];
+  return state;
+}
+
+describe("setTransactionNote", () => {
+  it("sets a note on a transaction", () => {
+    const state = makeStateWithTx();
+    const next = setTransactionNote(state, {
+      transactionId: "tx-1",
+      note: "Morning latte",
+    });
+    expect(next.transactionNotes?.["tx-1"]).toBe("Morning latte");
+  });
+
+  it("replaces an existing note", () => {
+    const state = makeStateWithTx();
+    state.transactionNotes = { "tx-1": "Old note" };
+    const next = setTransactionNote(state, {
+      transactionId: "tx-1",
+      note: "New note",
+    });
+    expect(next.transactionNotes?.["tx-1"]).toBe("New note");
+  });
+
+  it("removes the note entry when note is empty", () => {
+    const state = makeStateWithTx();
+    state.transactionNotes = { "tx-1": "Some note" };
+    const next = setTransactionNote(state, {
+      transactionId: "tx-1",
+      note: "  ",
+    });
+    expect(next.transactionNotes?.["tx-1"]).toBeUndefined();
+  });
+
+  it("trims whitespace from the note", () => {
+    const state = makeStateWithTx();
+    const next = setTransactionNote(state, {
+      transactionId: "tx-1",
+      note: "  Trimmed note  ",
+    });
+    expect(next.transactionNotes?.["tx-1"]).toBe("Trimmed note");
+  });
+
+  it("throws when transaction not found", () => {
+    const state = makeStateWithTx();
+    expect(() =>
+      setTransactionNote(state, { transactionId: "tx-999", note: "Oops" }),
+    ).toThrow("Transaction not found.");
   });
 });
