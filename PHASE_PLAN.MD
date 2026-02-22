@@ -157,7 +157,7 @@
 - [x] MS-16.9 Manual checklist
 - [x] MS-16.8 Quick actions (optional)
 - [x] MS-16.10 Edit envelope name
-- [ ] MS-16.11 Delete envelope
+- [x] MS-16.11 Delete envelope
 - [ ] MS-16.12 Transaction detail + optional note
 
 ### Phase 16 Smoke Check
