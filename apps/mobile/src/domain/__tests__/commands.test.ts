@@ -1,6 +1,6 @@
 import { Money } from "@money-shepherd/domain";
 import type { AppStateV1 } from "../appState";
-import { createEnvelope, renameEnvelope } from "../commands";
+import { createEnvelope, renameEnvelope, deleteEnvelope } from "../commands";
 
 function makeState(envelopeNames: string[] = []): AppStateV1 {
   return {
@@ -151,5 +151,67 @@ describe("renameEnvelope", () => {
     const next = renameEnvelope(state, { envelopeId: "env-0", name: "Food" });
     expect(next.budget.envelopes[1].name).toBe("Bills");
     expect(next.budget.envelopes[2].name).toBe("Gas");
+  });
+});
+
+describe("deleteEnvelope", () => {
+  it("removes the envelope from the list", () => {
+    const state = makeState(["Groceries", "Bills"]);
+    const next = deleteEnvelope(state, { envelopeId: "env-0" });
+    expect(next.budget.envelopes).toHaveLength(1);
+    expect(next.budget.envelopes[0].name).toBe("Bills");
+  });
+
+  it("removes assignments pointing to the deleted envelope", () => {
+    const state = makeState(["Groceries"]);
+    state.inbox.assignmentsByTransactionId = {
+      "tx-1": {
+        transactionId: "tx-1",
+        envelopeId: "env-0",
+        assignedByUserId: "user-los",
+        assignedAt: "2024-01-01T00:00:00.000Z",
+      },
+      "tx-2": {
+        transactionId: "tx-2",
+        envelopeId: "env-other",
+        assignedByUserId: "user-los",
+        assignedAt: "2024-01-01T00:00:00.000Z",
+      },
+    };
+    const next = deleteEnvelope(state, { envelopeId: "env-0" });
+    expect(Object.keys(next.inbox.assignmentsByTransactionId)).toEqual([
+      "tx-2",
+    ]);
+  });
+
+  it("returns envelope balance to availableToAssign", () => {
+    const state = makeState(["Groceries"]);
+    state.budget.envelopes[0].balance = Money.fromCents(2766);
+    state.budget.availableToAssign = Money.fromCents(500);
+    const next = deleteEnvelope(state, { envelopeId: "env-0" });
+    expect(next.budget.availableToAssign.cents).toBe(3266);
+  });
+
+  it("works when envelope has zero balance and no assignments", () => {
+    const state = makeState(["Groceries"]);
+    const next = deleteEnvelope(state, { envelopeId: "env-0" });
+    expect(next.budget.envelopes).toHaveLength(0);
+    expect(next.budget.availableToAssign.cents).toBe(0);
+    expect(Object.keys(next.inbox.assignmentsByTransactionId)).toHaveLength(0);
+  });
+
+  it("does not affect other envelopes", () => {
+    const state = makeState(["Groceries", "Bills", "Gas"]);
+    const next = deleteEnvelope(state, { envelopeId: "env-1" });
+    expect(next.budget.envelopes).toHaveLength(2);
+    expect(next.budget.envelopes[0].name).toBe("Groceries");
+    expect(next.budget.envelopes[1].name).toBe("Gas");
+  });
+
+  it("throws when envelope not found", () => {
+    const state = makeState(["Groceries"]);
+    expect(() =>
+      deleteEnvelope(state, { envelopeId: "env-999" }),
+    ).toThrow("Envelope not found.");
   });
 });

@@ -4,6 +4,7 @@ import {
   Text,
   FlatList,
   Pressable,
+  Alert,
   StyleSheet,
 } from "react-native";
 import { router, Stack, useLocalSearchParams } from "expo-router";
@@ -14,6 +15,7 @@ import type { Transaction } from "@money-shepherd/domain";
 export default function EnvelopeDetailScreen() {
   const { envelopeId } = useLocalSearchParams<{ envelopeId: string }>();
   const state = useAppStore((s) => s.state);
+  const deleteEnvelopeAction = useAppStore((s) => s.deleteEnvelope);
 
   if (!state || !envelopeId) {
     return (
@@ -98,6 +100,31 @@ export default function EnvelopeDetailScreen() {
           ${formatMoney(envelope.balance.cents)}
         </Text>
       </View>
+
+      <Pressable
+        onPress={() => {
+          const balanceStr = formatMoney(Math.abs(envelope.balance.cents));
+          const hasBalance = envelope.balance.cents !== 0;
+          const msg = hasBalance
+            ? `Delete "${envelope.name}"? Its balance of $${balanceStr} will return to Available.`
+            : `Delete "${envelope.name}"? Any assigned transactions will return to your Inbox.`;
+          Alert.alert("Delete Envelope", msg, [
+            { text: "Cancel", style: "cancel" },
+            {
+              text: "Delete",
+              style: "destructive",
+              onPress: async () => {
+                await deleteEnvelopeAction(envelopeId);
+                router.back();
+              },
+            },
+          ]);
+        }}
+        style={styles.deleteBtn}
+        accessibilityLabel="Delete envelope"
+      >
+        <Text style={styles.deleteBtnText}>Delete Envelope</Text>
+      </Pressable>
 
       <Text style={styles.sectionLabel}>Assigned Transactions</Text>
 
@@ -186,6 +213,13 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
   },
   editBtnText: { fontSize: 13, fontWeight: "600", color: "#4f8ef7" },
+  deleteBtn: {
+    alignSelf: "center",
+    marginTop: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+  },
+  deleteBtnText: { fontSize: 14, fontWeight: "600", color: "#d94f4f" },
   balanceLabel: { fontSize: 13, color: "#888", marginTop: 4 },
   balance: { fontSize: 32, fontWeight: "800", color: "#2d9e6b" },
   sectionLabel: {

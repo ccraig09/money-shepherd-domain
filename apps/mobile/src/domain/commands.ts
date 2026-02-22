@@ -91,6 +91,52 @@ export function renameEnvelope(
 }
 
 /**
+ * Deletes an envelope and removes all assignments pointing to it.
+ * Transactions previously assigned to this envelope return to the Inbox.
+ * The envelope's balance returns to Available via recompute (no manual move needed).
+ */
+export function deleteEnvelope(
+  state: AppStateV1,
+  args: { envelopeId: string },
+): AppStateV1 {
+  const envelope = state.budget.envelopes.find(
+    (e) => e.id === args.envelopeId,
+  );
+  if (!envelope) {
+    throw new Error("Envelope not found.");
+  }
+
+  // Return the envelope's balance to Available to Assign
+  const returnedBalance = state.budget.availableToAssign.add(envelope.balance);
+
+  // Remove assignments that point to this envelope
+  const nextAssignments: typeof state.inbox.assignmentsByTransactionId = {};
+  for (const [txId, assignment] of Object.entries(
+    state.inbox.assignmentsByTransactionId,
+  )) {
+    if (assignment.envelopeId !== args.envelopeId) {
+      nextAssignments[txId] = assignment;
+    }
+  }
+
+  return {
+    ...state,
+    budget: {
+      ...state.budget,
+      availableToAssign: returnedBalance,
+      envelopes: state.budget.envelopes.filter(
+        (e) => e.id !== args.envelopeId,
+      ),
+    },
+    inbox: {
+      ...state.inbox,
+      assignmentsByTransactionId: nextAssignments,
+    },
+    updatedAt: nowIso(),
+  };
+}
+
+/**
  * Records that a transaction is assigned to an envelope by a user.
  * This does NOT change money directly. The domain recompute will apply it.
  */
