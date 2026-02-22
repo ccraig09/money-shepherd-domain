@@ -162,19 +162,19 @@
 
 ### Phase 16 Smoke Check
 
-- [ ] Money input accepts "10", "10.5", "10.50", rejects invalid
-- [ ] Income vs expense is visually clear everywhere
-- [ ] Forms do not break when keyboard opens
-- [ ] Can edit an envelope name from envelope detail
-- [ ] Can delete an envelope (with confirmation)
-- [ ] Can view transaction detail and add/edit a note
+- [x] Money input accepts "10", "10.5", "10.50", rejects invalid
+- [x] Income vs expense is visually clear everywhere
+- [x] Forms do not break when keyboard opens
+- [x] Can edit an envelope name from envelope detail
+- [x] Can delete an envelope (with confirmation)
+- [x] Can view transaction detail and add/edit a note
 
 ---
 
 ## Phase 17: Sync UX (status model + retry/backoff + conflict messaging)
 
-<!--
 ### Recommended build order
+
 - [ ] MS-17.1 Status model
 - [ ] MS-17.2 Indicator
 - [ ] MS-17.5 Pending changes
@@ -187,10 +187,10 @@
 - [ ] MS-17.10 Two-device checklist
 
 ### Phase 17 Smoke Check
+
 - [ ] Offline edit -> shows pending
 - [ ] Online -> retries, then syncs
 - [ ] Conflict -> pulls remote and informs user
--->
 
 ---
 
