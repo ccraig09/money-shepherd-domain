@@ -13,6 +13,7 @@ import { APP_STATE_VERSION } from "./appState";
 import { loadAppState, saveAppState, clearAppState } from "./storage";
 import { nowIso, makeId } from "../lib/id";
 import { mergeTransactions } from "./mergeTransactions";
+import type { SyncOutcome } from "./syncStatus";
 
 // NOTE: applyTransactionsToAccounts might be in your domain already.
 // If it exists, import and use it. If not, we’ll add it next.
@@ -20,41 +21,46 @@ import { applyTransactionsToAccounts } from "@money-shepherd/domain";
 
 import type { Account } from "@money-shepherd/domain";
 
+export type RecomputeResult = {
+  state: AppStateV1;
+  syncOutcome: SyncOutcome;
+};
+
 export type Engine = {
   getState(): Promise<AppStateV1>;
   seed(): Promise<AppStateV1>;
   reset(): Promise<void>;
-  recompute(state: AppStateV1): Promise<AppStateV1>;
+  recompute(state: AppStateV1): Promise<RecomputeResult>;
 
-  // Simple commands for Phase 10 UI
+  // Mutation commands — all return RecomputeResult with sync outcome
   addManualTransaction(args: {
     accountId: string;
     amountCents: number; // positive income, negative expense
     description: string;
     postedAt?: string;
-  }): Promise<AppStateV1>;
+  }): Promise<RecomputeResult>;
 
-  createEnvelope(args: { name: string }): Promise<AppStateV1>;
-  renameEnvelope(args: { envelopeId: string; name: string }): Promise<AppStateV1>;
-  deleteEnvelope(args: { envelopeId: string }): Promise<AppStateV1>;
-  setTransactionNote(args: { transactionId: string; note: string }): Promise<AppStateV1>;
+  createEnvelope(args: { name: string }): Promise<RecomputeResult>;
+  renameEnvelope(args: { envelopeId: string; name: string }): Promise<RecomputeResult>;
+  deleteEnvelope(args: { envelopeId: string }): Promise<RecomputeResult>;
+  setTransactionNote(args: { transactionId: string; note: string }): Promise<RecomputeResult>;
   assignTransaction(args: {
     transactionId: string;
     envelopeId: string;
     assignedByUserId: string;
-  }): Promise<AppStateV1>;
+  }): Promise<RecomputeResult>;
   allocateToEnvelope(args: {
     envelopeId: string;
     amountCents: number;
-  }): Promise<AppStateV1>;
+  }): Promise<RecomputeResult>;
 
   importPlaidAccounts(args: {
     newAccounts: Account[];
-  }): Promise<AppStateV1>;
+  }): Promise<RecomputeResult>;
 
   importPlaidTransactions(args: {
     transactions: import("@money-shepherd/domain").Transaction[];
-  }): Promise<AppStateV1>;
+  }): Promise<RecomputeResult>;
 };
 
 export function createEngine(): Engine {
@@ -78,7 +84,7 @@ export function createEngine(): Engine {
 
   async function createEnvelopeAction(args: {
     name: string;
-  }): Promise<AppStateV1> {
+  }): Promise<RecomputeResult> {
     const state = await getState();
     const next = createEnvelope(state, args);
     return recompute(next);
@@ -87,7 +93,7 @@ export function createEngine(): Engine {
   async function renameEnvelopeAction(args: {
     envelopeId: string;
     name: string;
-  }): Promise<AppStateV1> {
+  }): Promise<RecomputeResult> {
     const state = await getState();
     const next = renameEnvelope(state, args);
     return recompute(next);
@@ -95,7 +101,7 @@ export function createEngine(): Engine {
 
   async function deleteEnvelopeAction(args: {
     envelopeId: string;
-  }): Promise<AppStateV1> {
+  }): Promise<RecomputeResult> {
     const state = await getState();
     const next = deleteEnvelope(state, args);
     return recompute(next);
@@ -104,7 +110,7 @@ export function createEngine(): Engine {
   async function setTransactionNoteAction(args: {
     transactionId: string;
     note: string;
-  }): Promise<AppStateV1> {
+  }): Promise<RecomputeResult> {
     const state = await getState();
     const next = setTransactionNote(state, args);
     return recompute(next);
@@ -114,7 +120,7 @@ export function createEngine(): Engine {
     transactionId: string;
     envelopeId: string;
     assignedByUserId: string;
-  }): Promise<AppStateV1> {
+  }): Promise<RecomputeResult> {
     const state = await getState();
     const next = assignTransaction(state, args);
     return recompute(next);
@@ -123,7 +129,7 @@ export function createEngine(): Engine {
   async function allocateToEnvelopeAction(args: {
     envelopeId: string;
     amountCents: number;
-  }): Promise<AppStateV1> {
+  }): Promise<RecomputeResult> {
     const state = await getState();
     const next = allocateToEnvelope(state, args);
     return recompute(next);
@@ -174,9 +180,9 @@ export function createEngine(): Engine {
       updatedAt: nowIso(),
     };
 
-    const computed = await recompute(state);
-    await saveAppState(computed);
-    return computed;
+    const result = await recompute(state);
+    await saveAppState(result.state);
+    return result.state;
   }
 
   async function reset(): Promise<void> {
@@ -243,7 +249,7 @@ export function createEngine(): Engine {
     return local;
   }
 
-  async function recompute(state: AppStateV1): Promise<AppStateV1> {
+  async function recompute(state: AppStateV1): Promise<RecomputeResult> {
     // 1) Apply transactions to accounts (ledger balances)
     const accountAppliedSet = new Set(state.appliedAccountTransactionIds);
     const accountsResult = applyTransactionsToAccounts(
@@ -298,6 +304,8 @@ export function createEngine(): Engine {
           ...syncMeta,
           rev: pushed.rev,
         });
+
+        return { state: next, syncOutcome: "pushed" };
       } catch (err: any) {
         if (err?.code === "SYNC_CONFLICT") {
           // MVP strategy: pull remote and overwrite local
@@ -308,14 +316,15 @@ export function createEngine(): Engine {
               ...syncMeta,
               rev: remote.rev,
             });
-            return remote.state;
+            return { state: remote.state, syncOutcome: "conflict-resolved" };
           }
         } else {
           console.warn("Sync push failed", err);
+          return { state: next, syncOutcome: "error" };
         }
       }
     }
-    return next;
+    return { state: next, syncOutcome: syncMeta ? "error" : "local-only" };
   }
 
   async function addManualTransaction(args: {
@@ -323,7 +332,7 @@ export function createEngine(): Engine {
     amountCents: number;
     description: string;
     postedAt?: string;
-  }): Promise<AppStateV1> {
+  }): Promise<RecomputeResult> {
     const state = await getState();
 
     const tx = {
@@ -345,12 +354,12 @@ export function createEngine(): Engine {
 
   async function importPlaidAccounts(args: {
     newAccounts: Account[];
-  }): Promise<AppStateV1> {
+  }): Promise<RecomputeResult> {
     const state = await getState();
     const existingIds = new Set(state.accounts.map((a) => a.id));
     const toAdd = args.newAccounts.filter((a) => !existingIds.has(a.id));
 
-    if (toAdd.length === 0) return state;
+    if (toAdd.length === 0) return { state, syncOutcome: "local-only" };
 
     const next: AppStateV1 = {
       ...state,
@@ -362,11 +371,11 @@ export function createEngine(): Engine {
 
   async function importPlaidTransactions(args: {
     transactions: import("@money-shepherd/domain").Transaction[];
-  }): Promise<AppStateV1> {
+  }): Promise<RecomputeResult> {
     const state = await getState();
     const merged = mergeTransactions(state.transactions, args.transactions);
 
-    if (merged.length === state.transactions.length) return state;
+    if (merged.length === state.transactions.length) return { state, syncOutcome: "local-only" };
 
     const next: AppStateV1 = { ...state, transactions: merged };
     return recompute(next);

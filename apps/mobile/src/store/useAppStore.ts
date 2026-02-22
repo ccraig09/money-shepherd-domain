@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { createEngine } from "../domain/engine";
 import type { AppStateV1 } from "../domain/appState";
+import { initialSyncState, syncTransition, type SyncState } from "../domain/syncStatus";
 import { clearSyncMeta, loadSyncMeta, saveSyncMeta } from "../infra/local/syncMeta";
 import { clearPin } from "../infra/local/pin";
 import { loadPlaidTokens, clearAllPlaidTokens } from "../infra/local/secureTokens";
@@ -20,6 +21,7 @@ type AppStore = {
   errorMessage: string | null;
   state: AppStateV1 | null;
   guardState: GuardState;
+  syncState: SyncState;
   lastSyncAt: string | null;
   lastPlaidRefreshAt: string | null;
   plaidSyncError: PlaidErrorInfo | null;
@@ -55,6 +57,23 @@ type AppStore = {
 
 const engine = createEngine();
 
+/** Map engine sync outcome to a SyncEvent for the state machine. */
+function syncEventForOutcome(
+  outcome: import("../domain/syncStatus").SyncOutcome,
+): import("../domain/syncStatus").SyncEvent {
+  const now = new Date().toISOString();
+  switch (outcome) {
+    case "pushed":
+      return { type: "sync-success", at: now };
+    case "conflict-resolved":
+      return { type: "sync-conflict-resolved", at: now };
+    case "error":
+      return { type: "sync-error", error: "Sync push failed" };
+    case "local-only":
+      return { type: "local-save" };
+  }
+}
+
 /**
  * Mental model:
  * - Engine owns persistence + domain recompute.
@@ -66,6 +85,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
   errorMessage: null,
   state: null,
   guardState: "checking",
+  syncState: initialSyncState(),
   lastSyncAt: null,
   lastPlaidRefreshAt: null,
   plaidSyncError: null,
@@ -74,23 +94,33 @@ export const useAppStore = create<AppStore>((set, get) => ({
   clearPlaidSyncError: () => set({ plaidSyncError: null }),
 
   bootstrap: async () => {
-    set({ status: "loading", errorMessage: null });
+    set({
+      status: "loading",
+      errorMessage: null,
+      syncState: syncTransition(get().syncState, { type: "sync-start" }),
+    });
     try {
       const state = await engine.getState();
       const syncMeta = await loadSyncMeta();
       const lastRefresh = syncMeta
         ? await loadPlaidRefreshAt(syncMeta.userId)
         : null;
+      const now = new Date().toISOString();
       set({
         state,
         status: "ready",
-        lastSyncAt: new Date().toISOString(),
+        lastSyncAt: now,
         lastPlaidRefreshAt: lastRefresh,
+        syncState: syncTransition(get().syncState, { type: "sync-success", at: now }),
       });
     } catch (err: any) {
       set({
         status: "error",
         errorMessage: err?.message ?? "Failed to load app state",
+        syncState: syncTransition(get().syncState, {
+          type: "sync-error",
+          error: err?.message ?? "Bootstrap failed",
+        }),
       });
     }
   },
@@ -104,7 +134,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
       await clearAllPlaidTokens("user-jackia");
       await clearPlaidRefreshAt("user-los");
       await clearPlaidRefreshAt("user-jackia");
-      set({ state: null, status: "idle", guardState: "needs-setup", errorMessage: null, lastPlaidRefreshAt: null });
+      set({ state: null, status: "idle", guardState: "needs-setup", errorMessage: null, lastPlaidRefreshAt: null, syncState: initialSyncState() });
     } catch (err: any) {
       set({ status: "error", errorMessage: err?.message ?? "Failed to reset" });
     }
@@ -139,14 +169,20 @@ export const useAppStore = create<AppStore>((set, get) => ({
     const current = get().state;
     if (!current) return;
 
-    set({ status: "loading", errorMessage: null });
+    set({ status: "loading", errorMessage: null, syncState: syncTransition(get().syncState, { type: "sync-start" }) });
     try {
-      const state = await engine.createEnvelope({ name });
-      set({ state, status: "ready", lastSyncAt: new Date().toISOString() });
+      const result = await engine.createEnvelope({ name });
+      set({
+        state: result.state,
+        status: "ready",
+        lastSyncAt: new Date().toISOString(),
+        syncState: syncTransition(get().syncState, syncEventForOutcome(result.syncOutcome)),
+      });
     } catch (err: any) {
       set({
         status: "error",
         errorMessage: err?.message ?? "Failed to create envelope",
+        syncState: syncTransition(get().syncState, { type: "sync-error", error: err?.message ?? "Failed to create envelope" }),
       });
     }
   },
@@ -155,14 +191,20 @@ export const useAppStore = create<AppStore>((set, get) => ({
     const current = get().state;
     if (!current) return;
 
-    set({ status: "loading", errorMessage: null });
+    set({ status: "loading", errorMessage: null, syncState: syncTransition(get().syncState, { type: "sync-start" }) });
     try {
-      const state = await engine.renameEnvelope({ envelopeId, name });
-      set({ state, status: "ready", lastSyncAt: new Date().toISOString() });
+      const result = await engine.renameEnvelope({ envelopeId, name });
+      set({
+        state: result.state,
+        status: "ready",
+        lastSyncAt: new Date().toISOString(),
+        syncState: syncTransition(get().syncState, syncEventForOutcome(result.syncOutcome)),
+      });
     } catch (err: any) {
       set({
         status: "error",
         errorMessage: err?.message ?? "Failed to rename envelope",
+        syncState: syncTransition(get().syncState, { type: "sync-error", error: err?.message ?? "Failed to rename envelope" }),
       });
     }
   },
@@ -171,14 +213,20 @@ export const useAppStore = create<AppStore>((set, get) => ({
     const current = get().state;
     if (!current) return;
 
-    set({ status: "loading", errorMessage: null });
+    set({ status: "loading", errorMessage: null, syncState: syncTransition(get().syncState, { type: "sync-start" }) });
     try {
-      const state = await engine.deleteEnvelope({ envelopeId });
-      set({ state, status: "ready", lastSyncAt: new Date().toISOString() });
+      const result = await engine.deleteEnvelope({ envelopeId });
+      set({
+        state: result.state,
+        status: "ready",
+        lastSyncAt: new Date().toISOString(),
+        syncState: syncTransition(get().syncState, syncEventForOutcome(result.syncOutcome)),
+      });
     } catch (err: any) {
       set({
         status: "error",
         errorMessage: err?.message ?? "Failed to delete envelope",
+        syncState: syncTransition(get().syncState, { type: "sync-error", error: err?.message ?? "Failed to delete envelope" }),
       });
     }
   },
@@ -187,14 +235,20 @@ export const useAppStore = create<AppStore>((set, get) => ({
     const current = get().state;
     if (!current) return;
 
-    set({ status: "loading", errorMessage: null });
+    set({ status: "loading", errorMessage: null, syncState: syncTransition(get().syncState, { type: "sync-start" }) });
     try {
-      const state = await engine.setTransactionNote({ transactionId, note });
-      set({ state, status: "ready", lastSyncAt: new Date().toISOString() });
+      const result = await engine.setTransactionNote({ transactionId, note });
+      set({
+        state: result.state,
+        status: "ready",
+        lastSyncAt: new Date().toISOString(),
+        syncState: syncTransition(get().syncState, syncEventForOutcome(result.syncOutcome)),
+      });
     } catch (err: any) {
       set({
         status: "error",
         errorMessage: err?.message ?? "Failed to save note",
+        syncState: syncTransition(get().syncState, { type: "sync-error", error: err?.message ?? "Failed to save note" }),
       });
     }
   },
@@ -203,14 +257,20 @@ export const useAppStore = create<AppStore>((set, get) => ({
     const current = get().state;
     if (!current) return;
 
-    set({ status: "loading", errorMessage: null });
+    set({ status: "loading", errorMessage: null, syncState: syncTransition(get().syncState, { type: "sync-start" }) });
     try {
-      const state = await engine.assignTransaction(args);
-      set({ state, status: "ready", lastSyncAt: new Date().toISOString() });
+      const result = await engine.assignTransaction(args);
+      set({
+        state: result.state,
+        status: "ready",
+        lastSyncAt: new Date().toISOString(),
+        syncState: syncTransition(get().syncState, syncEventForOutcome(result.syncOutcome)),
+      });
     } catch (err: any) {
       set({
         status: "error",
         errorMessage: err?.message ?? "Failed to assign transaction",
+        syncState: syncTransition(get().syncState, { type: "sync-error", error: err?.message ?? "Failed to assign transaction" }),
       });
     }
   },
@@ -219,14 +279,20 @@ export const useAppStore = create<AppStore>((set, get) => ({
     const current = get().state;
     if (!current) return;
 
-    set({ status: "loading", errorMessage: null });
+    set({ status: "loading", errorMessage: null, syncState: syncTransition(get().syncState, { type: "sync-start" }) });
     try {
-      const state = await engine.allocateToEnvelope(args);
-      set({ state, status: "ready", lastSyncAt: new Date().toISOString() });
+      const result = await engine.allocateToEnvelope(args);
+      set({
+        state: result.state,
+        status: "ready",
+        lastSyncAt: new Date().toISOString(),
+        syncState: syncTransition(get().syncState, syncEventForOutcome(result.syncOutcome)),
+      });
     } catch (err: any) {
       set({
         status: "error",
         errorMessage: err?.message ?? "Failed to allocate",
+        syncState: syncTransition(get().syncState, { type: "sync-error", error: err?.message ?? "Failed to allocate" }),
       });
     }
   },
@@ -235,14 +301,20 @@ export const useAppStore = create<AppStore>((set, get) => ({
     const current = get().state;
     if (!current) return;
 
-    set({ status: "loading", errorMessage: null });
+    set({ status: "loading", errorMessage: null, syncState: syncTransition(get().syncState, { type: "sync-start" }) });
     try {
-      const state = await engine.addManualTransaction(args);
-      set({ state, status: "ready", lastSyncAt: new Date().toISOString() });
+      const result = await engine.addManualTransaction(args);
+      set({
+        state: result.state,
+        status: "ready",
+        lastSyncAt: new Date().toISOString(),
+        syncState: syncTransition(get().syncState, syncEventForOutcome(result.syncOutcome)),
+      });
     } catch (err: any) {
       set({
         status: "error",
         errorMessage: err?.message ?? "Failed to add transaction",
+        syncState: syncTransition(get().syncState, { type: "sync-error", error: err?.message ?? "Failed to add transaction" }),
       });
     }
   },
@@ -263,7 +335,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
       }
     }
 
-    set({ status: "loading", errorMessage: null, plaidSyncError: null });
+    set({ status: "loading", errorMessage: null, plaidSyncError: null, syncState: syncTransition(get().syncState, { type: "sync-start" }) });
     try {
       const USER_IDS = ["user-los", "user-jackia"];
       const allNewTransactions: import("@money-shepherd/domain").Transaction[] = [];
@@ -300,16 +372,27 @@ export const useAppStore = create<AppStore>((set, get) => ({
       }
 
       const before = state.transactions.length;
-      state = await engine.importPlaidTransactions({ transactions: allNewTransactions });
-      const imported = state.transactions.length - before;
+      const result = await engine.importPlaidTransactions({ transactions: allNewTransactions });
+      const imported = result.state.transactions.length - before;
 
       const now = new Date().toISOString();
       await savePlaidRefreshAt(currentUserId, now);
-      set({ state, status: "ready", lastSyncAt: now, lastPlaidRefreshAt: now });
+      set({
+        state: result.state,
+        status: "ready",
+        lastSyncAt: now,
+        lastPlaidRefreshAt: now,
+        syncState: syncTransition(get().syncState, syncEventForOutcome(result.syncOutcome)),
+      });
       return { imported };
     } catch (err: unknown) {
       const info = classifyPlaidError(err);
-      set({ status: "error", errorMessage: info.message, plaidSyncError: info });
+      set({
+        status: "error",
+        errorMessage: info.message,
+        plaidSyncError: info,
+        syncState: syncTransition(get().syncState, { type: "sync-error", error: info.message }),
+      });
       return { imported: 0 };
     }
   },
