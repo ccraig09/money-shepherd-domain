@@ -78,9 +78,21 @@ export default function EnvelopeDetailScreen() {
       <Stack.Screen options={{ title: envelope.name }} />
       {/* Envelope summary */}
       <View style={styles.summaryCard}>
-        <Text style={styles.envelopeName} numberOfLines={1}>
-          {envelope.name}
-        </Text>
+        <View style={styles.nameRow}>
+          <Text style={styles.envelopeName} numberOfLines={1}>
+            {envelope.name}
+          </Text>
+          <Pressable
+            onPress={() =>
+              router.push(`/edit-envelope?envelopeId=${envelopeId}` as any)
+            }
+            style={styles.editBtn}
+            accessibilityLabel="Edit envelope name"
+            hitSlop={8}
+          >
+            <Text style={styles.editBtnText}>Edit</Text>
+          </Pressable>
+        </View>
         <Text style={styles.balanceLabel}>Balance</Text>
         <Text style={styles.balance}>
           ${formatMoney(envelope.balance.cents)}
@@ -159,7 +171,21 @@ const styles = StyleSheet.create({
     backgroundColor: "#f9f9f9",
     gap: 4,
   },
-  envelopeName: { fontSize: 22, fontWeight: "700", color: "#111" },
+  nameRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  envelopeName: { fontSize: 22, fontWeight: "700", color: "#111", flexShrink: 1 },
+  editBtn: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#ddd",
+    backgroundColor: "#fff",
+  },
+  editBtnText: { fontSize: 13, fontWeight: "600", color: "#4f8ef7" },
   balanceLabel: { fontSize: 13, color: "#888", marginTop: 4 },
   balance: { fontSize: 32, fontWeight: "800", color: "#2d9e6b" },
   sectionLabel: {

@@ -1,6 +1,6 @@
 import { Money } from "@money-shepherd/domain";
 import type { AppStateV1 } from "../appState";
-import { createEnvelope } from "../commands";
+import { createEnvelope, renameEnvelope } from "../commands";
 
 function makeState(envelopeNames: string[] = []): AppStateV1 {
   return {
@@ -80,5 +80,76 @@ describe("createEnvelope", () => {
     const next = createEnvelope(state, { name: "Groceries" });
     expect(next.budget.envelopes[0].name).toBe("Groceries");
     expect(next.budget.envelopes[1].name).toBe("Bills");
+  });
+});
+
+describe("renameEnvelope", () => {
+  it("renames the envelope with the normalized name", () => {
+    const state = makeState(["Groceries"]);
+    const next = renameEnvelope(state, { envelopeId: "env-0", name: "Food" });
+    expect(next.budget.envelopes[0].name).toBe("Food");
+  });
+
+  it("preserves the balance and id", () => {
+    const state = makeState(["Groceries"]);
+    state.budget.envelopes[0].balance = Money.fromCents(5000);
+    const next = renameEnvelope(state, { envelopeId: "env-0", name: "Food" });
+    expect(next.budget.envelopes[0].id).toBe("env-0");
+    expect(next.budget.envelopes[0].balance.cents).toBe(5000);
+  });
+
+  it("trims and collapses spaces", () => {
+    const state = makeState(["Groceries"]);
+    const next = renameEnvelope(state, {
+      envelopeId: "env-0",
+      name: "  My  Food  ",
+    });
+    expect(next.budget.envelopes[0].name).toBe("My Food");
+  });
+
+  it("returns same state when name is unchanged (no-op)", () => {
+    const state = makeState(["Groceries"]);
+    const next = renameEnvelope(state, {
+      envelopeId: "env-0",
+      name: "Groceries",
+    });
+    expect(next).toBe(state);
+  });
+
+  it("throws when name is empty", () => {
+    const state = makeState(["Groceries"]);
+    expect(() =>
+      renameEnvelope(state, { envelopeId: "env-0", name: "" }),
+    ).toThrow("Envelope name is required.");
+  });
+
+  it("throws when envelope not found", () => {
+    const state = makeState(["Groceries"]);
+    expect(() =>
+      renameEnvelope(state, { envelopeId: "env-999", name: "Food" }),
+    ).toThrow("Envelope not found.");
+  });
+
+  it("throws on case-insensitive duplicate with another envelope", () => {
+    const state = makeState(["Groceries", "Bills"]);
+    expect(() =>
+      renameEnvelope(state, { envelopeId: "env-0", name: "bills" }),
+    ).toThrow("already exists");
+  });
+
+  it("allows renaming to a different case of the same name", () => {
+    const state = makeState(["groceries"]);
+    const next = renameEnvelope(state, {
+      envelopeId: "env-0",
+      name: "Groceries",
+    });
+    expect(next.budget.envelopes[0].name).toBe("Groceries");
+  });
+
+  it("does not affect other envelopes", () => {
+    const state = makeState(["Groceries", "Bills", "Gas"]);
+    const next = renameEnvelope(state, { envelopeId: "env-0", name: "Food" });
+    expect(next.budget.envelopes[1].name).toBe("Bills");
+    expect(next.budget.envelopes[2].name).toBe("Gas");
   });
 });
