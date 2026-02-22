@@ -156,12 +156,18 @@
 - [x] MS-16.7 Envelope validation polish
 - [x] MS-16.9 Manual checklist
 - [x] MS-16.8 Quick actions (optional)
+- [x] MS-16.10 Edit envelope name
+- [ ] MS-16.11 Delete envelope
+- [ ] MS-16.12 Transaction detail + optional note
 
 ### Phase 16 Smoke Check
 
 - [ ] Money input accepts "10", "10.5", "10.50", rejects invalid
 - [ ] Income vs expense is visually clear everywhere
 - [ ] Forms do not break when keyboard opens
+- [ ] Can edit an envelope name from envelope detail
+- [ ] Can delete an envelope (with confirmation)
+- [ ] Can view transaction detail and add/edit a note
 
 ---
 
@@ -204,11 +210,18 @@
 - [ ] MS-18.10 Toast feedback
 - [ ] MS-18.11 Accessibility
 - [ ] MS-18.12 Branding shell
+- [ ] MS-18.13 ScriptureStrip on Dashboard (daily rotating verse, optional "Pray" action)
+- [ ] MS-18.14 GreetingCard on Dashboard (time-aware greeting + envelope health summary)
+- [ ] MS-18.15 DateGroupHeaders in Transactions (Today / Yesterday / date)
+- [ ] MS-18.16 ProgressBar on Envelope rows (balance / allocated, color-coded)
 
 ### Phase 18 Smoke Check
 - [ ] Navigation is predictable (tabs + modals)
 - [ ] All empty states look intentional
 - [ ] Assign + allocate flows feel fast
+- [ ] Dashboard shows scripture strip and greeting card
+- [ ] Transactions grouped by date
+- [ ] Envelope rows show spending progress bars
 -->
 
 ---
@@ -235,4 +248,81 @@
 - [ ] App recovers from corrupted local state
 - [ ] Feature flags can disable risky features cleanly
 - [ ] Install plan works for Jackia
+-->
+
+---
+
+## Phase 20: Smart Assignment (suggest-then-confirm system)
+
+<!--
+### Recommended build order
+
+#### Tier 1 — Foundation
+- [ ] MS-20.1 Payee normalization utility (pure function + tests)
+- [ ] MS-20.2 Payee-to-envelope mapping storage (AppStateV1 + auto-update on assign)
+- [ ] MS-20.3 suggestEnvelope() domain function (rules + payee fallback → suggestion or null)
+- [ ] MS-20.4 Suggestion badges in Inbox UI (show badge, tap to pre-select)
+
+#### Tier 2 — Enhancement
+- [ ] MS-20.5 Assignment rules data model (contains/exact match, priority order)
+- [ ] MS-20.6 Rules management screen (Settings → add/edit/delete/reorder rules)
+
+#### Tier 3 — Power Features
+- [ ] MS-20.7 "Confirm All Suggestions" bulk action (assign all suggested in one tap)
+- [ ] MS-20.8 Recurring transaction detection (same payee + similar amount + regular interval)
+
+### Architecture Notes
+- `suggestEnvelope()` is a pure function in `packages/domain` — no infra deps
+- Rules evaluate in priority order: explicit rules first, then payee memorization fallback
+- Nothing auto-assigns — all suggestions require user confirmation
+- `assignedByUserId` audit trail preserved (system suggestions still show who confirmed)
+
+### Phase 20 Smoke Check
+- [ ] Assign a transaction → payee remembered for next time
+- [ ] New transaction from same payee → suggestion badge appears in Inbox
+- [ ] Tap suggestion → pre-selects envelope in assign flow
+- [ ] Create a rule → overrides payee memorization
+- [ ] "Confirm All" assigns multiple suggestions in one tap
+-->
+
+---
+
+## Phase 21: Debt Freedom Tools (BNPL tracking + snowball method)
+
+<!--
+### Recommended build order
+- [ ] MS-21.1 Envelope "target" field (budget amount / payoff goal)
+- [ ] MS-21.2 Envelope "type" tag (spending / debt / savings)
+- [ ] MS-21.3 Debt overview screen (list all debts, sorted by snowball order)
+- [ ] MS-21.4 Snowball calculator (payoff order, timeline, interest savings)
+- [ ] MS-21.5 Debt payoff progress visualization (bar/ring per debt)
+- [ ] MS-21.6 BNPL transaction detection hint (badge on BNPL merchant transactions)
+
+### Phase 21 Smoke Check
+- [ ] Create debt-tagged envelope with target amount
+- [ ] Debt overview shows all debts sorted by balance
+- [ ] Snowball calculator shows payoff timeline
+- [ ] Progress visualization updates as payments are made
+- [ ] BNPL badge appears on Affirm/Klarna/etc. transactions
+-->
+
+---
+
+## Phase 22: Insights & Visuals (charts, trends, advisor voice)
+
+<!--
+### Recommended build order
+- [ ] MS-22.1 Charting library setup (victory-native or react-native-chart-kit)
+- [ ] MS-22.2 Spending by envelope pie/donut chart
+- [ ] MS-22.3 PeriodSummaryCard (income vs expense vs net — legacy wireframe §1)
+- [ ] MS-22.4 Income vs Expense trend bar chart (3-6 months)
+- [ ] MS-22.5 Rule-based insights engine (pattern matching, no AI)
+- [ ] MS-22.6 InsightCard component + placement ("Money Shepherd says...")
+
+### Phase 22 Smoke Check
+- [ ] Pie chart shows spending breakdown by envelope
+- [ ] Period summary card shows income/expense/net
+- [ ] Trend chart shows monthly trajectory
+- [ ] At least one insight appears on Dashboard
+- [ ] Insights are dismissable
 -->
