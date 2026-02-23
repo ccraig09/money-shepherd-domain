@@ -200,7 +200,7 @@
 
 - [x] MS-18.1 Tokens baseline
 - [x] MS-18.2 Card + SectionHeader
-- [ ] MS-18.3 Navigation audit
+- [x] MS-18.3 Navigation audit
 - [ ] MS-18.4 Dashboard pass
 - [ ] MS-18.5 Transactions pass
 - [ ] MS-18.6 Inbox pass

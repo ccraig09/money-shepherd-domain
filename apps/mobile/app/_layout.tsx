@@ -20,6 +20,7 @@ import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useAppStore } from "@/src/store/useAppStore";
 import { loadSyncMeta } from "@/src/infra/local/syncMeta";
 import { loadPinHash } from "@/src/infra/local/pin";
+import { Spacing, Radius, FontSize, FontWeight, Color } from "@/src/ui/tokens";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -109,8 +110,8 @@ export default function RootLayout() {
             options={{ presentation: "modal", title: "Allocate Funds" }}
           />
           <Stack.Screen
-            name="modal"
-            options={{ presentation: "modal", title: "Modal" }}
+            name="edit-envelope"
+            options={{ presentation: "modal", title: "Edit Envelope" }}
           />
           <Stack.Screen
             name="envelope/[envelopeId]"
@@ -128,7 +129,7 @@ export default function RootLayout() {
 
         {isReady && (status === "loading" || status === "idle") && (
           <View style={[StyleSheet.absoluteFillObject, styles.overlay]}>
-            <ActivityIndicator size="large" color="#4f8ef7" />
+            <ActivityIndicator size="large" color={Color.primary} />
             <Text style={styles.loadingText}>Loading…</Text>
           </View>
         )}
@@ -152,25 +153,25 @@ export default function RootLayout() {
 const styles = StyleSheet.create({
   root: { flex: 1 },
   overlay: {
-    backgroundColor: "#fff",
+    backgroundColor: Color.surface,
     alignItems: "center",
     justifyContent: "center",
-    gap: 12,
+    gap: Spacing.md,
   },
-  loadingText: { fontSize: 15, color: "#555" },
+  loadingText: { fontSize: FontSize.body, color: Color.textMid },
   errorText: {
-    fontSize: 15,
-    color: "#d94f4f",
+    fontSize: FontSize.body,
+    color: Color.error,
     textAlign: "center",
     paddingHorizontal: 32,
   },
   retryBtn: {
-    marginTop: 8,
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 10,
+    marginTop: Spacing.sm,
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.md,
+    borderRadius: Radius.md,
     borderWidth: 1.5,
-    borderColor: "#4f8ef7",
+    borderColor: Color.primary,
   },
-  retryText: { fontSize: 15, fontWeight: "600", color: "#4f8ef7" },
+  retryText: { fontSize: FontSize.body, fontWeight: FontWeight.semibold, color: Color.primary },
 });
