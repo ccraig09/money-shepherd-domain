@@ -12,6 +12,7 @@ import { useRouter } from "expo-router";
 import { loadSyncMeta, type SyncMeta } from "../../src/infra/local/syncMeta";
 import { useAppStore } from "../../src/store/useAppStore";
 import type { SyncStatus } from "../../src/domain/syncStatus";
+import { Spacing, Radius, FontSize, FontWeight, Color } from "../../src/ui/tokens";
 
 export default function SettingsScreen() {
   const router = useRouter();
@@ -91,6 +92,7 @@ export default function SettingsScreen() {
 
   return (
     <ScrollView style={styles.root} contentContainerStyle={styles.container}>
+      <Text style={styles.appName}>Money Shepherd</Text>
       <Text style={styles.pageTitle}>Settings</Text>
 
       {/* Sync status */}
@@ -155,7 +157,7 @@ export default function SettingsScreen() {
       </View>
 
       {isBusy && (
-        <ActivityIndicator size="small" color={ACCENT} style={styles.spinner} />
+        <ActivityIndicator size="small" color={Color.primary} style={styles.spinner} />
       )}
     </ScrollView>
   );
@@ -239,45 +241,42 @@ function ActionButton({
   );
 }
 
-const PRIMARY = "#1a1a2e";
-const ACCENT = "#4f8ef7";
-const DESTRUCTIVE = "#d94f4f";
-
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: "#f7f7f9" },
-  container: { padding: 20, gap: 20, paddingBottom: 40 },
-  pageTitle: { fontSize: 28, fontWeight: "800", color: PRIMARY, marginTop: 8 },
+  root: { flex: 1, backgroundColor: Color.surfaceLight },
+  container: { padding: Spacing.lg, gap: Spacing.lg, paddingBottom: Spacing.bottomPad },
+  appName: { fontSize: FontSize.small, fontWeight: FontWeight.semibold, color: Color.primary, textTransform: "uppercase", letterSpacing: 0.5 },
+  pageTitle: { fontSize: FontSize.title, fontWeight: FontWeight.extrabold, color: Color.textDark, marginTop: 2 },
   card: {
-    backgroundColor: "#fff",
-    borderRadius: 16,
-    padding: 16,
-    gap: 4,
+    backgroundColor: Color.surface,
+    borderRadius: Radius.hero,
+    padding: Spacing.base,
+    gap: Spacing.xs,
     shadowColor: "#000",
     shadowOpacity: 0.04,
     shadowRadius: 8,
     shadowOffset: { width: 0, height: 2 },
   },
   cardTitle: {
-    fontSize: 12,
-    fontWeight: "600",
-    color: "#999",
+    fontSize: FontSize.caption,
+    fontWeight: FontWeight.semibold,
+    color: Color.textMuted,
     textTransform: "uppercase",
     letterSpacing: 0.8,
-    marginBottom: 8,
+    marginBottom: Spacing.sm,
   },
   row: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingVertical: 6,
+    paddingVertical: Spacing.xs,
   },
-  rowLabel: { fontSize: 15, color: "#444" },
-  rowValue: { fontSize: 15, color: PRIMARY, fontWeight: "500", maxWidth: "60%" },
-  divider: { height: 1, backgroundColor: "#f0f0f0", marginVertical: 2 },
-  actionBtn: { paddingVertical: 14 },
+  rowLabel: { fontSize: FontSize.body, color: Color.textMid },
+  rowValue: { fontSize: FontSize.body, color: Color.textDark, fontWeight: FontWeight.medium, maxWidth: "60%" },
+  divider: { height: StyleSheet.hairlineWidth, backgroundColor: Color.borderLight, marginVertical: 2 },
+  actionBtn: { paddingVertical: Spacing.md, minHeight: 44 },
   actionBtnPressed: { opacity: 0.6 },
   actionBtnDisabled: { opacity: 0.4 },
-  actionBtnText: { fontSize: 16, color: ACCENT, fontWeight: "600" },
-  actionBtnTextDestructive: { color: DESTRUCTIVE },
-  spinner: { alignSelf: "center", marginTop: 8 },
+  actionBtnText: { fontSize: FontSize.subtitle, color: Color.primary, fontWeight: FontWeight.semibold },
+  actionBtnTextDestructive: { color: Color.error },
+  spinner: { alignSelf: "center", marginTop: Spacing.sm },
 });

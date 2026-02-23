@@ -52,7 +52,10 @@ export default function DashboardScreen() {
     >
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.title}>Dashboard</Text>
+        <View>
+          <Text style={styles.appName}>Money Shepherd</Text>
+          <Text style={styles.subtitle}>Dashboard</Text>
+        </View>
         <SyncIndicator />
       </View>
 
@@ -187,7 +190,8 @@ const styles = StyleSheet.create({
     paddingTop: 60,
     paddingBottom: Spacing.base,
   },
-  title: { fontSize: FontSize.title, fontWeight: FontWeight.bold, color: Color.textDark },
+  appName: { fontSize: FontSize.title, fontWeight: FontWeight.extrabold, color: Color.primary },
+  subtitle: { fontSize: FontSize.small, fontWeight: FontWeight.medium, color: Color.textMuted, marginTop: 2 },
 
   // Hero card
   heroCard: {

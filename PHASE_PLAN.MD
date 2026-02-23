@@ -209,7 +209,7 @@
 - [x] MS-18.9 Forms pass
 - [x] MS-18.10 Toast feedback
 - [x] MS-18.11 Accessibility
-- [ ] MS-18.12 Branding shell
+- [x] MS-18.12 Branding shell
 - [ ] MS-18.13 ScriptureStrip on Dashboard (daily rotating verse, optional "Pray" action)
 - [ ] MS-18.14 GreetingCard on Dashboard (time-aware greeting + envelope health summary)
 - [ ] MS-18.15 DateGroupHeaders in Transactions (Today / Yesterday / date)
