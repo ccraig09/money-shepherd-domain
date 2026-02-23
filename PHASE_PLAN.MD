@@ -179,7 +179,7 @@
 - [x] MS-17.2 Indicator
 - [x] MS-17.5 Pending changes
 - [x] MS-17.3 Friendly errors
-- [ ] MS-17.4 Retry/backoff
+- [x] MS-17.4 Retry/backoff
 - [ ] MS-17.8 Debounce pushes
 - [ ] MS-17.6 Sync now button
 - [ ] MS-17.7 Conflict UX message

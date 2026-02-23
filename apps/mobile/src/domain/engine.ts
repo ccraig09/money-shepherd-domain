@@ -13,6 +13,7 @@ import { APP_STATE_VERSION } from "./appState";
 import { loadAppState, saveAppState, clearAppState } from "./storage";
 import { nowIso, makeId } from "../lib/id";
 import { withTimeout } from "../lib/timeout";
+import { withRetry } from "../lib/retry";
 import { mergeTransactions } from "./mergeTransactions";
 import type { SyncOutcome } from "./syncStatus";
 import { classifySyncError } from "../infra/remote/syncErrors";
@@ -299,14 +300,21 @@ export function createEngine(): Engine {
 
       try {
         await withTimeout(ensureAnonAuth(), SYNC_PUSH_TIMEOUT_MS, "Auth");
-        const pushed = await withTimeout(
-          repo.push({
-            expectedRev: syncMeta.rev,
-            nextState: next,
-            updatedBy: syncMeta.userId,
-          }),
-          SYNC_PUSH_TIMEOUT_MS,
-          "Sync push",
+        const pushed = await withRetry(
+          () => withTimeout(
+            repo.push({
+              expectedRev: syncMeta.rev,
+              nextState: next,
+              updatedBy: syncMeta.userId,
+            }),
+            SYNC_PUSH_TIMEOUT_MS,
+            "Sync push",
+          ),
+          {
+            maxRetries: 3,
+            baseDelayMs: 500,
+            shouldRetry: (err) => (err as any)?.code !== "SYNC_CONFLICT",
+          },
         );
 
         await saveSyncMeta({
