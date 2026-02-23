@@ -351,7 +351,10 @@ export const useAppStore = create<AppStore>((set, get) => ({
 
   syncNow: async () => {
     set({ syncState: syncTransition(get().syncState, { type: "sync-start" }) });
-    await engine.syncNow();
+    const result = await engine.syncNow();
+    if (result.pulledRemote && result.state) {
+      set({ state: result.state });
+    }
     // onSyncResult callback handles the final syncState transition
   },
 

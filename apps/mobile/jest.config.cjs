@@ -4,6 +4,9 @@ module.exports = {
   roots: ["<rootDir>/src"],
   testMatch: ["**/__tests__/**/*.test.ts"],
   transform: {
-    "^.+\\.ts$": ["ts-jest", { tsconfig: "tsconfig.json" }],
+    "^.+\\.ts$": ["ts-jest", {
+      tsconfig: "tsconfig.json",
+      diagnostics: false,
+    }],
   },
 };

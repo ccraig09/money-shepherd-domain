@@ -18,8 +18,11 @@ import { debouncedAsync } from "../lib/debounce";
 import { mergeTransactions } from "./mergeTransactions";
 import type { SyncOutcome } from "./syncStatus";
 import { classifySyncError } from "../infra/remote/syncErrors";
+import type { SyncMeta } from "../infra/local/syncMeta";
+import type { RemoteSnapshot } from "../infra/remote/householdStateRepo";
 
 const SYNC_PUSH_TIMEOUT_MS = 10_000;
+const SYNC_PULL_ON_OPEN_TIMEOUT_MS = 5_000;
 const SYNC_DEBOUNCE_MS = 500;
 
 // NOTE: applyTransactionsToAccounts might be in your domain already.
@@ -33,6 +36,8 @@ export type RecomputeResult = {
   syncOutcome: SyncOutcome;
   syncError?: string;
 };
+
+export type SyncNowResult = { pulledRemote: boolean; state?: AppStateV1 };
 
 export type Engine = {
   getState(): Promise<AppStateV1>;
@@ -70,8 +75,8 @@ export type Engine = {
     transactions: import("@money-shepherd/domain").Transaction[];
   }): Promise<RecomputeResult>;
 
-  /** Immediately push current local state to remote (bypasses debounce). */
-  syncNow(): Promise<void>;
+  /** Pull remote then push local state to remote (bypasses debounce). */
+  syncNow(): Promise<SyncNowResult>;
 
   /** Called when a debounced push settles — store wires this to update syncState. */
   onSyncResult: ((result: { syncOutcome: SyncOutcome; syncError?: string }) => void) | null;
@@ -84,7 +89,16 @@ export function createEngine(): Engine {
     // If setup was completed, we must bootstrap (auth + remote load)
     if (syncMeta) {
       const existing = await loadAppState();
-      if (existing) return existing;
+      if (existing) {
+        // Pull-on-open: check if remote has newer data
+        const remote = await pullFromRemote(syncMeta);
+        if (remote && remote.rev > syncMeta.rev) {
+          await saveAppState(remote.state);
+          await saveSyncMeta({ ...syncMeta, rev: remote.rev });
+          return remote.state;
+        }
+        return existing;
+      }
 
       // bootstrap will ensure anon auth, pull remote, seed+push if needed
       return bootstrap();
@@ -263,6 +277,18 @@ export function createEngine(): Engine {
     return local;
   }
 
+  /** Pull remote snapshot, returning null on any failure (graceful degradation). */
+  async function pullFromRemote(syncMeta: SyncMeta): Promise<RemoteSnapshot | null> {
+    try {
+      await withTimeout(ensureAnonAuth(), SYNC_PULL_ON_OPEN_TIMEOUT_MS, "Auth");
+      const repo = new HouseholdStateRepo(syncMeta.householdId);
+      return await withTimeout(repo.pull(), SYNC_PULL_ON_OPEN_TIMEOUT_MS, "Pull on open");
+    } catch (err) {
+      console.warn("Pull on open failed (using local cache):", err);
+      return null;
+    }
+  }
+
   /** Push state to Firestore (called by the debounced scheduler). */
   async function pushToRemote(next: AppStateV1): Promise<void> {
     const syncMeta = await loadSyncMeta();
@@ -313,10 +339,24 @@ export function createEngine(): Engine {
 
   const schedulePush = debouncedAsync(pushToRemote, SYNC_DEBOUNCE_MS);
 
-  async function syncNow(): Promise<void> {
+  async function syncNow(): Promise<SyncNowResult> {
+    const syncMeta = await loadSyncMeta();
+    if (!syncMeta) return { pulledRemote: false };
+
+    // Pull first — adopt remote if newer
+    const remote = await pullFromRemote(syncMeta);
+    if (remote && remote.rev > syncMeta.rev) {
+      await saveAppState(remote.state);
+      await saveSyncMeta({ ...syncMeta, rev: remote.rev });
+      engineApi.onSyncResult?.({ syncOutcome: "conflict-resolved" });
+      return { pulledRemote: true, state: remote.state };
+    }
+
+    // Then push local
     const state = await loadAppState();
-    if (!state) return;
+    if (!state) return { pulledRemote: false };
     await pushToRemote(state);
+    return { pulledRemote: false };
   }
 
   async function recompute(state: AppStateV1): Promise<RecomputeResult> {
