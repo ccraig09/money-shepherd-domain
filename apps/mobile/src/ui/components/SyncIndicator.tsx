@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, ActivityIndicator, StyleSheet } from "react-native";
+import { Spacing, Radius, FontSize, FontWeight, Color } from "../tokens";
 import { useAppStore } from "../../store/useAppStore";
 import type { SyncStatus } from "../../domain/syncStatus";
 
@@ -30,8 +31,8 @@ export function SyncIndicator() {
   // Pending changes waiting to sync (idle or error state with local saves queued)
   if (pending > 0 && (status === "idle" || (status === "success" && !showSuccess))) {
     return (
-      <View style={[styles.pill, { backgroundColor: "#fff8e1" }]}>
-        <View style={[styles.dot, { backgroundColor: "#f59e0b" }]} />
+      <View style={[styles.pill, { backgroundColor: Color.warningSurface }]}>
+        <View style={[styles.dot, { backgroundColor: Color.warning }]} />
         <Text style={[styles.label, { color: "#92400e" }]}>
           {pending} pending
         </Text>
@@ -65,10 +66,10 @@ const statusConfig: Record<
   { text: string; color: string; bg: string }
 > = {
   idle: { text: "", color: "#999", bg: "transparent" },
-  syncing: { text: "Syncing…", color: "#4f8ef7", bg: "#eef4ff" },
-  success: { text: "Synced", color: "#2d9e6b", bg: "#edfaf3" },
-  error: { text: "Sync failed", color: "#d94f4f", bg: "#fdeaea" },
-  offline: { text: "Offline", color: "#888", bg: "#f0f0f0" },
+  syncing: { text: "Syncing…", color: Color.primary, bg: Color.primarySurface },
+  success: { text: "Synced", color: Color.success, bg: Color.successSurface },
+  error: { text: "Sync failed", color: Color.error, bg: Color.errorSurface },
+  offline: { text: "Offline", color: Color.textMuted, bg: Color.surfaceLight },
 };
 
 const styles = StyleSheet.create({
@@ -77,8 +78,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 5,
     paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
+    paddingVertical: Spacing.xs,
+    borderRadius: Radius.lg,
   },
   dot: {
     width: 6,
@@ -86,7 +87,7 @@ const styles = StyleSheet.create({
     borderRadius: 3,
   },
   label: {
-    fontSize: 12,
-    fontWeight: "600",
+    fontSize: FontSize.caption,
+    fontWeight: FontWeight.semibold,
   },
 });

@@ -198,7 +198,7 @@
 
 <!--
 ### Recommended build order
-- [ ] MS-18.1 Tokens baseline
+- [x] MS-18.1 Tokens baseline
 - [ ] MS-18.2 Card + SectionHeader
 - [ ] MS-18.3 Navigation audit
 - [ ] MS-18.4 Dashboard pass

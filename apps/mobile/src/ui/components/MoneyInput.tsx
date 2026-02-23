@@ -1,5 +1,6 @@
 import React from "react";
 import { View, Text, TextInput, StyleSheet, type TextInputProps } from "react-native";
+import { Spacing, Radius, FontSize, FontWeight, Color } from "../tokens";
 
 type Props = {
   value: string;
@@ -58,7 +59,7 @@ export const MoneyInput = React.forwardRef<TextInput, Props>(function MoneyInput
           value={value}
           onChangeText={handleChange}
           placeholder={placeholder}
-          placeholderTextColor="#bbb"
+          placeholderTextColor={Color.textSubtle}
           keyboardType="decimal-pad"
           autoCorrect={false}
           returnKeyType={returnKeyType}
@@ -75,9 +76,9 @@ export const MoneyInput = React.forwardRef<TextInput, Props>(function MoneyInput
 
 const styles = StyleSheet.create({
   label: {
-    fontSize: 13,
-    fontWeight: "600",
-    color: "#555",
+    fontSize: FontSize.small,
+    fontWeight: FontWeight.semibold,
+    color: Color.textMid,
     textTransform: "uppercase",
     letterSpacing: 0.5,
     marginBottom: 6,
@@ -86,17 +87,17 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     borderWidth: 1,
-    borderColor: "#ddd",
-    borderRadius: 10,
+    borderColor: Color.border,
+    borderRadius: Radius.md,
     paddingHorizontal: 14,
-    paddingVertical: 12,
-    backgroundColor: "#fff",
+    paddingVertical: Spacing.md,
+    backgroundColor: Color.surface,
   },
-  inputRowError: { borderColor: "#d94f4f" },
-  inputRowDisabled: { backgroundColor: "#f5f5f5" },
-  prefix: { fontSize: 16, color: "#555", marginRight: 4 },
-  prefixDisabled: { color: "#bbb" },
-  input: { flex: 1, fontSize: 16, color: "#111", padding: 0 },
-  inputDisabled: { color: "#aaa" },
-  errorText: { fontSize: 13, color: "#d94f4f", marginTop: 4 },
+  inputRowError: { borderColor: Color.error },
+  inputRowDisabled: { backgroundColor: Color.surfaceLight },
+  prefix: { fontSize: FontSize.subtitle, color: Color.textMid, marginRight: 4 },
+  prefixDisabled: { color: Color.textSubtle },
+  input: { flex: 1, fontSize: FontSize.subtitle, color: Color.textDark, padding: 0 },
+  inputDisabled: { color: Color.textDisabled },
+  errorText: { fontSize: FontSize.small, color: Color.error, marginTop: Spacing.xs },
 });

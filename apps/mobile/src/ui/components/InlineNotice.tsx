@@ -1,5 +1,6 @@
 import React from "react";
 import { View, Text, Pressable, StyleSheet } from "react-native";
+import { Spacing, Radius, FontSize, FontWeight, Color } from "../tokens";
 
 type Variant = "info" | "warning" | "error";
 
@@ -11,9 +12,9 @@ type Props = {
 };
 
 const COLORS: Record<Variant, { bg: string; border: string; text: string; action: string }> = {
-  info: { bg: "#e8f0fe", border: "#4f8ef7", text: "#1a3a6e", action: "#4f8ef7" },
-  warning: { bg: "#fff8e1", border: "#f5a623", text: "#7a5c00", action: "#c27a00" },
-  error: { bg: "#fdecea", border: "#d94f4f", text: "#8b1a1a", action: "#d94f4f" },
+  info: { bg: "#e8f0fe", border: Color.primary, text: "#1a3a6e", action: Color.primary },
+  warning: { bg: Color.warningSurface, border: "#f5a623", text: "#7a5c00", action: "#c27a00" },
+  error: { bg: Color.errorSurface, border: Color.error, text: "#8b1a1a", action: Color.error },
 };
 
 export function InlineNotice({ variant, message, actionLabel, onAction }: Props) {
@@ -38,13 +39,13 @@ export function InlineNotice({ variant, message, actionLabel, onAction }: Props)
 const styles = StyleSheet.create({
   container: {
     borderLeftWidth: 3,
-    borderRadius: 8,
-    padding: 12,
-    marginHorizontal: 16,
-    marginVertical: 8,
+    borderRadius: Radius.sm,
+    padding: Spacing.md,
+    marginHorizontal: Spacing.base,
+    marginVertical: Spacing.sm,
     gap: 6,
   },
-  message: { fontSize: 13, lineHeight: 18 },
+  message: { fontSize: FontSize.small, lineHeight: 18 },
   actionWrap: { alignSelf: "flex-start" },
-  action: { fontSize: 13, fontWeight: "700" },
+  action: { fontSize: FontSize.small, fontWeight: FontWeight.bold },
 });
