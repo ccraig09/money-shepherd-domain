@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { createEngine } from "../domain/engine";
 import type { AppStateV1 } from "../domain/appState";
 import { initialSyncState, syncTransition, type SyncState } from "../domain/syncStatus";
+import { classifySyncError } from "../infra/remote/syncErrors";
 import { clearSyncMeta, loadSyncMeta, saveSyncMeta } from "../infra/local/syncMeta";
 import { clearPin } from "../infra/local/pin";
 import { loadPlaidTokens, clearAllPlaidTokens } from "../infra/local/secureTokens";
@@ -60,6 +61,7 @@ const engine = createEngine();
 /** Map engine sync outcome to one or two SyncEvents for the state machine. */
 function syncEventsForOutcome(
   outcome: import("../domain/syncStatus").SyncOutcome,
+  errorMsg?: string,
 ): import("../domain/syncStatus").SyncEvent[] {
   const now = new Date().toISOString();
   switch (outcome) {
@@ -71,7 +73,7 @@ function syncEventsForOutcome(
       // Increment pending first (saved locally), then mark as error
       return [
         { type: "local-save" },
-        { type: "sync-error", error: "Sync push failed" },
+        { type: "sync-error", error: errorMsg ?? "Sync failed. Changes saved locally." },
       ];
     case "local-only":
       return [{ type: "local-save" }];
@@ -81,8 +83,9 @@ function syncEventsForOutcome(
 function applyOutcome(
   current: import("../domain/syncStatus").SyncState,
   outcome: import("../domain/syncStatus").SyncOutcome,
+  errorMsg?: string,
 ): import("../domain/syncStatus").SyncState {
-  return syncEventsForOutcome(outcome).reduce(
+  return syncEventsForOutcome(outcome, errorMsg).reduce(
     (s, e) => syncTransition(s, e),
     current,
   );
@@ -128,12 +131,13 @@ export const useAppStore = create<AppStore>((set, get) => ({
         syncState: syncTransition(get().syncState, { type: "sync-success", at: now }),
       });
     } catch (err: any) {
+      const friendly = classifySyncError(err);
       set({
         status: "error",
-        errorMessage: err?.message ?? "Failed to load app state",
+        errorMessage: friendly.message,
         syncState: syncTransition(get().syncState, {
           type: "sync-error",
-          error: err?.message ?? "Bootstrap failed",
+          error: friendly.message,
         }),
       });
     }
@@ -190,7 +194,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
         state: result.state,
         status: "ready",
         lastSyncAt: new Date().toISOString(),
-        syncState: applyOutcome(get().syncState, result.syncOutcome),
+        syncState: applyOutcome(get().syncState, result.syncOutcome, result.syncError),
       });
     } catch (err: any) {
       set({
@@ -212,7 +216,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
         state: result.state,
         status: "ready",
         lastSyncAt: new Date().toISOString(),
-        syncState: applyOutcome(get().syncState, result.syncOutcome),
+        syncState: applyOutcome(get().syncState, result.syncOutcome, result.syncError),
       });
     } catch (err: any) {
       set({
@@ -234,7 +238,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
         state: result.state,
         status: "ready",
         lastSyncAt: new Date().toISOString(),
-        syncState: applyOutcome(get().syncState, result.syncOutcome),
+        syncState: applyOutcome(get().syncState, result.syncOutcome, result.syncError),
       });
     } catch (err: any) {
       set({
@@ -256,7 +260,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
         state: result.state,
         status: "ready",
         lastSyncAt: new Date().toISOString(),
-        syncState: applyOutcome(get().syncState, result.syncOutcome),
+        syncState: applyOutcome(get().syncState, result.syncOutcome, result.syncError),
       });
     } catch (err: any) {
       set({
@@ -278,7 +282,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
         state: result.state,
         status: "ready",
         lastSyncAt: new Date().toISOString(),
-        syncState: applyOutcome(get().syncState, result.syncOutcome),
+        syncState: applyOutcome(get().syncState, result.syncOutcome, result.syncError),
       });
     } catch (err: any) {
       set({
@@ -300,7 +304,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
         state: result.state,
         status: "ready",
         lastSyncAt: new Date().toISOString(),
-        syncState: applyOutcome(get().syncState, result.syncOutcome),
+        syncState: applyOutcome(get().syncState, result.syncOutcome, result.syncError),
       });
     } catch (err: any) {
       set({
@@ -322,7 +326,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
         state: result.state,
         status: "ready",
         lastSyncAt: new Date().toISOString(),
-        syncState: applyOutcome(get().syncState, result.syncOutcome),
+        syncState: applyOutcome(get().syncState, result.syncOutcome, result.syncError),
       });
     } catch (err: any) {
       set({
@@ -396,7 +400,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
         status: "ready",
         lastSyncAt: now,
         lastPlaidRefreshAt: now,
-        syncState: applyOutcome(get().syncState, result.syncOutcome),
+        syncState: applyOutcome(get().syncState, result.syncOutcome, result.syncError),
       });
       return { imported };
     } catch (err: unknown) {

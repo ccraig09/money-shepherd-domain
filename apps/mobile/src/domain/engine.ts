@@ -14,6 +14,7 @@ import { loadAppState, saveAppState, clearAppState } from "./storage";
 import { nowIso, makeId } from "../lib/id";
 import { mergeTransactions } from "./mergeTransactions";
 import type { SyncOutcome } from "./syncStatus";
+import { classifySyncError } from "../infra/remote/syncErrors";
 
 const SYNC_PUSH_TIMEOUT_MS = 10_000;
 
@@ -36,6 +37,7 @@ import type { Account } from "@money-shepherd/domain";
 export type RecomputeResult = {
   state: AppStateV1;
   syncOutcome: SyncOutcome;
+  syncError?: string;
 };
 
 export type Engine = {
@@ -341,7 +343,8 @@ export function createEngine(): Engine {
         } else {
           console.warn("Sync push failed", err);
         }
-        return { state: next, syncOutcome: "error" };
+        const friendly = classifySyncError(err);
+        return { state: next, syncOutcome: "error", syncError: friendly.message };
       }
     }
     return { state: next, syncOutcome: syncMeta ? "error" : "local-only" };

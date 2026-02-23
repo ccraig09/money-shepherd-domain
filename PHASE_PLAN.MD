@@ -178,7 +178,7 @@
 - [x] MS-17.1 Status model
 - [x] MS-17.2 Indicator
 - [x] MS-17.5 Pending changes
-- [ ] MS-17.3 Friendly errors
+- [x] MS-17.3 Friendly errors
 - [ ] MS-17.4 Retry/backoff
 - [ ] MS-17.8 Debounce pushes
 - [ ] MS-17.6 Sync now button
