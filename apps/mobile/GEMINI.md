@@ -33,6 +33,32 @@ Money Shepherd Mobile is a personal and household finance management application
 - `npm run lint`: Run ESLint.
 - `npm run reset-project`: Resets the project to a blank state (moves current app to `app-example`).
 
+## Physical Device Testing (iOS Dev Build)
+
+This app runs as an **iOS development build** (not Expo Go). Each physical test device must be registered with Apple before it can install the build.
+
+### Adding a new test device
+
+1. **Register the device** — run this and follow the URL it prints to install a profile on the new device:
+   ```bash
+   eas device:create
+   ```
+
+2. **Rebuild** — this bakes the new device UDID into the provisioning profile:
+   ```bash
+   eas build --profile development --platform ios
+   ```
+
+3. **Install** — EAS will send an install link. Open it on the **new device only**.
+
+### Does the original device need a reinstall?
+
+**No.** The existing build on your original device keeps working. You only need to install the new `.ipa` on the new device.
+
+You'd reinstall on both when you cut a new build for unrelated reasons (feature work, SDK upgrade, etc.).
+
+---
+
 ## Development Conventions
 
 ### Domain Logic
