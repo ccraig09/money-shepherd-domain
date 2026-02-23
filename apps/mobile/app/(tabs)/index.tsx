@@ -207,9 +207,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.lg,
     gap: Spacing.xs,
   },
-  heroLabel: { fontSize: FontSize.small, color: "rgba(255,255,255,0.75)", fontWeight: FontWeight.semibold, textTransform: "uppercase", letterSpacing: 0.5 },
+  heroLabel: { fontSize: FontSize.small, color: "rgba(255,255,255,0.75)", fontWeight: FontWeight.semibold, textTransform: "uppercase" as const, letterSpacing: 0.5 },
   heroAmount: { fontSize: FontSize.hero, fontWeight: FontWeight.extrabold, color: Color.textOnColor, marginTop: Spacing.xs },
-  heroAmountNegative: { color: "#ffcdd2" },
+  heroAmountNegative: { color: Color.heroNegative },
   heroStat: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -235,8 +235,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Color.borderWarning,
   },
-  nudgeText: { fontSize: 14, fontWeight: FontWeight.medium, color: "#795548" },
-  nudgeArrow: { fontSize: FontSize.subtitle, color: "#795548" },
+  nudgeText: { fontSize: 14, fontWeight: FontWeight.medium, color: Color.nudgeText },
+  nudgeArrow: { fontSize: FontSize.subtitle, color: Color.nudgeText },
 
   // Quick actions
   ctaRow: {

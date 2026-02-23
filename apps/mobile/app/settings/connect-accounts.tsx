@@ -20,6 +20,7 @@ import {
 import { mapPlaidAccounts } from "../../src/infra/plaid/mapAccounts";
 import { classifyPlaidError } from "../../src/infra/plaid/errors";
 import { createEngine } from "../../src/domain/engine";
+import { Spacing, Radius, FontSize, FontWeight, Color, Shadow } from "../../src/ui/tokens";
 
 type UserEntry = {
   id: string;
@@ -208,7 +209,7 @@ function UserCard({
         disabled={disabled}
       >
         {isConnecting ? (
-          <ActivityIndicator color="#aaa" size="small" />
+          <ActivityIndicator color={Color.textDisabled} size="small" />
         ) : (
           <Text
             style={[
@@ -239,54 +240,48 @@ function StatusPill({ connected }: { connected: boolean }) {
   );
 }
 
-const PRIMARY = "#1a1a2e";
-const ACCENT = "#4f8ef7";
-
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: "#f7f7f9" },
-  container: { padding: 20, gap: 16, paddingBottom: 40 },
-  pageTitle: { fontSize: 28, fontWeight: "800", color: PRIMARY, marginTop: 8 },
-  pageSubtitle: { fontSize: 15, color: "#666", lineHeight: 22, marginBottom: 4 },
+  root: { flex: 1, backgroundColor: Color.surfaceLight },
+  container: { padding: 20, gap: Spacing.base, paddingBottom: Spacing.bottomPad },
+  pageTitle: { fontSize: FontSize.title, fontWeight: FontWeight.extrabold, color: Color.textDark, marginTop: Spacing.sm },
+  pageSubtitle: { fontSize: FontSize.body, color: Color.textMid, lineHeight: 22, marginBottom: Spacing.xs },
   card: {
-    backgroundColor: "#fff",
-    borderRadius: 16,
-    padding: 16,
-    shadowColor: "#000",
-    shadowOpacity: 0.04,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 2 },
+    backgroundColor: Color.surface,
+    borderRadius: Radius.hero,
+    padding: Spacing.base,
+    ...Shadow.sm,
     borderWidth: 2,
     borderColor: "transparent",
   },
   cardActive: {
-    borderColor: ACCENT,
+    borderColor: Color.primary,
   },
   cardHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "flex-start",
-    marginBottom: 12,
+    marginBottom: Spacing.md,
   },
-  userName: { fontSize: 18, fontWeight: "700", color: PRIMARY },
+  userName: { fontSize: 18, fontWeight: FontWeight.bold, color: Color.textDark },
   currentBadge: {
-    fontSize: 12,
-    color: ACCENT,
-    fontWeight: "600",
+    fontSize: FontSize.caption,
+    color: Color.primary,
+    fontWeight: FontWeight.semibold,
     marginTop: 2,
   },
   pill: {
     paddingHorizontal: 10,
     paddingVertical: 4,
-    borderRadius: 100,
+    borderRadius: Radius.pill,
   },
-  pillConnected: { backgroundColor: "#e6f9f0" },
-  pillEmpty: { backgroundColor: "#f0f0f5" },
-  pillText: { fontSize: 12, fontWeight: "600" },
-  pillTextConnected: { color: "#1a9e5c" },
-  pillTextEmpty: { color: "#999" },
+  pillConnected: { backgroundColor: Color.successSurface },
+  pillEmpty: { backgroundColor: Color.surfaceLight },
+  pillText: { fontSize: FontSize.caption, fontWeight: FontWeight.semibold },
+  pillTextConnected: { color: Color.success },
+  pillTextEmpty: { color: Color.textMuted },
   bankList: {
-    gap: 8,
-    marginBottom: 12,
+    gap: Spacing.sm,
+    marginBottom: Spacing.md,
   },
   bankRow: {
     flexDirection: "row",
@@ -294,33 +289,33 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   institutionLabel: {
-    fontSize: 13,
-    color: "#1a9e5c",
-    fontWeight: "500",
+    fontSize: FontSize.small,
+    color: Color.success,
+    fontWeight: FontWeight.medium,
   },
   removeLink: {
-    fontSize: 12,
-    color: "#d32f2f",
-    fontWeight: "600",
+    fontSize: FontSize.caption,
+    color: Color.error,
+    fontWeight: FontWeight.semibold,
   },
-  divider: { height: 1, backgroundColor: "#f0f0f0", marginBottom: 12 },
+  divider: { height: 1, backgroundColor: Color.borderLight, marginBottom: Spacing.md },
   connectBtn: {
     alignItems: "center",
-    paddingVertical: 12,
-    borderRadius: 10,
-    backgroundColor: ACCENT,
+    paddingVertical: Spacing.md,
+    borderRadius: Radius.md,
+    backgroundColor: Color.primary,
   },
   connectBtnPressed: { opacity: 0.7 },
-  connectBtnDisabled: { backgroundColor: "#e0e0e8" },
-  connectBtnText: { fontSize: 15, fontWeight: "600", color: "#fff" },
-  connectBtnTextDisabled: { color: "#aaa" },
+  connectBtnDisabled: { backgroundColor: Color.surfaceLight },
+  connectBtnText: { fontSize: FontSize.body, fontWeight: FontWeight.semibold, color: Color.textOnColor },
+  connectBtnTextDisabled: { color: Color.textDisabled },
   warningCard: {
-    backgroundColor: "#fff8e1",
-    borderRadius: 12,
+    backgroundColor: Color.warningSurface,
+    borderRadius: Radius.lg,
     padding: 14,
     borderLeftWidth: 3,
-    borderLeftColor: "#f5a623",
+    borderLeftColor: Color.warning,
   },
-  warningText: { fontSize: 13, color: "#7a5c00", lineHeight: 20 },
-  warningCode: { fontFamily: "monospace", backgroundColor: "#fdefc4" },
+  warningText: { fontSize: FontSize.small, color: Color.warningText, lineHeight: 20 },
+  warningCode: { fontFamily: "monospace", backgroundColor: Color.warningSurface },
 });

@@ -12,6 +12,7 @@ import {
 import { router, Stack, useLocalSearchParams } from "expo-router";
 import { useAppStore } from "../../src/store/useAppStore";
 import { formatMoney } from "../../src/lib/moneyFormat";
+import { Spacing, Radius, FontSize, FontWeight, Color } from "../../src/ui/tokens";
 
 const MAX_NOTE_LENGTH = 200;
 
@@ -128,7 +129,7 @@ export default function TransactionDetailScreen() {
             value={draft}
             onChangeText={(v) => setDraft(v.slice(0, MAX_NOTE_LENGTH))}
             placeholder="Add a note…"
-            placeholderTextColor="#aaa"
+            placeholderTextColor={Color.textDisabled}
             multiline
             maxLength={MAX_NOTE_LENGTH}
             onBlur={handleSaveNote}
@@ -169,77 +170,77 @@ function DetailRow({ label, value }: { label: string; value: string }) {
 }
 
 const styles = StyleSheet.create({
-  flex: { flex: 1, backgroundColor: "#fff" },
+  flex: { flex: 1, backgroundColor: Color.surface },
   center: {
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    gap: 12,
+    gap: Spacing.md,
   },
-  errorText: { fontSize: 15, color: "#d94f4f" },
+  errorText: { fontSize: FontSize.body, color: Color.error },
   backBtn: {
     paddingHorizontal: 20,
     paddingVertical: 10,
-    borderRadius: 10,
+    borderRadius: Radius.md,
     borderWidth: 1,
-    borderColor: "#ddd",
+    borderColor: Color.border,
   },
-  backBtnText: { fontSize: 14, color: "#555" },
-  content: { paddingBottom: 40 },
+  backBtnText: { fontSize: 14, color: Color.textMid },
+  content: { paddingBottom: Spacing.bottomPad },
   amountCard: {
     alignItems: "center",
-    paddingVertical: 24,
+    paddingVertical: Spacing.lg,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderColor: "#eee",
-    backgroundColor: "#f9f9f9",
-    gap: 4,
+    borderColor: Color.borderLight,
+    backgroundColor: Color.surfaceLight,
+    gap: Spacing.xs,
   },
-  amount: { fontSize: 32, fontWeight: "800" },
-  amountType: { fontSize: 13, color: "#888" },
-  income: { color: "#2d9e6b" },
-  expense: { color: "#d94f4f" },
+  amount: { fontSize: 32, fontWeight: FontWeight.extrabold },
+  amountType: { fontSize: FontSize.small, color: Color.textMuted },
+  income: { color: Color.success },
+  expense: { color: Color.error },
   detailSection: {
-    paddingHorizontal: 16,
-    paddingTop: 16,
-    gap: 12,
+    paddingHorizontal: Spacing.base,
+    paddingTop: Spacing.base,
+    gap: Spacing.md,
   },
   detailRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "flex-start",
-    paddingVertical: 8,
+    paddingVertical: Spacing.sm,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderColor: "#f0f0f0",
+    borderColor: Color.borderLight,
   },
-  detailLabel: { fontSize: 14, color: "#888", width: 100 },
+  detailLabel: { fontSize: 14, color: Color.textMuted, width: 100 },
   detailValue: {
-    fontSize: 15,
-    fontWeight: "500",
-    color: "#111",
+    fontSize: FontSize.body,
+    fontWeight: FontWeight.medium,
+    color: Color.textDark,
     flex: 1,
     textAlign: "right",
   },
   noteSection: {
-    paddingHorizontal: 16,
-    paddingTop: 24,
+    paddingHorizontal: Spacing.base,
+    paddingTop: Spacing.lg,
   },
   sectionLabel: {
-    fontSize: 13,
-    fontWeight: "600",
-    color: "#555",
-    textTransform: "uppercase",
+    fontSize: FontSize.small,
+    fontWeight: FontWeight.semibold,
+    color: Color.textMid,
+    textTransform: "uppercase" as const,
     letterSpacing: 0.5,
-    marginBottom: 8,
+    marginBottom: Spacing.sm,
   },
   noteInput: {
     borderWidth: 1,
-    borderColor: "#ddd",
-    borderRadius: 10,
+    borderColor: Color.border,
+    borderRadius: Radius.md,
     paddingHorizontal: 14,
-    paddingTop: 12,
-    paddingBottom: 12,
-    fontSize: 15,
-    color: "#111",
+    paddingTop: Spacing.md,
+    paddingBottom: Spacing.md,
+    fontSize: FontSize.body,
+    color: Color.textDark,
     minHeight: 80,
     textAlignVertical: "top",
   },
@@ -247,15 +248,15 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginTop: 8,
+    marginTop: Spacing.sm,
   },
-  charCount: { fontSize: 12, color: "#aaa" },
+  charCount: { fontSize: FontSize.caption, color: Color.textDisabled },
   saveBtn: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 8,
-    backgroundColor: "#4f8ef7",
+    paddingHorizontal: Spacing.base,
+    paddingVertical: Spacing.sm,
+    borderRadius: Radius.sm,
+    backgroundColor: Color.primary,
   },
   saveBtnDisabled: { opacity: 0.6 },
-  saveBtnText: { color: "#fff", fontSize: 14, fontWeight: "600" },
+  saveBtnText: { color: Color.textOnColor, fontSize: 14, fontWeight: FontWeight.semibold },
 });

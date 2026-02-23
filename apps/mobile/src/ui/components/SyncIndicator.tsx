@@ -33,7 +33,7 @@ export function SyncIndicator() {
     return (
       <View style={[styles.pill, { backgroundColor: Color.warningSurface }]}>
         <View style={[styles.dot, { backgroundColor: Color.warning }]} />
-        <Text style={[styles.label, { color: "#92400e" }]}>
+        <Text style={[styles.label, { color: Color.pendingText }]}>
           {pending} pending
         </Text>
       </View>
@@ -65,7 +65,7 @@ const statusConfig: Record<
   SyncStatus,
   { text: string; color: string; bg: string }
 > = {
-  idle: { text: "", color: "#999", bg: "transparent" },
+  idle: { text: "", color: Color.textMuted, bg: "transparent" },
   syncing: { text: "Syncing…", color: Color.primary, bg: Color.primarySurface },
   success: { text: "Synced", color: Color.success, bg: Color.successSurface },
   error: { text: "Sync failed", color: Color.error, bg: Color.errorSurface },

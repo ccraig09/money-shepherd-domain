@@ -13,6 +13,7 @@ import {
 import { saveSyncMeta } from "../../src/infra/local/syncMeta";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useAppStore } from "../../src/store/useAppStore";
+import { Spacing, Radius, FontSize, FontWeight, Color } from "../../src/ui/tokens";
 
 const HOUSEHOLD_ID = "household-los-jackia";
 const PIN_KEY_PREFIX = "ms_pin_hash_v1:";
@@ -134,7 +135,7 @@ export default function SetupScreen() {
             keyboardType="number-pad"
             maxLength={4}
             placeholder="••••"
-            placeholderTextColor="#aaa"
+            placeholderTextColor={Color.textDisabled}
             style={styles.pinInput}
             secureTextEntry
           />
@@ -150,7 +151,7 @@ export default function SetupScreen() {
           style={[styles.saveBtn, isSaving && styles.saveBtnDisabled]}
         >
           {isSaving ? (
-            <ActivityIndicator color="#fff" />
+            <ActivityIndicator color={Color.textOnColor} />
           ) : (
             <Text style={styles.saveBtnText}>Save and continue</Text>
           )}
@@ -163,67 +164,64 @@ export default function SetupScreen() {
   );
 }
 
-const PRIMARY = "#1a1a2e";
-const ACCENT = "#4f8ef7";
-
 const styles = StyleSheet.create({
-  flex: { flex: 1, backgroundColor: "#fff" },
+  flex: { flex: 1, backgroundColor: Color.surface },
   container: {
     flexGrow: 1,
     justifyContent: "center",
-    padding: 24,
-    gap: 24,
+    padding: Spacing.lg,
+    gap: Spacing.lg,
   },
-  header: { gap: 8 },
-  title: { fontSize: 28, fontWeight: "800", color: PRIMARY },
-  subtitle: { fontSize: 14, color: "#555", lineHeight: 20 },
-  section: { gap: 8 },
-  label: { fontSize: 15, fontWeight: "600", color: PRIMARY },
-  hint: { fontSize: 12, color: "#888" },
-  userRow: { flexDirection: "row", gap: 12 },
+  header: { gap: Spacing.sm },
+  title: { fontSize: FontSize.title, fontWeight: FontWeight.extrabold, color: Color.textDark },
+  subtitle: { fontSize: 14, color: Color.textMid, lineHeight: 20 },
+  section: { gap: Spacing.sm },
+  label: { fontSize: FontSize.body, fontWeight: FontWeight.semibold, color: Color.textDark },
+  hint: { fontSize: FontSize.caption, color: Color.textMuted },
+  userRow: { flexDirection: "row", gap: Spacing.md },
   userBtn: {
     flex: 1,
     paddingVertical: 14,
-    borderRadius: 12,
+    borderRadius: Radius.lg,
     borderWidth: 1.5,
-    borderColor: "#ddd",
+    borderColor: Color.border,
     alignItems: "center",
   },
   userBtnSelected: {
-    borderColor: ACCENT,
-    backgroundColor: ACCENT + "15", // 15 = ~8% opacity hex
+    borderColor: Color.primary,
+    backgroundColor: Color.primarySurface,
   },
-  userBtnText: { fontSize: 15, fontWeight: "600", color: "#888" },
-  userBtnTextSelected: { color: ACCENT },
+  userBtnText: { fontSize: FontSize.body, fontWeight: FontWeight.semibold, color: Color.textMuted },
+  userBtnTextSelected: { color: Color.primary },
   pinInput: {
     borderWidth: 1.5,
-    borderColor: "#ddd",
-    borderRadius: 12,
-    paddingHorizontal: 16,
+    borderColor: Color.border,
+    borderRadius: Radius.lg,
+    paddingHorizontal: Spacing.base,
     paddingVertical: 14,
     fontSize: 22,
     letterSpacing: 10,
-    color: PRIMARY,
+    color: Color.textDark,
     textAlign: "center",
   },
   errorText: {
-    fontSize: 13,
-    color: "#d94f4f",
+    fontSize: FontSize.small,
+    color: Color.error,
     marginTop: -8,
   },
   saveBtn: {
-    backgroundColor: ACCENT,
-    paddingVertical: 16,
-    borderRadius: 14,
+    backgroundColor: Color.primary,
+    paddingVertical: Spacing.base,
+    borderRadius: Radius.xl,
     alignItems: "center",
-    marginTop: 4,
+    marginTop: Spacing.xs,
   },
   saveBtnDisabled: { opacity: 0.6 },
-  saveBtnText: { color: "#fff", fontSize: 16, fontWeight: "700" },
+  saveBtnText: { color: Color.textOnColor, fontSize: FontSize.subtitle, fontWeight: FontWeight.bold },
   meta: {
     fontSize: 11,
-    color: "#bbb",
+    color: Color.textSubtle,
     textAlign: "center",
-    marginTop: 4,
+    marginTop: Spacing.xs,
   },
 });

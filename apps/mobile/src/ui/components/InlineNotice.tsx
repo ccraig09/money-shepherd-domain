@@ -12,9 +12,9 @@ type Props = {
 };
 
 const COLORS: Record<Variant, { bg: string; border: string; text: string; action: string }> = {
-  info: { bg: "#e8f0fe", border: Color.primary, text: "#1a3a6e", action: Color.primary },
-  warning: { bg: Color.warningSurface, border: "#f5a623", text: "#7a5c00", action: "#c27a00" },
-  error: { bg: Color.errorSurface, border: Color.error, text: "#8b1a1a", action: Color.error },
+  info: { bg: Color.infoSurface, border: Color.primary, text: Color.infoText, action: Color.primary },
+  warning: { bg: Color.warningSurface, border: Color.warning, text: Color.warningText, action: Color.warningAction },
+  error: { bg: Color.errorSurface, border: Color.error, text: Color.errorText, action: Color.error },
 };
 
 export function InlineNotice({ variant, message, actionLabel, onAction }: Props) {

@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import { savePinHash } from "../../src/infra/local/pin";
 import { useAppStore } from "../../src/store/useAppStore";
+import { Spacing, Radius, FontSize, FontWeight, Color } from "../../src/ui/tokens";
 
 export default function PinSetupScreen() {
   const bootstrap = useAppStore((s) => s.bootstrap);
@@ -72,7 +73,7 @@ export default function PinSetupScreen() {
             keyboardType="number-pad"
             maxLength={4}
             placeholder="••••"
-            placeholderTextColor="#aaa"
+            placeholderTextColor={Color.textDisabled}
             style={styles.pinInput}
             secureTextEntry
             returnKeyType="next"
@@ -92,7 +93,7 @@ export default function PinSetupScreen() {
             keyboardType="number-pad"
             maxLength={4}
             placeholder="••••"
-            placeholderTextColor="#aaa"
+            placeholderTextColor={Color.textDisabled}
             style={styles.pinInput}
             secureTextEntry
             returnKeyType="done"
@@ -108,7 +109,7 @@ export default function PinSetupScreen() {
           style={[styles.saveBtn, isSaving && styles.saveBtnDisabled]}
         >
           {isSaving ? (
-            <ActivityIndicator color="#fff" />
+            <ActivityIndicator color={Color.textOnColor} />
           ) : (
             <Text style={styles.saveBtnText}>Set PIN</Text>
           )}
@@ -118,41 +119,38 @@ export default function PinSetupScreen() {
   );
 }
 
-const PRIMARY = "#1a1a2e";
-const ACCENT = "#4f8ef7";
-
 const styles = StyleSheet.create({
-  flex: { flex: 1, backgroundColor: "#fff" },
+  flex: { flex: 1, backgroundColor: Color.surface },
   container: {
     flex: 1,
     justifyContent: "center",
-    padding: 24,
-    gap: 24,
+    padding: Spacing.lg,
+    gap: Spacing.lg,
   },
-  header: { gap: 8 },
-  title: { fontSize: 28, fontWeight: "800", color: PRIMARY },
-  subtitle: { fontSize: 14, color: "#555", lineHeight: 20 },
-  section: { gap: 8 },
-  label: { fontSize: 15, fontWeight: "600", color: PRIMARY },
+  header: { gap: Spacing.sm },
+  title: { fontSize: FontSize.title, fontWeight: FontWeight.extrabold, color: Color.textDark },
+  subtitle: { fontSize: 14, color: Color.textMid, lineHeight: 20 },
+  section: { gap: Spacing.sm },
+  label: { fontSize: FontSize.body, fontWeight: FontWeight.semibold, color: Color.textDark },
   pinInput: {
     borderWidth: 1.5,
-    borderColor: "#ddd",
-    borderRadius: 12,
-    paddingHorizontal: 16,
+    borderColor: Color.border,
+    borderRadius: Radius.lg,
+    paddingHorizontal: Spacing.base,
     paddingVertical: 14,
     fontSize: 22,
     letterSpacing: 10,
-    color: PRIMARY,
+    color: Color.textDark,
     textAlign: "center",
   },
-  errorText: { fontSize: 13, color: "#d94f4f", marginTop: -8 },
+  errorText: { fontSize: FontSize.small, color: Color.error, marginTop: -8 },
   saveBtn: {
-    backgroundColor: ACCENT,
-    paddingVertical: 16,
-    borderRadius: 14,
+    backgroundColor: Color.primary,
+    paddingVertical: Spacing.base,
+    borderRadius: Radius.xl,
     alignItems: "center",
-    marginTop: 4,
+    marginTop: Spacing.xs,
   },
   saveBtnDisabled: { opacity: 0.6 },
-  saveBtnText: { color: "#fff", fontSize: 16, fontWeight: "700" },
+  saveBtnText: { color: Color.textOnColor, fontSize: FontSize.subtitle, fontWeight: FontWeight.bold },
 });
