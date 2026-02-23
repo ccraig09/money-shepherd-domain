@@ -210,7 +210,8 @@
 - [x] MS-18.10 Toast feedback
 - [x] MS-18.11 Accessibility
 - [x] MS-18.12 Branding shell
-- [x] MS-18.13 ScriptureStrip on Dashboard (daily rotating verse, optional "Pray" action)
+- [x] MS-18.13 ScriptureStrip on Dashboard (daily rotating verse, compacted below hero card)
+- [ ] MS-18.17 Design Identity (warm palette tokens + DESIGN.md + Button component + token migration)
 - [ ] MS-18.14 GreetingCard on Dashboard (time-aware greeting + envelope health summary)
 - [ ] MS-18.15 DateGroupHeaders in Transactions (Today / Yesterday / date)
 - [ ] MS-18.16 ProgressBar on Envelope rows (balance / allocated, color-coded)

@@ -60,9 +60,6 @@ export default function DashboardScreen() {
         <SyncIndicator />
       </View>
 
-      {/* Daily scripture */}
-      <ScriptureStrip />
-
       {/* Available to Assign — hero card */}
       <View style={styles.heroCard}>
         <Text style={styles.heroLabel}>Available to Assign</Text>
@@ -81,6 +78,9 @@ export default function DashboardScreen() {
           </Text>
         </View>
       </View>
+
+      {/* Daily scripture */}
+      <ScriptureStrip />
 
       {/* Unassigned nudge */}
       {unassignedExpenseCount > 0 && (
