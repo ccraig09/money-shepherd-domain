@@ -243,7 +243,7 @@ function ActionButton({
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: Color.surfaceLight },
-  container: { padding: Spacing.lg, gap: Spacing.lg, paddingBottom: Spacing.bottomPad },
+  container: { padding: Spacing.lg, paddingTop: 60, gap: Spacing.lg, paddingBottom: Spacing.bottomPad },
   appName: { fontSize: FontSize.small, fontWeight: FontWeight.semibold, color: Color.primary, textTransform: "uppercase", letterSpacing: 0.5 },
   pageTitle: { fontSize: FontSize.title, fontWeight: FontWeight.extrabold, color: Color.textDark, marginTop: 2 },
   card: {
