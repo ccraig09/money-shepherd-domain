@@ -10,6 +10,7 @@ import { router } from "expo-router";
 import { useAppStore } from "../../src/store/useAppStore";
 import { formatMoney } from "../../src/lib/moneyFormat";
 import { SyncIndicator } from "../../src/ui/components/SyncIndicator";
+import { ScriptureStrip } from "../../src/ui/components/ScriptureStrip";
 import { Card } from "../../src/ui/components/Card";
 import { SectionHeader } from "../../src/ui/components/SectionHeader";
 import { Spacing, Radius, FontSize, FontWeight, Color } from "../../src/ui/tokens";
@@ -58,6 +59,9 @@ export default function DashboardScreen() {
         </View>
         <SyncIndicator />
       </View>
+
+      {/* Daily scripture */}
+      <ScriptureStrip />
 
       {/* Available to Assign — hero card */}
       <View style={styles.heroCard}>
