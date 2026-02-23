@@ -206,7 +206,7 @@
 - [x] MS-18.6 Inbox pass
 - [x] MS-18.7 Envelopes list + sorting
 - [x] MS-18.8 Envelope detail pass
-- [ ] MS-18.9 Forms pass
+- [x] MS-18.9 Forms pass
 - [ ] MS-18.10 Toast feedback
 - [ ] MS-18.11 Accessibility
 - [ ] MS-18.12 Branding shell

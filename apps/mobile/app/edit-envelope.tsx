@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { useAppStore } from "../src/store/useAppStore";
+import { Spacing, Radius, FontSize, FontWeight, Color } from "../src/ui/tokens";
 
 export default function EditEnvelopeScreen() {
   const { envelopeId } = useLocalSearchParams<{ envelopeId: string }>();
@@ -112,58 +113,58 @@ export default function EditEnvelopeScreen() {
 }
 
 const styles = StyleSheet.create({
-  flex: { flex: 1, backgroundColor: "#fff" },
+  flex: { flex: 1, backgroundColor: Color.surface },
   center: {
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    gap: 12,
+    gap: Spacing.md,
   },
   container: {
-    padding: 20,
-    gap: 8,
+    padding: Spacing.lg,
+    gap: Spacing.sm,
   },
   sectionLabel: {
-    fontSize: 13,
-    fontWeight: "600",
-    color: "#555",
+    fontSize: FontSize.small,
+    fontWeight: FontWeight.semibold,
+    color: Color.textMid,
     textTransform: "uppercase",
     letterSpacing: 0.5,
-    marginTop: 16,
-    marginBottom: 6,
+    marginTop: Spacing.base,
+    marginBottom: Spacing.xs,
   },
   input: {
     borderWidth: 1,
-    borderColor: "#ddd",
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    fontSize: 16,
-    color: "#111",
+    borderColor: Color.border,
+    borderRadius: Radius.md,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.md,
+    fontSize: FontSize.subtitle,
+    color: Color.textDark,
   },
-  inputError: { borderColor: "#d94f4f" },
-  errorText: { fontSize: 13, color: "#d94f4f", marginTop: 4 },
+  inputError: { borderColor: Color.error },
+  errorText: { fontSize: FontSize.small, color: Color.error, marginTop: Spacing.xs },
   backBtn: {
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 10,
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.sm,
+    borderRadius: Radius.md,
     borderWidth: 1,
-    borderColor: "#ddd",
+    borderColor: Color.border,
   },
-  backBtnText: { fontSize: 14, color: "#555" },
+  backBtnText: { fontSize: FontSize.body, color: Color.textMid },
   saveBtn: {
-    marginTop: 24,
-    backgroundColor: "#4f8ef7",
-    borderRadius: 12,
-    paddingVertical: 14,
+    marginTop: Spacing.lg,
+    backgroundColor: Color.primary,
+    borderRadius: Radius.lg,
+    paddingVertical: Spacing.md,
     alignItems: "center",
   },
   saveBtnDisabled: { opacity: 0.6 },
-  saveBtnText: { color: "#fff", fontSize: 16, fontWeight: "700" },
+  saveBtnText: { color: Color.textOnColor, fontSize: FontSize.subtitle, fontWeight: FontWeight.bold },
   cancelBtn: {
-    marginTop: 12,
+    marginTop: Spacing.md,
     alignItems: "center",
-    paddingVertical: 10,
+    paddingVertical: Spacing.sm,
   },
-  cancelText: { fontSize: 15, color: "#888" },
+  cancelText: { fontSize: FontSize.body, color: Color.textMuted },
 });
