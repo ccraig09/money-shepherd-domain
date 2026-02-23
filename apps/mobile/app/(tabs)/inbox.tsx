@@ -9,6 +9,8 @@ import {
 import { router } from "expo-router";
 import { useAppStore } from "../../src/store/useAppStore";
 import { formatMoney } from "../../src/lib/moneyFormat";
+import { Card } from "../../src/ui/components/Card";
+import { Spacing, Radius, FontSize, FontWeight, Color } from "../../src/ui/tokens";
 import type { Transaction } from "@money-shepherd/domain";
 
 export default function InboxScreen() {
@@ -59,10 +61,10 @@ export default function InboxScreen() {
       </View>
 
       {inboxItems.length === 0 ? (
-        <View style={styles.empty}>
+        <Card style={styles.empty}>
           <Text style={styles.emptyText}>Inbox is clear.</Text>
           <Text style={styles.emptyHint}>Assigned transactions will no longer appear here.</Text>
-        </View>
+        </Card>
       ) : (
         <FlatList
           data={inboxItems}
@@ -71,7 +73,6 @@ export default function InboxScreen() {
           renderItem={({ item }) => {
             const isExpense = item.amount.cents < 0;
             const desc = item.description || "Manual transaction";
-            const meta = `${accountName(item.accountId)} · ${formatDate(item.postedAt)}`;
             return (
               <Pressable
                 style={styles.row}
@@ -87,9 +88,14 @@ export default function InboxScreen() {
                   <Text style={styles.rowDescription} numberOfLines={1}>
                     {desc}
                   </Text>
-                  <Text style={styles.rowMeta} numberOfLines={1}>
-                    {meta}
-                  </Text>
+                  <View style={styles.metaRow}>
+                    <Text style={styles.rowAccountName} numberOfLines={1}>
+                      {accountName(item.accountId)}
+                    </Text>
+                    <Text style={styles.rowAccountDate}>
+                      {" · "}{formatDate(item.postedAt)}
+                    </Text>
+                  </View>
                 </View>
                 <View style={styles.rowRight}>
                   <Text
@@ -100,7 +106,7 @@ export default function InboxScreen() {
                   >
                     {isExpense ? "-" : "+"}${formatMoney(Math.abs(item.amount.cents))}
                   </Text>
-                  <Text style={styles.assignHint}>Tap to assign</Text>
+                  <Text style={styles.assignHint}>Tap to assign →</Text>
                 </View>
                 <Pressable
                   onPress={(e) => {
@@ -125,62 +131,64 @@ export default function InboxScreen() {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: "#fff" },
+  root: { flex: 1, backgroundColor: Color.surface },
   center: { flex: 1, alignItems: "center", justifyContent: "center" },
   header: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 10,
-    paddingHorizontal: 16,
+    gap: Spacing.sm,
+    paddingHorizontal: Spacing.base,
     paddingTop: 60,
-    paddingBottom: 12,
+    paddingBottom: Spacing.md,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderColor: "#ddd",
+    borderColor: Color.border,
   },
-  title: { fontSize: 24, fontWeight: "700" },
+  title: { fontSize: FontSize.title, fontWeight: FontWeight.bold, color: Color.textDark },
   badge: {
-    backgroundColor: "#d94f4f",
-    borderRadius: 10,
-    paddingHorizontal: 8,
+    backgroundColor: Color.error,
+    borderRadius: Radius.md,
+    paddingHorizontal: Spacing.sm,
     paddingVertical: 2,
     minWidth: 22,
     alignItems: "center",
   },
-  badgeText: { color: "#fff", fontSize: 12, fontWeight: "700" },
+  badgeText: { color: Color.textOnColor, fontSize: FontSize.caption, fontWeight: FontWeight.bold },
   empty: {
-    flex: 1,
+    padding: Spacing.lg,
     alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-    paddingHorizontal: 32,
+    backgroundColor: Color.surfaceLight,
+    gap: Spacing.sm,
   },
-  emptyText: { fontSize: 18, fontWeight: "700", color: "#2d9e6b" },
-  emptyHint: { fontSize: 14, color: "#888", textAlign: "center" },
-  list: { paddingVertical: 8 },
+  emptyText: { fontSize: FontSize.subtitle, fontWeight: FontWeight.bold, color: Color.success },
+  emptyHint: { fontSize: FontSize.body, color: Color.textMuted, textAlign: "center" },
+  list: { paddingVertical: Spacing.sm },
   row: {
     flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 16,
-    paddingVertical: 14,
+    alignItems: "flex-start",
+    paddingHorizontal: Spacing.base,
+    paddingVertical: Spacing.md,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderColor: "#eee",
+    borderColor: Color.borderLight,
   },
-  rowMain: { flex: 1, gap: 2 },
-  rowDescription: { fontSize: 15, fontWeight: "500", color: "#111" },
-  rowMeta: { fontSize: 12, color: "#888" },
-  rowRight: { alignItems: "flex-end", gap: 2, marginLeft: 12 },
-  rowAmount: { fontSize: 16, fontWeight: "600" },
-  income: { color: "#2d9e6b" },
-  expense: { color: "#d94f4f" },
-  assignHint: { fontSize: 11, color: "#aaa" },
+  rowMain: { flex: 1, gap: Spacing.xs, paddingRight: Spacing.sm },
+  rowDescription: { fontSize: FontSize.body, fontWeight: FontWeight.medium, color: Color.textDark },
+  metaRow: { flexDirection: "row", alignItems: "center" },
+  rowAccountName: { fontSize: FontSize.caption, color: Color.textMuted, flexShrink: 1 },
+  rowAccountDate: { fontSize: FontSize.caption, color: Color.textMuted, flexShrink: 0 },
+  rowRight: { alignItems: "flex-end", gap: Spacing.xs, marginLeft: Spacing.md, paddingTop: 2 },
+  rowAmount: { fontSize: FontSize.subtitle, fontWeight: FontWeight.semibold },
+  income: { color: Color.success },
+  expense: { color: Color.error },
+  assignHint: { fontSize: FontSize.caption, color: Color.textMuted },
   infoBtn: {
-    marginLeft: 8,
+    marginLeft: Spacing.sm,
     width: 28,
     height: 28,
-    borderRadius: 14,
+    borderRadius: Radius.md,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#f0f0f0",
+    backgroundColor: Color.surfaceLight,
+    marginTop: 2,
   },
-  infoBtnText: { fontSize: 16, color: "#888" },
+  infoBtnText: { fontSize: FontSize.body, color: Color.textMuted },
 });

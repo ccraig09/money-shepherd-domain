@@ -11,6 +11,9 @@ import { router, useLocalSearchParams } from "expo-router";
 import { useAppStore } from "../src/store/useAppStore";
 import { loadSyncMeta } from "../src/infra/local/syncMeta";
 import { formatMoney } from "../src/lib/moneyFormat";
+import { Card } from "../src/ui/components/Card";
+import { SectionHeader } from "../src/ui/components/SectionHeader";
+import { Spacing, Radius, FontSize, FontWeight, Color } from "../src/ui/tokens";
 
 export default function AssignTransactionScreen() {
   const { transactionId } = useLocalSearchParams<{ transactionId: string }>();
@@ -30,7 +33,7 @@ export default function AssignTransactionScreen() {
   if (!state || !transactionId) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator />
+        <ActivityIndicator color={Color.primary} />
       </View>
     );
   }
@@ -74,10 +77,10 @@ export default function AssignTransactionScreen() {
         </Text>
       </View>
 
-      <Text style={styles.sectionLabel}>Choose an envelope</Text>
+      <SectionHeader title="Assign to…" />
 
       {envelopes.length === 0 ? (
-        <View style={styles.noEnvelopes}>
+        <Card style={styles.noEnvelopes}>
           <Text style={styles.noEnvelopesText}>No envelopes yet.</Text>
           <Pressable
             onPress={() => {
@@ -89,7 +92,7 @@ export default function AssignTransactionScreen() {
           >
             <Text style={styles.createBtnText}>Create an envelope first</Text>
           </Pressable>
-        </View>
+        </Card>
       ) : (
         <FlatList
           data={envelopes}
@@ -145,81 +148,70 @@ export default function AssignTransactionScreen() {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: "#fff" },
+  root: { flex: 1, backgroundColor: Color.surface },
   center: { flex: 1, alignItems: "center", justifyContent: "center" },
-  errorText: { fontSize: 15, color: "#d94f4f" },
+  errorText: { fontSize: FontSize.body, color: Color.error },
   summary: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 16,
-    paddingVertical: 16,
+    paddingHorizontal: Spacing.base,
+    paddingVertical: Spacing.base,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderColor: "#ddd",
-    backgroundColor: "#f9f9f9",
+    borderColor: Color.border,
+    backgroundColor: Color.surfaceLight,
   },
-  summaryDesc: { fontSize: 15, fontWeight: "600", color: "#111", flex: 1 },
-  summaryAmount: { fontSize: 16, fontWeight: "700", marginLeft: 12 },
-  income: { color: "#2d9e6b" },
-  expense: { color: "#d94f4f" },
-  sectionLabel: {
-    fontSize: 13,
-    fontWeight: "600",
-    color: "#555",
-    textTransform: "uppercase",
-    letterSpacing: 0.5,
-    paddingHorizontal: 16,
-    paddingTop: 16,
-    paddingBottom: 8,
-  },
-  list: { paddingBottom: 16 },
+  summaryDesc: { fontSize: FontSize.body, fontWeight: FontWeight.semibold, color: Color.textDark, flex: 1 },
+  summaryAmount: { fontSize: FontSize.subtitle, fontWeight: FontWeight.bold, marginLeft: Spacing.md },
+  income: { color: Color.success },
+  expense: { color: Color.error },
+  list: { paddingBottom: Spacing.base },
   envelopeRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 16,
-    paddingVertical: 14,
+    paddingHorizontal: Spacing.base,
+    paddingVertical: Spacing.md,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderColor: "#eee",
+    borderColor: Color.borderLight,
   },
   envelopeRowSelected: {
-    backgroundColor: "#edf3fe",
+    backgroundColor: Color.primarySurface,
   },
-  envelopeName: { fontSize: 16, fontWeight: "500", color: "#111" },
-  envelopeNameSelected: { color: "#4f8ef7", fontWeight: "700" },
-  envelopeBalance: { fontSize: 14, color: "#888" },
-  envelopeBalanceSelected: { color: "#4f8ef7" },
+  envelopeName: { fontSize: FontSize.subtitle, fontWeight: FontWeight.medium, color: Color.textDark },
+  envelopeNameSelected: { color: Color.primary, fontWeight: FontWeight.bold },
+  envelopeBalance: { fontSize: FontSize.body, color: Color.textMuted },
+  envelopeBalanceSelected: { color: Color.primary },
   noEnvelopes: {
-    flex: 1,
+    padding: Spacing.lg,
     alignItems: "center",
-    justifyContent: "center",
-    gap: 16,
-    paddingHorizontal: 32,
+    backgroundColor: Color.surfaceLight,
+    gap: Spacing.base,
   },
-  noEnvelopesText: { fontSize: 16, color: "#555" },
+  noEnvelopesText: { fontSize: FontSize.subtitle, color: Color.textMid },
   createBtn: {
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 12,
-    backgroundColor: "#4f8ef7",
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.md,
+    borderRadius: Radius.lg,
+    backgroundColor: Color.primary,
   },
-  createBtnText: { color: "#fff", fontWeight: "600", fontSize: 15 },
+  createBtnText: { color: Color.textOnColor, fontWeight: FontWeight.semibold, fontSize: FontSize.body },
   footer: {
-    paddingHorizontal: 16,
-    paddingBottom: 32,
-    paddingTop: 12,
+    paddingHorizontal: Spacing.base,
+    paddingBottom: Spacing.xl,
+    paddingTop: Spacing.md,
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderColor: "#eee",
-    gap: 8,
+    borderColor: Color.borderLight,
+    gap: Spacing.sm,
   },
   assignBtn: {
-    backgroundColor: "#4f8ef7",
-    borderRadius: 12,
-    paddingVertical: 14,
+    backgroundColor: Color.primary,
+    borderRadius: Radius.lg,
+    paddingVertical: Spacing.md,
     alignItems: "center",
   },
   assignBtnDisabled: { opacity: 0.4 },
-  assignBtnText: { color: "#fff", fontSize: 16, fontWeight: "700" },
-  cancelBtn: { alignItems: "center", paddingVertical: 10 },
-  cancelText: { fontSize: 15, color: "#888" },
+  assignBtnText: { color: Color.textOnColor, fontSize: FontSize.subtitle, fontWeight: FontWeight.bold },
+  cancelBtn: { alignItems: "center", paddingVertical: Spacing.sm },
+  cancelText: { fontSize: FontSize.body, color: Color.textMuted },
 });
