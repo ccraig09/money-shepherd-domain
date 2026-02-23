@@ -41,7 +41,8 @@ export default function DashboardScreen() {
     (tx) => tx.amount.cents < 0 && !assignedTxIds.has(tx.id),
   ).length;
 
-  const envelopes = state.budget.envelopes;
+  const envelopes = state.budget.envelopes.slice(0, 5);
+  const hasMoreEnvelopes = state.budget.envelopes.length > 5;
 
   return (
     <ScrollView
@@ -105,8 +106,6 @@ export default function DashboardScreen() {
         >
           <Text style={styles.ctaIncomeText}>+ Income</Text>
         </Pressable>
-      </View>
-      <View style={styles.ctaRowSingle}>
         <Pressable
           style={styles.ctaAllocate}
           onPress={() => router.push("/allocate")}
@@ -117,7 +116,11 @@ export default function DashboardScreen() {
       </View>
 
       {/* Envelopes preview */}
-      <SectionHeader title="Envelopes" />
+      <SectionHeader
+        title="Envelopes"
+        actionLabel={hasMoreEnvelopes ? "See all" : undefined}
+        onAction={hasMoreEnvelopes ? () => router.push("/(tabs)/envelopes") : undefined}
+      />
 
       {envelopes.length === 0 ? (
         <Card style={styles.emptyEnvelopes}>
@@ -183,10 +186,10 @@ const styles = StyleSheet.create({
   // Hero card
   heroCard: {
     marginHorizontal: Spacing.base,
-    marginBottom: Spacing.md,
+    marginBottom: Spacing.base,
     backgroundColor: Color.primary,
     borderRadius: Radius.hero,
-    paddingVertical: 28,
+    paddingVertical: Spacing.xl,
     paddingHorizontal: Spacing.lg,
     gap: Spacing.xs,
   },
@@ -224,18 +227,14 @@ const styles = StyleSheet.create({
   // Quick actions
   ctaRow: {
     flexDirection: "row",
-    gap: 10,
-    marginHorizontal: Spacing.base,
-    marginBottom: 10,
-  },
-  ctaRowSingle: {
+    gap: Spacing.sm,
     marginHorizontal: Spacing.base,
     marginBottom: Spacing.lg,
   },
   ctaExpense: {
     flex: 1,
     borderRadius: Radius.xl,
-    paddingVertical: 14,
+    paddingVertical: Spacing.md,
     alignItems: "center",
     borderWidth: 1,
     borderColor: Color.error,
@@ -245,7 +244,7 @@ const styles = StyleSheet.create({
   ctaIncome: {
     flex: 1,
     borderRadius: Radius.xl,
-    paddingVertical: 14,
+    paddingVertical: Spacing.md,
     alignItems: "center",
     borderWidth: 1,
     borderColor: Color.success,
@@ -253,8 +252,9 @@ const styles = StyleSheet.create({
   },
   ctaIncomeText: { color: Color.success, fontWeight: FontWeight.bold, fontSize: FontSize.body },
   ctaAllocate: {
+    flex: 1,
     borderRadius: Radius.xl,
-    paddingVertical: 14,
+    paddingVertical: Spacing.md,
     alignItems: "center",
     backgroundColor: Color.primary,
   },
@@ -262,25 +262,25 @@ const styles = StyleSheet.create({
 
   // Envelopes
   emptyEnvelopes: {
-    padding: 20,
+    padding: Spacing.lg,
     backgroundColor: Color.surfaceLight,
     alignItems: "center",
+    gap: Spacing.sm,
   },
-  emptyText: { fontSize: 14, color: Color.textMuted, textAlign: "center" },
+  emptyText: { fontSize: FontSize.body, color: Color.textMuted, textAlign: "center" },
   emptyEnvelopeBtn: {
-    marginTop: Spacing.md,
-    paddingHorizontal: 20,
-    paddingVertical: 10,
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.md,
     borderRadius: Radius.md,
     backgroundColor: Color.primary,
   },
-  emptyEnvelopeBtnText: { color: Color.textOnColor, fontWeight: FontWeight.semibold, fontSize: 14 },
+  emptyEnvelopeBtnText: { color: Color.textOnColor, fontWeight: FontWeight.semibold, fontSize: FontSize.body },
   envelopeRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: Spacing.base,
-    paddingVertical: 14,
+    paddingVertical: Spacing.md,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderColor: Color.borderLight,
     backgroundColor: Color.surface,
