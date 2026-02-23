@@ -196,10 +196,10 @@
 
 ## Phase 18: UI polish + navigation (make it feel like a product)
 
-<!--
 ### Recommended build order
+
 - [x] MS-18.1 Tokens baseline
-- [ ] MS-18.2 Card + SectionHeader
+- [x] MS-18.2 Card + SectionHeader
 - [ ] MS-18.3 Navigation audit
 - [ ] MS-18.4 Dashboard pass
 - [ ] MS-18.5 Transactions pass
@@ -216,13 +216,13 @@
 - [ ] MS-18.16 ProgressBar on Envelope rows (balance / allocated, color-coded)
 
 ### Phase 18 Smoke Check
+
 - [ ] Navigation is predictable (tabs + modals)
 - [ ] All empty states look intentional
 - [ ] Assign + allocate flows feel fast
 - [ ] Dashboard shows scripture strip and greeting card
 - [ ] Transactions grouped by date
 - [ ] Envelope rows show spending progress bars
--->
 
 ---
 

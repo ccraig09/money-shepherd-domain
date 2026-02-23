@@ -10,6 +10,8 @@ import { router } from "expo-router";
 import { useAppStore } from "../../src/store/useAppStore";
 import { formatMoney } from "../../src/lib/moneyFormat";
 import { SyncIndicator } from "../../src/ui/components/SyncIndicator";
+import { Card } from "../../src/ui/components/Card";
+import { SectionHeader } from "../../src/ui/components/SectionHeader";
 import { Spacing, Radius, FontSize, FontWeight, Color } from "../../src/ui/tokens";
 
 export default function DashboardScreen() {
@@ -115,10 +117,10 @@ export default function DashboardScreen() {
       </View>
 
       {/* Envelopes preview */}
-      <Text style={styles.sectionLabel}>Envelopes</Text>
+      <SectionHeader title="Envelopes" />
 
       {envelopes.length === 0 ? (
-        <View style={styles.emptyEnvelopes}>
+        <Card style={styles.emptyEnvelopes}>
           <Text style={styles.emptyText}>No envelopes yet.</Text>
           <Pressable
             onPress={() => router.push("/create-envelope")}
@@ -127,9 +129,9 @@ export default function DashboardScreen() {
           >
             <Text style={styles.emptyEnvelopeBtnText}>Create your first envelope</Text>
           </Pressable>
-        </View>
+        </Card>
       ) : (
-        <View style={styles.envelopeList}>
+        <Card>
           {envelopes.map((env) => {
             const isNegative = env.balance.cents < 0;
             return (
@@ -158,7 +160,7 @@ export default function DashboardScreen() {
               </Pressable>
             );
           })}
-        </View>
+        </Card>
       )}
     </ScrollView>
   );
@@ -258,22 +260,9 @@ const styles = StyleSheet.create({
   },
   ctaAllocateText: { color: Color.textOnColor, fontWeight: FontWeight.bold, fontSize: FontSize.body },
 
-  // Section
-  sectionLabel: {
-    fontSize: FontSize.small,
-    fontWeight: FontWeight.semibold,
-    color: Color.textMid,
-    textTransform: "uppercase",
-    letterSpacing: 0.5,
-    paddingHorizontal: Spacing.base,
-    marginBottom: Spacing.sm,
-  },
-
   // Envelopes
   emptyEnvelopes: {
-    marginHorizontal: Spacing.base,
     padding: 20,
-    borderRadius: Radius.xl,
     backgroundColor: Color.surfaceLight,
     alignItems: "center",
   },
@@ -286,13 +275,6 @@ const styles = StyleSheet.create({
     backgroundColor: Color.primary,
   },
   emptyEnvelopeBtnText: { color: Color.textOnColor, fontWeight: FontWeight.semibold, fontSize: 14 },
-  envelopeList: {
-    marginHorizontal: Spacing.base,
-    borderRadius: Radius.xl,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: Color.borderLight,
-    overflow: "hidden",
-  },
   envelopeRow: {
     flexDirection: "row",
     alignItems: "center",

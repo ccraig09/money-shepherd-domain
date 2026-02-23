@@ -9,6 +9,8 @@ import {
 import { router } from "expo-router";
 import { useAppStore } from "../../src/store/useAppStore";
 import { formatMoney } from "../../src/lib/moneyFormat";
+import { Card } from "../../src/ui/components/Card";
+import { Spacing, Radius, FontSize, FontWeight, Color } from "../../src/ui/tokens";
 
 export default function EnvelopesScreen() {
   const state = useAppStore((s) => s.state);
@@ -46,7 +48,7 @@ export default function EnvelopesScreen() {
       </View>
 
       {envelopes.length === 0 ? (
-        <View style={styles.empty}>
+        <Card style={styles.empty}>
           <Text style={styles.emptyText}>No envelopes yet.</Text>
           <Pressable
             onPress={() => router.push("/create-envelope")}
@@ -55,89 +57,90 @@ export default function EnvelopesScreen() {
           >
             <Text style={styles.emptyBtnText}>Create Envelope</Text>
           </Pressable>
-        </View>
+        </Card>
       ) : (
-        <FlatList
-          data={envelopes}
-          keyExtractor={(e) => e.id}
-          contentContainerStyle={styles.list}
-          renderItem={({ item }) => (
-            <Pressable
-              style={styles.row}
-              onPress={() => {
-                router.push({ pathname: "/envelope/[envelopeId]", params: { envelopeId: item.id } });
-              }}
-              accessibilityLabel={`${item.name} envelope`}
-            >
-              <Text style={styles.rowName} numberOfLines={1}>
-                {item.name || "Unnamed envelope"}
-              </Text>
-              <Text style={styles.rowBalance}>
-                ${formatMoney(item.balance.cents)}
-              </Text>
-            </Pressable>
-          )}
-        />
+        <Card style={styles.listCard}>
+          <FlatList
+            data={envelopes}
+            keyExtractor={(e) => e.id}
+            scrollEnabled={false}
+            renderItem={({ item }) => (
+              <Pressable
+                style={styles.row}
+                onPress={() => {
+                  router.push({ pathname: "/envelope/[envelopeId]", params: { envelopeId: item.id } });
+                }}
+                accessibilityLabel={`${item.name} envelope`}
+              >
+                <Text style={styles.rowName} numberOfLines={1}>
+                  {item.name || "Unnamed envelope"}
+                </Text>
+                <Text style={styles.rowBalance}>
+                  ${formatMoney(item.balance.cents)}
+                </Text>
+              </Pressable>
+            )}
+          />
+        </Card>
       )}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: "#fff" },
+  root: { flex: 1, backgroundColor: Color.surface },
   center: { flex: 1, alignItems: "center", justifyContent: "center" },
   header: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 16,
+    paddingHorizontal: Spacing.base,
     paddingTop: 60,
-    paddingBottom: 12,
+    paddingBottom: Spacing.md,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderColor: "#ddd",
+    borderColor: Color.border,
   },
-  title: { fontSize: 24, fontWeight: "700" },
-  headerActions: { flexDirection: "row", gap: 8 },
+  title: { fontSize: 24, fontWeight: FontWeight.bold },
+  headerActions: { flexDirection: "row", gap: Spacing.sm },
   allocateBtn: {
     paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 20,
+    paddingVertical: Spacing.sm,
+    borderRadius: Radius.pill,
     borderWidth: 1,
-    borderColor: "#4f8ef7",
+    borderColor: Color.primary,
   },
-  allocateBtnText: { color: "#4f8ef7", fontWeight: "600", fontSize: 14 },
+  allocateBtnText: { color: Color.primary, fontWeight: FontWeight.semibold, fontSize: 14 },
   addBtn: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    backgroundColor: "#4f8ef7",
+    paddingHorizontal: Spacing.base,
+    paddingVertical: Spacing.sm,
+    borderRadius: Radius.pill,
+    backgroundColor: Color.primary,
   },
-  addBtnText: { color: "#fff", fontWeight: "600", fontSize: 15 },
+  addBtnText: { color: Color.textOnColor, fontWeight: FontWeight.semibold, fontSize: FontSize.body },
   empty: {
-    flex: 1,
+    padding: 20,
     alignItems: "center",
-    justifyContent: "center",
-    gap: 16,
-    paddingHorizontal: 32,
+    backgroundColor: Color.surfaceLight,
+    gap: Spacing.base,
   },
-  emptyText: { fontSize: 17, fontWeight: "600", color: "#333" },
+  emptyText: { fontSize: 17, fontWeight: FontWeight.semibold, color: Color.textDark },
   emptyBtn: {
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 12,
-    backgroundColor: "#4f8ef7",
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.md,
+    borderRadius: Radius.lg,
+    backgroundColor: Color.primary,
   },
-  emptyBtnText: { color: "#fff", fontWeight: "600", fontSize: 15 },
-  list: { paddingVertical: 8 },
+  emptyBtnText: { color: Color.textOnColor, fontWeight: FontWeight.semibold, fontSize: FontSize.body },
+  listCard: { marginTop: Spacing.sm },
   row: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 16,
-    paddingVertical: 16,
+    paddingHorizontal: Spacing.base,
+    paddingVertical: Spacing.base,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderColor: "#eee",
+    borderColor: Color.borderLight,
   },
-  rowName: { fontSize: 16, fontWeight: "500", color: "#111", flex: 1 },
-  rowBalance: { fontSize: 16, fontWeight: "600", color: "#333", marginLeft: 12 },
+  rowName: { fontSize: FontSize.subtitle, fontWeight: FontWeight.medium, color: Color.textDark, flex: 1 },
+  rowBalance: { fontSize: FontSize.subtitle, fontWeight: FontWeight.semibold, color: Color.textDark, marginLeft: Spacing.md },
 });
