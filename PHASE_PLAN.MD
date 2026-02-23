@@ -204,7 +204,7 @@
 - [x] MS-18.4 Dashboard pass
 - [x] MS-18.5 Transactions pass
 - [x] MS-18.6 Inbox pass
-- [ ] MS-18.7 Envelopes list + sorting
+- [x] MS-18.7 Envelopes list + sorting
 - [ ] MS-18.8 Envelope detail pass
 - [ ] MS-18.9 Forms pass
 - [ ] MS-18.10 Toast feedback
