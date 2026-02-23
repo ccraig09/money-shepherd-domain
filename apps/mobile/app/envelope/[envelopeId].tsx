@@ -6,10 +6,14 @@ import {
   Pressable,
   Alert,
   StyleSheet,
+  ScrollView,
 } from "react-native";
 import { router, Stack, useLocalSearchParams } from "expo-router";
 import { useAppStore } from "../../src/store/useAppStore";
 import { formatMoney } from "../../src/lib/moneyFormat";
+import { Card } from "../../src/ui/components/Card";
+import { SectionHeader } from "../../src/ui/components/SectionHeader";
+import { Spacing, Radius, FontSize, FontWeight, Color } from "../../src/ui/tokens";
 import type { Transaction } from "@money-shepherd/domain";
 
 export default function EnvelopeDetailScreen() {
@@ -75,10 +79,14 @@ export default function EnvelopeDetailScreen() {
     }
   }
 
+  const isNegativeBalance = envelope.balance.cents < 0;
+  const isZeroBalance = envelope.balance.cents === 0;
+
   return (
-    <View style={styles.root}>
+    <ScrollView style={styles.root} contentContainerStyle={styles.content}>
       <Stack.Screen options={{ title: envelope.name }} />
-      {/* Envelope summary */}
+
+      {/* Hero balance card */}
       <View style={styles.summaryCard}>
         <View style={styles.nameRow}>
           <Text style={styles.envelopeName} numberOfLines={1}>
@@ -95,162 +103,207 @@ export default function EnvelopeDetailScreen() {
             <Text style={styles.editBtnText}>Edit</Text>
           </Pressable>
         </View>
+
         <Text style={styles.balanceLabel}>Balance</Text>
-        <Text style={styles.balance}>
+        <Text
+          style={[
+            styles.balance,
+            isNegativeBalance && styles.balanceNegative,
+            isZeroBalance && styles.balanceZero,
+          ]}
+        >
           ${formatMoney(envelope.balance.cents)}
         </Text>
+
+        {/* Allocate CTA */}
+        <Pressable
+          onPress={() => router.push("/allocate")}
+          style={styles.allocateBtn}
+          accessibilityLabel="Allocate funds to this envelope"
+        >
+          <Text style={styles.allocateBtnText}>$ Allocate Funds</Text>
+        </Pressable>
+
+        {/* Delete — subdued text action */}
+        <Pressable
+          onPress={() => {
+            const balanceStr = formatMoney(Math.abs(envelope.balance.cents));
+            const hasBalance = envelope.balance.cents !== 0;
+            const msg = hasBalance
+              ? `Delete "${envelope.name}"? Its balance of $${balanceStr} will return to Available.`
+              : `Delete "${envelope.name}"? Any assigned transactions will return to your Inbox.`;
+            Alert.alert("Delete Envelope", msg, [
+              { text: "Cancel", style: "cancel" },
+              {
+                text: "Delete",
+                style: "destructive",
+                onPress: async () => {
+                  await deleteEnvelopeAction(envelopeId);
+                  router.back();
+                },
+              },
+            ]);
+          }}
+          style={styles.deleteBtn}
+          accessibilityLabel="Delete envelope"
+        >
+          <Text style={styles.deleteBtnText}>Delete Envelope</Text>
+        </Pressable>
       </View>
 
-      <Pressable
-        onPress={() => {
-          const balanceStr = formatMoney(Math.abs(envelope.balance.cents));
-          const hasBalance = envelope.balance.cents !== 0;
-          const msg = hasBalance
-            ? `Delete "${envelope.name}"? Its balance of $${balanceStr} will return to Available.`
-            : `Delete "${envelope.name}"? Any assigned transactions will return to your Inbox.`;
-          Alert.alert("Delete Envelope", msg, [
-            { text: "Cancel", style: "cancel" },
-            {
-              text: "Delete",
-              style: "destructive",
-              onPress: async () => {
-                await deleteEnvelopeAction(envelopeId);
-                router.back();
-              },
-            },
-          ]);
-        }}
-        style={styles.deleteBtn}
-        accessibilityLabel="Delete envelope"
-      >
-        <Text style={styles.deleteBtnText}>Delete Envelope</Text>
-      </Pressable>
-
-      <Text style={styles.sectionLabel}>Assigned Transactions</Text>
+      {/* Activity list */}
+      <SectionHeader title="Activity" />
 
       {assignedTxs.length === 0 ? (
-        <View style={styles.empty}>
+        <Card style={styles.empty}>
           <Text style={styles.emptyText}>No transactions assigned yet.</Text>
-        </View>
+          <Text style={styles.emptyHint}>
+            Assign expenses from the Inbox to see activity here.
+          </Text>
+        </Card>
       ) : (
-        <FlatList
-          data={assignedTxs}
-          keyExtractor={(tx) => tx.id}
-          contentContainerStyle={styles.list}
-          renderItem={({ item }) => {
-            const isExpense = item.amount.cents < 0;
-            const desc = item.description || "Manual transaction";
-            const assignedByUserId = assignmentByTxId[item.id]?.assignedByUserId;
-            const assignedByName = assignedByUserId
-              ? (state.users?.find((u) => u.id === assignedByUserId)?.displayName ?? null)
-              : null;
-            const meta = `${accountName(item.accountId)} · ${formatDate(item.postedAt)}${assignedByName ? ` · by ${assignedByName}` : ""}`;
-            return (
-              <View style={styles.row}>
-                <View style={styles.rowMain}>
-                  <Text style={styles.rowDescription} numberOfLines={1}>
-                    {desc}
-                  </Text>
-                  <Text style={styles.rowMeta} numberOfLines={1}>
-                    {meta}
+        <Card>
+          <FlatList
+            data={assignedTxs}
+            keyExtractor={(tx) => tx.id}
+            scrollEnabled={false}
+            contentContainerStyle={styles.list}
+            renderItem={({ item }) => {
+              const isExpense = item.amount.cents < 0;
+              const desc = item.description || "Manual transaction";
+              const assignedByUserId = assignmentByTxId[item.id]?.assignedByUserId;
+              const assignedByName = assignedByUserId
+                ? (state.users?.find((u) => u.id === assignedByUserId)?.displayName ?? null)
+                : null;
+              const dateSuffix = assignedByName
+                ? `${formatDate(item.postedAt)} · by ${assignedByName}`
+                : formatDate(item.postedAt);
+              return (
+                <View style={styles.row}>
+                  <View style={styles.rowMain}>
+                    <Text style={styles.rowDescription} numberOfLines={1}>
+                      {desc}
+                    </Text>
+                    <View style={styles.metaRow}>
+                      <Text style={styles.rowAccountName} numberOfLines={1}>
+                        {accountName(item.accountId)}
+                      </Text>
+                      <Text style={styles.rowAccountDate}>
+                        {" · "}{dateSuffix}
+                      </Text>
+                    </View>
+                  </View>
+                  <Text
+                    style={[
+                      styles.rowAmount,
+                      isExpense ? styles.expense : styles.income,
+                    ]}
+                  >
+                    {isExpense ? "-" : "+"}${formatMoney(Math.abs(item.amount.cents))}
                   </Text>
                 </View>
-                <Text
-                  style={[
-                    styles.rowAmount,
-                    isExpense ? styles.expense : styles.income,
-                  ]}
-                >
-                  {isExpense ? "-" : "+"}${formatMoney(Math.abs(item.amount.cents))}
-                </Text>
-              </View>
-            );
-          }}
-        />
+              );
+            }}
+          />
+        </Card>
       )}
-    </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: "#fff" },
+  root: { flex: 1, backgroundColor: Color.surface },
+  content: { paddingBottom: Spacing.bottomPad },
   center: {
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    gap: 12,
+    gap: Spacing.md,
   },
-  errorText: { fontSize: 15, color: "#d94f4f" },
+  errorText: { fontSize: FontSize.body, color: Color.error },
   backBtn: {
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 10,
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.sm,
+    borderRadius: Radius.md,
     borderWidth: 1,
-    borderColor: "#ddd",
+    borderColor: Color.border,
   },
-  backBtnText: { fontSize: 14, color: "#555" },
+  backBtnText: { fontSize: FontSize.body, color: Color.textMid },
+
+  // Hero summary card
   summaryCard: {
     alignItems: "center",
-    paddingVertical: 24,
-    paddingHorizontal: 16,
+    paddingVertical: Spacing.lg,
+    paddingHorizontal: Spacing.base,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderColor: "#eee",
-    backgroundColor: "#f9f9f9",
-    gap: 4,
+    borderColor: Color.border,
+    backgroundColor: Color.surfaceLight,
+    gap: Spacing.xs,
   },
   nameRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
+    gap: Spacing.sm,
   },
-  envelopeName: { fontSize: 22, fontWeight: "700", color: "#111", flexShrink: 1 },
+  envelopeName: { fontSize: FontSize.subtitle, fontWeight: FontWeight.bold, color: Color.textDark, flexShrink: 1 },
   editBtn: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 8,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: Spacing.xs,
+    borderRadius: Radius.sm,
     borderWidth: 1,
-    borderColor: "#ddd",
-    backgroundColor: "#fff",
+    borderColor: Color.border,
+    backgroundColor: Color.surface,
   },
-  editBtnText: { fontSize: 13, fontWeight: "600", color: "#4f8ef7" },
+  editBtnText: { fontSize: FontSize.small, fontWeight: FontWeight.semibold, color: Color.primary },
+  balanceLabel: { fontSize: FontSize.small, color: Color.textMuted, marginTop: Spacing.xs },
+  balance: { fontSize: FontSize.hero, fontWeight: FontWeight.extrabold, color: Color.success },
+  balanceNegative: { color: Color.error },
+  balanceZero: { color: Color.textMuted },
+
+  // Allocate CTA
+  allocateBtn: {
+    marginTop: Spacing.md,
+    paddingHorizontal: Spacing.xl,
+    paddingVertical: Spacing.md,
+    borderRadius: Radius.pill,
+    backgroundColor: Color.primary,
+  },
+  allocateBtnText: { fontSize: FontSize.body, fontWeight: FontWeight.bold, color: Color.textOnColor },
+
+  // Delete
   deleteBtn: {
-    alignSelf: "center",
-    marginTop: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
+    marginTop: Spacing.sm,
+    paddingHorizontal: Spacing.base,
+    paddingVertical: Spacing.sm,
   },
-  deleteBtnText: { fontSize: 14, fontWeight: "600", color: "#d94f4f" },
-  balanceLabel: { fontSize: 13, color: "#888", marginTop: 4 },
-  balance: { fontSize: 32, fontWeight: "800", color: "#2d9e6b" },
-  sectionLabel: {
-    fontSize: 13,
-    fontWeight: "600",
-    color: "#555",
-    textTransform: "uppercase",
-    letterSpacing: 0.5,
-    paddingHorizontal: 16,
-    paddingTop: 16,
-    paddingBottom: 8,
-  },
+  deleteBtnText: { fontSize: FontSize.small, fontWeight: FontWeight.semibold, color: Color.error },
+
+  // Empty state
   empty: {
-    flex: 1,
+    padding: Spacing.lg,
     alignItems: "center",
-    justifyContent: "center",
+    backgroundColor: Color.surfaceLight,
+    gap: Spacing.sm,
   },
-  emptyText: { fontSize: 15, color: "#888" },
-  list: { paddingBottom: 24 },
+  emptyText: { fontSize: FontSize.body, fontWeight: FontWeight.semibold, color: Color.textMuted, textAlign: "center" },
+  emptyHint: { fontSize: FontSize.caption, color: Color.textSubtle, textAlign: "center" },
+
+  // Activity list
+  list: { paddingBottom: 0 },
   row: {
     flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 16,
-    paddingVertical: 14,
+    alignItems: "flex-start",
+    paddingHorizontal: Spacing.base,
+    paddingVertical: Spacing.md,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderColor: "#eee",
+    borderColor: Color.borderLight,
   },
-  rowMain: { flex: 1, gap: 2 },
-  rowDescription: { fontSize: 15, fontWeight: "500", color: "#111" },
-  rowMeta: { fontSize: 12, color: "#888" },
-  rowAmount: { fontSize: 16, fontWeight: "600", marginLeft: 12 },
-  income: { color: "#2d9e6b" },
-  expense: { color: "#d94f4f" },
+  rowMain: { flex: 1, gap: Spacing.xs, paddingRight: Spacing.sm },
+  rowDescription: { fontSize: FontSize.body, fontWeight: FontWeight.medium, color: Color.textDark },
+  metaRow: { flexDirection: "row", alignItems: "center" },
+  rowAccountName: { fontSize: FontSize.caption, color: Color.textMuted, flexShrink: 1 },
+  rowAccountDate: { fontSize: FontSize.caption, color: Color.textMuted, flexShrink: 0 },
+  rowAmount: { fontSize: FontSize.subtitle, fontWeight: FontWeight.semibold, paddingTop: 2 },
+  income: { color: Color.success },
+  expense: { color: Color.error },
 });
