@@ -13,6 +13,7 @@ describe("initialSyncState", () => {
       lastSyncedAt: null,
       lastError: null,
       pendingChanges: 0,
+      lastConflictMessage: null,
     });
   });
 });
@@ -54,6 +55,7 @@ describe("syncTransition", () => {
       lastSyncedAt: "2024-06-01T12:00:00.000Z",
       lastError: null,
       pendingChanges: 0,
+      lastConflictMessage: null,
     };
     const syncing = syncTransition(synced, { type: "sync-start" });
     const errored = syncTransition(syncing, {
@@ -100,6 +102,7 @@ describe("syncTransition", () => {
       lastSyncedAt: null,
       lastError: "Previous failure",
       pendingChanges: 1,
+      lastConflictMessage: null,
     };
     const next = syncTransition(errored, { type: "sync-start" });
     expect(next.lastError).toBeNull();
@@ -112,6 +115,7 @@ describe("syncTransition", () => {
       lastSyncedAt: "2024-06-01T12:00:00.000Z",
       lastError: "Some error",
       pendingChanges: 5,
+      lastConflictMessage: null,
     };
     const next = syncTransition(dirty, { type: "reset" });
     expect(next).toEqual(initialSyncState());
@@ -123,6 +127,7 @@ describe("syncTransition", () => {
       lastSyncedAt: null,
       lastError: null,
       pendingChanges: 2,
+      lastConflictMessage: null,
     };
     const next = syncTransition(state, {
       type: "sync-error",
@@ -155,5 +160,30 @@ describe("syncTransition", () => {
 
     state = syncTransition(state, { type: "sync-conflict-resolved", at: "2024-06-01T16:00:00.000Z" });
     expect(state.pendingChanges).toBe(0);
+  });
+
+  it("sets lastConflictMessage on conflict-resolved", () => {
+    const syncing = syncTransition(idle, { type: "sync-start" });
+    const next = syncTransition(syncing, {
+      type: "sync-conflict-resolved",
+      at: "2024-06-01T13:00:00.000Z",
+    });
+    expect(next.lastConflictMessage).toBe("Updated from another device");
+  });
+
+  it("clears lastConflictMessage on next sync-success", () => {
+    let state = syncTransition(idle, { type: "sync-start" });
+    state = syncTransition(state, {
+      type: "sync-conflict-resolved",
+      at: "2024-06-01T13:00:00.000Z",
+    });
+    expect(state.lastConflictMessage).toBe("Updated from another device");
+
+    state = syncTransition(state, { type: "sync-start" });
+    state = syncTransition(state, {
+      type: "sync-success",
+      at: "2024-06-01T14:00:00.000Z",
+    });
+    expect(state.lastConflictMessage).toBeNull();
   });
 });

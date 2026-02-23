@@ -39,11 +39,14 @@ export function SyncIndicator() {
     );
   }
 
+  const conflictMsg = syncState.lastConflictMessage;
   const config = statusConfig[status];
   const label =
     status === "error" && pending > 0
       ? `Sync failed · ${pending} pending`
-      : config.text;
+      : conflictMsg && status === "success"
+        ? conflictMsg
+        : config.text;
 
   return (
     <View style={[styles.pill, { backgroundColor: config.bg }]}>

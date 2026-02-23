@@ -13,6 +13,7 @@ export type SyncState = {
   lastSyncedAt: string | null;
   lastError: string | null;
   pendingChanges: number;
+  lastConflictMessage: string | null;
 };
 
 export type SyncOutcome =
@@ -27,6 +28,7 @@ export function initialSyncState(): SyncState {
     lastSyncedAt: null,
     lastError: null,
     pendingChanges: 0,
+    lastConflictMessage: null,
   };
 }
 
@@ -53,6 +55,7 @@ export function syncTransition(
         lastSyncedAt: event.at,
         lastError: null,
         pendingChanges: 0,
+        lastConflictMessage: null,
       };
 
     case "sync-conflict-resolved":
@@ -62,6 +65,7 @@ export function syncTransition(
         lastSyncedAt: event.at,
         lastError: null,
         pendingChanges: 0,
+        lastConflictMessage: "Updated from another device",
       };
 
     case "sync-error":
