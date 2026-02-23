@@ -98,6 +98,7 @@ export default function SettingsScreen() {
         <Text style={styles.cardTitle}>Sync</Text>
         <Row label="Status" value={syncStatusLabel(syncState.status)} />
         <Row label="Last synced" value={syncState.lastSyncedAt ? formatSyncTime(syncState.lastSyncedAt) : lastSyncAt ? formatSyncTime(lastSyncAt) : "Not yet this session"} />
+        <Row label="Pending changes" value={syncState.pendingChanges > 0 ? `${syncState.pendingChanges}` : "None"} />
         {syncState.lastError && <Row label="Last error" value={syncState.lastError} />}
         <Row label="User" value={meta ? userLabel(meta.userId) : "—"} />
         <Divider />

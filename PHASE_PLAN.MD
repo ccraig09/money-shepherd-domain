@@ -183,7 +183,7 @@
 - [x] MS-17.8 Debounce pushes
 - [x] MS-17.6 Sync now button
 - [x] MS-17.7 Conflict UX message
-- [ ] MS-17.9 Settings summary
+- [x] MS-17.9 Settings summary
 - [ ] MS-17.10 Two-device checklist
 
 ### Phase 17 Smoke Check
