@@ -10,8 +10,10 @@ import { savePlaidRefreshAt, loadPlaidRefreshAt, clearPlaidRefreshAt } from "../
 import { syncTransactions } from "../infra/plaid/plaidClient";
 import { mapPlaidTransactions } from "../infra/plaid/mapTransaction";
 import { classifyPlaidError, makePlaidError, type PlaidErrorInfo } from "../infra/plaid/errors";
+import { withTimeout } from "../lib/timeout";
 
 const REFRESH_COOLDOWN_MS = 2 * 60 * 1000; // 2 minutes
+const PLAID_SYNC_TIMEOUT_MS = 15_000;
 
 type LoadState = "idle" | "loading" | "ready" | "error";
 type GuardState = "checking" | "needs-setup" | "needs-pin-setup" | "needs-pin" | "ready";
@@ -363,7 +365,11 @@ export const useAppStore = create<AppStore>((set, get) => ({
         const tokens = await loadPlaidTokens(userId);
         if (tokens.length > 0) hasTokens = true;
         for (const token of tokens) {
-          const syncResult = await syncTransactions(token.accessToken);
+          const syncResult = await withTimeout(
+            syncTransactions(token.accessToken),
+            PLAID_SYNC_TIMEOUT_MS,
+            "Plaid sync",
+          );
           // Build account mapping from plaidAccountId -> internalAccountId
           const accountMap: Record<string, string> = {};
           if (token.accountIdMap) {
@@ -379,13 +385,20 @@ export const useAppStore = create<AppStore>((set, get) => ({
       }
 
       if (!hasTokens) {
-        set({ status: "ready", plaidSyncError: makePlaidError("not-connected") });
+        set({
+          status: "ready",
+          plaidSyncError: makePlaidError("not-connected"),
+          syncState: syncTransition(get().syncState, { type: "sync-success", at: new Date().toISOString() }),
+        });
         return { imported: 0 };
       }
 
       let state = get().state;
       if (!state) {
-        set({ status: "ready" });
+        set({
+          status: "ready",
+          syncState: syncTransition(get().syncState, { type: "sync-success", at: new Date().toISOString() }),
+        });
         return { imported: 0 };
       }
 
@@ -400,7 +413,9 @@ export const useAppStore = create<AppStore>((set, get) => ({
         status: "ready",
         lastSyncAt: now,
         lastPlaidRefreshAt: now,
-        syncState: applyOutcome(get().syncState, result.syncOutcome, result.syncError),
+        syncState: result.syncOutcome === "error"
+          ? applyOutcome(get().syncState, result.syncOutcome, result.syncError)
+          : syncTransition(get().syncState, { type: "sync-success", at: now }),
       });
       return { imported };
     } catch (err: unknown) {

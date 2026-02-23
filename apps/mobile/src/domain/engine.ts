@@ -12,21 +12,12 @@ import type { AppStateV1 } from "./appState";
 import { APP_STATE_VERSION } from "./appState";
 import { loadAppState, saveAppState, clearAppState } from "./storage";
 import { nowIso, makeId } from "../lib/id";
+import { withTimeout } from "../lib/timeout";
 import { mergeTransactions } from "./mergeTransactions";
 import type { SyncOutcome } from "./syncStatus";
 import { classifySyncError } from "../infra/remote/syncErrors";
 
 const SYNC_PUSH_TIMEOUT_MS = 10_000;
-
-/** Race a promise against a timeout. Rejects with a descriptive error. */
-function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
-  return Promise.race([
-    promise,
-    new Promise<never>((_, reject) =>
-      setTimeout(() => reject(new Error(`${label}: timed out after ${ms}ms`)), ms),
-    ),
-  ]);
-}
 
 // NOTE: applyTransactionsToAccounts might be in your domain already.
 // If it exists, import and use it. If not, we’ll add it next.
