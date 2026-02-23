@@ -176,7 +176,7 @@
 ### Recommended build order
 
 - [x] MS-17.1 Status model
-- [ ] MS-17.2 Indicator
+- [x] MS-17.2 Indicator
 - [ ] MS-17.5 Pending changes
 - [ ] MS-17.3 Friendly errors
 - [ ] MS-17.4 Retry/backoff

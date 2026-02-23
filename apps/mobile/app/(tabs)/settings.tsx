@@ -11,12 +11,14 @@ import {
 import { useRouter } from "expo-router";
 import { loadSyncMeta, type SyncMeta } from "../../src/infra/local/syncMeta";
 import { useAppStore } from "../../src/store/useAppStore";
+import type { SyncStatus } from "../../src/domain/syncStatus";
 
 export default function SettingsScreen() {
   const router = useRouter();
   const resetAll = useAppStore((s) => s.resetAll);
   const switchUser = useAppStore((s) => s.switchUser);
   const lastSyncAt = useAppStore((s) => s.lastSyncAt);
+  const syncState = useAppStore((s) => s.syncState);
 
   const [meta, setMeta] = React.useState<SyncMeta | null>(null);
   const [isBusy, setIsBusy] = React.useState(false);
@@ -93,7 +95,9 @@ export default function SettingsScreen() {
       {/* Sync status */}
       <View style={styles.card}>
         <Text style={styles.cardTitle}>Sync</Text>
-        <Row label="Last synced" value={lastSyncAt ? formatSyncTime(lastSyncAt) : "Not yet this session"} />
+        <Row label="Status" value={syncStatusLabel(syncState.status)} />
+        <Row label="Last synced" value={syncState.lastSyncedAt ? formatSyncTime(syncState.lastSyncedAt) : lastSyncAt ? formatSyncTime(lastSyncAt) : "Not yet this session"} />
+        {syncState.lastError && <Row label="Last error" value={syncState.lastError} />}
         <Row label="User" value={meta ? userLabel(meta.userId) : "—"} />
       </View>
 
@@ -147,6 +151,18 @@ export default function SettingsScreen() {
       )}
     </ScrollView>
   );
+}
+
+const syncStatusLabels: Record<SyncStatus, string> = {
+  idle: "Up to date",
+  syncing: "Syncing…",
+  success: "Synced",
+  error: "Sync failed",
+  offline: "Offline",
+};
+
+function syncStatusLabel(status: SyncStatus): string {
+  return syncStatusLabels[status];
 }
 
 function userLabel(userId: string): string {

@@ -9,6 +9,7 @@ import {
 import { router } from "expo-router";
 import { useAppStore } from "../../src/store/useAppStore";
 import { formatMoney } from "../../src/lib/moneyFormat";
+import { SyncIndicator } from "../../src/ui/components/SyncIndicator";
 
 export default function DashboardScreen() {
   const state = useAppStore((s) => s.state);
@@ -48,6 +49,7 @@ export default function DashboardScreen() {
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.title}>Dashboard</Text>
+        <SyncIndicator />
       </View>
 
       {/* Available to Assign — hero card */}
@@ -166,6 +168,9 @@ const styles = StyleSheet.create({
   content: { paddingBottom: 40 },
   center: { flex: 1, alignItems: "center", justifyContent: "center" },
   header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     paddingHorizontal: 16,
     paddingTop: 60,
     paddingBottom: 16,
