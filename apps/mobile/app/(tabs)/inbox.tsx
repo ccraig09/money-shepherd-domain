@@ -83,6 +83,7 @@ export default function InboxScreen() {
                   });
                 }}
                 accessibilityLabel={`Assign ${desc}`}
+                accessibilityRole="button"
               >
                 <View style={styles.rowMain}>
                   <Text style={styles.rowDescription} numberOfLines={1}>
@@ -167,6 +168,7 @@ const styles = StyleSheet.create({
     alignItems: "flex-start",
     paddingHorizontal: Spacing.base,
     paddingVertical: Spacing.md,
+    minHeight: 44,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderColor: Color.borderLight,
   },

@@ -105,6 +105,8 @@ export default function AssignTransactionScreen() {
                 style={[styles.envelopeRow, isSelected && styles.envelopeRowSelected]}
                 onPress={() => setSelectedEnvelopeId(item.id)}
                 accessibilityLabel={`Select ${item.name}`}
+                accessibilityRole="button"
+                accessibilityState={{ selected: isSelected }}
               >
                 <Text style={[styles.envelopeName, isSelected && styles.envelopeNameSelected]}>
                   {item.name}
@@ -172,6 +174,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingHorizontal: Spacing.base,
     paddingVertical: Spacing.md,
+    minHeight: 44,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderColor: Color.borderLight,
   },

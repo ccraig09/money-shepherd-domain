@@ -81,6 +81,7 @@ export default function DashboardScreen() {
           style={styles.nudge}
           onPress={() => router.push("/(tabs)/inbox")}
           accessibilityLabel="Go to inbox to assign transactions"
+          accessibilityRole="button"
         >
           <Text style={styles.nudgeText}>
             {unassignedExpenseCount}{" "}
@@ -96,6 +97,7 @@ export default function DashboardScreen() {
           style={styles.ctaExpense}
           onPress={() => router.push({ pathname: "/add-transaction", params: { kind: "expense" } })}
           accessibilityLabel="Add expense"
+          accessibilityRole="button"
         >
           <Text style={styles.ctaExpenseText}>− Expense</Text>
         </Pressable>
@@ -103,6 +105,7 @@ export default function DashboardScreen() {
           style={styles.ctaIncome}
           onPress={() => router.push({ pathname: "/add-transaction", params: { kind: "income" } })}
           accessibilityLabel="Add income"
+          accessibilityRole="button"
         >
           <Text style={styles.ctaIncomeText}>+ Income</Text>
         </Pressable>
@@ -110,6 +113,7 @@ export default function DashboardScreen() {
           style={styles.ctaAllocate}
           onPress={() => router.push("/allocate")}
           accessibilityLabel="Allocate funds"
+          accessibilityRole="button"
         >
           <Text style={styles.ctaAllocateText}>$ Allocate</Text>
         </Pressable>
@@ -129,6 +133,7 @@ export default function DashboardScreen() {
             onPress={() => router.push("/create-envelope")}
             style={styles.emptyEnvelopeBtn}
             accessibilityLabel="Create your first envelope"
+            accessibilityRole="button"
           >
             <Text style={styles.emptyEnvelopeBtnText}>Create your first envelope</Text>
           </Pressable>
@@ -148,6 +153,7 @@ export default function DashboardScreen() {
                   })
                 }
                 accessibilityLabel={`${env.name} envelope`}
+                accessibilityRole="button"
               >
                 <Text style={styles.envelopeName} numberOfLines={1}>
                   {env.name}
@@ -235,7 +241,9 @@ const styles = StyleSheet.create({
     flex: 1,
     borderRadius: Radius.xl,
     paddingVertical: Spacing.md,
+    minHeight: 44,
     alignItems: "center",
+    justifyContent: "center",
     borderWidth: 1,
     borderColor: Color.error,
     backgroundColor: Color.errorSurface,
@@ -245,7 +253,9 @@ const styles = StyleSheet.create({
     flex: 1,
     borderRadius: Radius.xl,
     paddingVertical: Spacing.md,
+    minHeight: 44,
     alignItems: "center",
+    justifyContent: "center",
     borderWidth: 1,
     borderColor: Color.success,
     backgroundColor: Color.successSurface,
@@ -255,7 +265,9 @@ const styles = StyleSheet.create({
     flex: 1,
     borderRadius: Radius.xl,
     paddingVertical: Spacing.md,
+    minHeight: 44,
     alignItems: "center",
+    justifyContent: "center",
     backgroundColor: Color.primary,
   },
   ctaAllocateText: { color: Color.textOnColor, fontWeight: FontWeight.bold, fontSize: FontSize.body },

@@ -148,6 +148,7 @@ export default function TransactionsScreen() {
                   )
                 }
                 accessibilityLabel={`View ${desc}`}
+                accessibilityRole="button"
               >
                 <View style={styles.rowMain}>
                   <View style={styles.descRow}>
@@ -248,6 +249,7 @@ const styles = StyleSheet.create({
     alignItems: "flex-start",
     paddingHorizontal: Spacing.base,
     paddingVertical: Spacing.md,
+    minHeight: 44,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderColor: Color.borderLight,
   },

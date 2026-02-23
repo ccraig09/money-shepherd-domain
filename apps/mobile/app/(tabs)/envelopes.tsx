@@ -78,6 +78,8 @@ export default function EnvelopesScreen() {
               style={[styles.sortChip, sortOrder === "alpha" && styles.sortChipActive]}
               onPress={() => setSortOrder("alpha")}
               accessibilityLabel="Sort alphabetically"
+              accessibilityRole="button"
+              accessibilityState={{ selected: sortOrder === "alpha" }}
             >
               <Text style={[styles.sortChipText, sortOrder === "alpha" && styles.sortChipTextActive]}>
                 A–Z
@@ -87,6 +89,8 @@ export default function EnvelopesScreen() {
               style={[styles.sortChip, sortOrder === "balance" && styles.sortChipActive]}
               onPress={() => setSortOrder("balance")}
               accessibilityLabel="Sort by highest balance"
+              accessibilityRole="button"
+              accessibilityState={{ selected: sortOrder === "balance" }}
             >
               <Text style={[styles.sortChipText, sortOrder === "balance" && styles.sortChipTextActive]}>
                 Balance ↓
@@ -109,6 +113,7 @@ export default function EnvelopesScreen() {
                       router.push({ pathname: "/envelope/[envelopeId]", params: { envelopeId: item.id } });
                     }}
                     accessibilityLabel={`${item.name} envelope`}
+                    accessibilityRole="button"
                   >
                     <Text style={styles.rowName} numberOfLines={1}>
                       {item.name || "Unnamed envelope"}
@@ -210,6 +215,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingHorizontal: Spacing.base,
     paddingVertical: Spacing.base,
+    minHeight: 44,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderColor: Color.borderLight,
   },

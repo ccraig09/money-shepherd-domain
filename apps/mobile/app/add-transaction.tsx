@@ -135,7 +135,12 @@ export default function AddTransactionScreen() {
         >
           <View style={styles.modalHeader}>
             <Text style={styles.modalTitle}>Select Account</Text>
-            <Pressable onPress={() => setAccountPickerOpen(false)} hitSlop={12}>
+            <Pressable
+              onPress={() => setAccountPickerOpen(false)}
+              hitSlop={12}
+              accessibilityLabel="Close account picker"
+              accessibilityRole="button"
+            >
               <Text style={styles.modalClose}>Done</Text>
             </Pressable>
           </View>
@@ -155,6 +160,9 @@ export default function AddTransactionScreen() {
                     setSelectedAccountId(item.account.id);
                     setAccountPickerOpen(false);
                   }}
+                  accessibilityLabel={`${item.account.name}${isDisconnected ? ", disconnected" : ""}`}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: isSelected }}
                 >
                   <View style={styles.modalRowContent}>
                     <Text
@@ -188,6 +196,9 @@ export default function AddTransactionScreen() {
               styles.toggleBtn,
               kind === "income" && styles.incomeActive,
             ]}
+            accessibilityLabel="Income"
+            accessibilityRole="button"
+            accessibilityState={{ selected: kind === "income" }}
           >
             <Text
               style={[
@@ -204,6 +215,9 @@ export default function AddTransactionScreen() {
               styles.toggleBtn,
               kind === "expense" && styles.expenseActive,
             ]}
+            accessibilityLabel="Expense"
+            accessibilityRole="button"
+            accessibilityState={{ selected: kind === "expense" }}
           >
             <Text
               style={[
