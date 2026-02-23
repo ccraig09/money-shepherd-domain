@@ -15,6 +15,18 @@ import { nowIso, makeId } from "../lib/id";
 import { mergeTransactions } from "./mergeTransactions";
 import type { SyncOutcome } from "./syncStatus";
 
+const SYNC_PUSH_TIMEOUT_MS = 10_000;
+
+/** Race a promise against a timeout. Rejects with a descriptive error. */
+function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error(`${label}: timed out after ${ms}ms`)), ms),
+    ),
+  ]);
+}
+
 // NOTE: applyTransactionsToAccounts might be in your domain already.
 // If it exists, import and use it. If not, we’ll add it next.
 import { applyTransactionsToAccounts } from "@money-shepherd/domain";
@@ -293,12 +305,16 @@ export function createEngine(): Engine {
       const repo = new HouseholdStateRepo(syncMeta.householdId);
 
       try {
-        await ensureAnonAuth();
-        const pushed = await repo.push({
-          expectedRev: syncMeta.rev,
-          nextState: next,
-          updatedBy: syncMeta.userId,
-        });
+        await withTimeout(ensureAnonAuth(), SYNC_PUSH_TIMEOUT_MS, "Auth");
+        const pushed = await withTimeout(
+          repo.push({
+            expectedRev: syncMeta.rev,
+            nextState: next,
+            updatedBy: syncMeta.userId,
+          }),
+          SYNC_PUSH_TIMEOUT_MS,
+          "Sync push",
+        );
 
         await saveSyncMeta({
           ...syncMeta,
@@ -309,19 +325,23 @@ export function createEngine(): Engine {
       } catch (err: any) {
         if (err?.code === "SYNC_CONFLICT") {
           // MVP strategy: pull remote and overwrite local
-          const remote = await repo.pull();
-          if (remote) {
-            await saveAppState(remote.state);
-            await saveSyncMeta({
-              ...syncMeta,
-              rev: remote.rev,
-            });
-            return { state: remote.state, syncOutcome: "conflict-resolved" };
+          try {
+            const remote = await withTimeout(repo.pull(), SYNC_PUSH_TIMEOUT_MS, "Sync pull");
+            if (remote) {
+              await saveAppState(remote.state);
+              await saveSyncMeta({
+                ...syncMeta,
+                rev: remote.rev,
+              });
+              return { state: remote.state, syncOutcome: "conflict-resolved" };
+            }
+          } catch (pullErr) {
+            console.warn("Sync pull after conflict failed", pullErr);
           }
         } else {
           console.warn("Sync push failed", err);
-          return { state: next, syncOutcome: "error" };
         }
+        return { state: next, syncOutcome: "error" };
       }
     }
     return { state: next, syncOutcome: syncMeta ? "error" : "local-only" };

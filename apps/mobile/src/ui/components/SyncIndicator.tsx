@@ -20,12 +20,30 @@ export function SyncIndicator() {
   }, [syncState.status, syncState.lastSyncedAt]);
 
   const status = syncState.status;
+  const pending = syncState.pendingChanges;
 
-  // Idle or success-that-has-faded → render nothing
-  if (status === "idle") return null;
-  if (status === "success" && !showSuccess) return null;
+  // Idle with no pending → render nothing
+  if (status === "idle" && pending === 0) return null;
+  // Success that has faded with no pending → render nothing
+  if (status === "success" && !showSuccess && pending === 0) return null;
+
+  // Pending changes waiting to sync (idle or error state with local saves queued)
+  if (pending > 0 && (status === "idle" || (status === "success" && !showSuccess))) {
+    return (
+      <View style={[styles.pill, { backgroundColor: "#fff8e1" }]}>
+        <View style={[styles.dot, { backgroundColor: "#f59e0b" }]} />
+        <Text style={[styles.label, { color: "#92400e" }]}>
+          {pending} pending
+        </Text>
+      </View>
+    );
+  }
 
   const config = statusConfig[status];
+  const label =
+    status === "error" && pending > 0
+      ? `Sync failed · ${pending} pending`
+      : config.text;
 
   return (
     <View style={[styles.pill, { backgroundColor: config.bg }]}>
@@ -34,7 +52,7 @@ export function SyncIndicator() {
       ) : (
         <View style={[styles.dot, { backgroundColor: config.color }]} />
       )}
-      <Text style={[styles.label, { color: config.color }]}>{config.text}</Text>
+      <Text style={[styles.label, { color: config.color }]}>{label}</Text>
     </View>
   );
 }

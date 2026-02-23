@@ -57,21 +57,35 @@ type AppStore = {
 
 const engine = createEngine();
 
-/** Map engine sync outcome to a SyncEvent for the state machine. */
-function syncEventForOutcome(
+/** Map engine sync outcome to one or two SyncEvents for the state machine. */
+function syncEventsForOutcome(
   outcome: import("../domain/syncStatus").SyncOutcome,
-): import("../domain/syncStatus").SyncEvent {
+): import("../domain/syncStatus").SyncEvent[] {
   const now = new Date().toISOString();
   switch (outcome) {
     case "pushed":
-      return { type: "sync-success", at: now };
+      return [{ type: "sync-success", at: now }];
     case "conflict-resolved":
-      return { type: "sync-conflict-resolved", at: now };
+      return [{ type: "sync-conflict-resolved", at: now }];
     case "error":
-      return { type: "sync-error", error: "Sync push failed" };
+      // Increment pending first (saved locally), then mark as error
+      return [
+        { type: "local-save" },
+        { type: "sync-error", error: "Sync push failed" },
+      ];
     case "local-only":
-      return { type: "local-save" };
+      return [{ type: "local-save" }];
   }
+}
+
+function applyOutcome(
+  current: import("../domain/syncStatus").SyncState,
+  outcome: import("../domain/syncStatus").SyncOutcome,
+): import("../domain/syncStatus").SyncState {
+  return syncEventsForOutcome(outcome).reduce(
+    (s, e) => syncTransition(s, e),
+    current,
+  );
 }
 
 /**
@@ -176,7 +190,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
         state: result.state,
         status: "ready",
         lastSyncAt: new Date().toISOString(),
-        syncState: syncTransition(get().syncState, syncEventForOutcome(result.syncOutcome)),
+        syncState: applyOutcome(get().syncState, result.syncOutcome),
       });
     } catch (err: any) {
       set({
@@ -198,7 +212,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
         state: result.state,
         status: "ready",
         lastSyncAt: new Date().toISOString(),
-        syncState: syncTransition(get().syncState, syncEventForOutcome(result.syncOutcome)),
+        syncState: applyOutcome(get().syncState, result.syncOutcome),
       });
     } catch (err: any) {
       set({
@@ -220,7 +234,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
         state: result.state,
         status: "ready",
         lastSyncAt: new Date().toISOString(),
-        syncState: syncTransition(get().syncState, syncEventForOutcome(result.syncOutcome)),
+        syncState: applyOutcome(get().syncState, result.syncOutcome),
       });
     } catch (err: any) {
       set({
@@ -242,7 +256,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
         state: result.state,
         status: "ready",
         lastSyncAt: new Date().toISOString(),
-        syncState: syncTransition(get().syncState, syncEventForOutcome(result.syncOutcome)),
+        syncState: applyOutcome(get().syncState, result.syncOutcome),
       });
     } catch (err: any) {
       set({
@@ -264,7 +278,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
         state: result.state,
         status: "ready",
         lastSyncAt: new Date().toISOString(),
-        syncState: syncTransition(get().syncState, syncEventForOutcome(result.syncOutcome)),
+        syncState: applyOutcome(get().syncState, result.syncOutcome),
       });
     } catch (err: any) {
       set({
@@ -286,7 +300,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
         state: result.state,
         status: "ready",
         lastSyncAt: new Date().toISOString(),
-        syncState: syncTransition(get().syncState, syncEventForOutcome(result.syncOutcome)),
+        syncState: applyOutcome(get().syncState, result.syncOutcome),
       });
     } catch (err: any) {
       set({
@@ -308,7 +322,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
         state: result.state,
         status: "ready",
         lastSyncAt: new Date().toISOString(),
-        syncState: syncTransition(get().syncState, syncEventForOutcome(result.syncOutcome)),
+        syncState: applyOutcome(get().syncState, result.syncOutcome),
       });
     } catch (err: any) {
       set({
@@ -382,7 +396,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
         status: "ready",
         lastSyncAt: now,
         lastPlaidRefreshAt: now,
-        syncState: syncTransition(get().syncState, syncEventForOutcome(result.syncOutcome)),
+        syncState: applyOutcome(get().syncState, result.syncOutcome),
       });
       return { imported };
     } catch (err: unknown) {

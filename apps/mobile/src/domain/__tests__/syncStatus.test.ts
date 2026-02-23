@@ -116,4 +116,44 @@ describe("syncTransition", () => {
     const next = syncTransition(dirty, { type: "reset" });
     expect(next).toEqual(initialSyncState());
   });
+
+  it("sync-error preserves existing pendingChanges", () => {
+    const state: SyncState = {
+      status: "syncing",
+      lastSyncedAt: null,
+      lastError: null,
+      pendingChanges: 2,
+    };
+    const next = syncTransition(state, {
+      type: "sync-error",
+      error: "Push failed",
+    });
+    expect(next.status).toBe("error");
+    expect(next.pendingChanges).toBe(2);
+  });
+
+  it("local-save then sync-error then success resets pendingChanges", () => {
+    let state = syncTransition(initialSyncState(), { type: "local-save" });
+    state = syncTransition(state, { type: "sync-error", error: "Network" });
+    expect(state.pendingChanges).toBe(1);
+
+    state = syncTransition(state, { type: "local-save" });
+    state = syncTransition(state, { type: "sync-error", error: "Network" });
+    expect(state.pendingChanges).toBe(2);
+
+    state = syncTransition(state, { type: "sync-success", at: "2024-06-01T15:00:00.000Z" });
+    expect(state.pendingChanges).toBe(0);
+    expect(state.status).toBe("success");
+  });
+
+  it("multiple local-saves accumulate then clear on success", () => {
+    let state = initialSyncState();
+    state = syncTransition(state, { type: "local-save" });
+    state = syncTransition(state, { type: "local-save" });
+    state = syncTransition(state, { type: "local-save" });
+    expect(state.pendingChanges).toBe(3);
+
+    state = syncTransition(state, { type: "sync-conflict-resolved", at: "2024-06-01T16:00:00.000Z" });
+    expect(state.pendingChanges).toBe(0);
+  });
 });
