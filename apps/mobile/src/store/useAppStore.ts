@@ -60,6 +60,15 @@ type AppStore = {
 
 const engine = createEngine();
 
+// Wire debounced push callback — updates syncState when the push settles.
+engine.onSyncResult = ({ syncOutcome, syncError }) => {
+  const { syncState } = useAppStore.getState();
+  useAppStore.setState({
+    syncState: applyOutcome(syncState, syncOutcome, syncError),
+    ...(syncOutcome !== "error" ? { lastSyncAt: new Date().toISOString() } : {}),
+  });
+};
+
 /** Map engine sync outcome to one or two SyncEvents for the state machine. */
 function syncEventsForOutcome(
   outcome: import("../domain/syncStatus").SyncOutcome,

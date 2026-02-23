@@ -180,7 +180,7 @@
 - [x] MS-17.5 Pending changes
 - [x] MS-17.3 Friendly errors
 - [x] MS-17.4 Retry/backoff
-- [ ] MS-17.8 Debounce pushes
+- [x] MS-17.8 Debounce pushes
 - [ ] MS-17.6 Sync now button
 - [ ] MS-17.7 Conflict UX message
 - [ ] MS-17.9 Settings summary

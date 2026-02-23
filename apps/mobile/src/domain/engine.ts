@@ -14,11 +14,13 @@ import { loadAppState, saveAppState, clearAppState } from "./storage";
 import { nowIso, makeId } from "../lib/id";
 import { withTimeout } from "../lib/timeout";
 import { withRetry } from "../lib/retry";
+import { debouncedAsync } from "../lib/debounce";
 import { mergeTransactions } from "./mergeTransactions";
 import type { SyncOutcome } from "./syncStatus";
 import { classifySyncError } from "../infra/remote/syncErrors";
 
 const SYNC_PUSH_TIMEOUT_MS = 10_000;
+const SYNC_DEBOUNCE_MS = 500;
 
 // NOTE: applyTransactionsToAccounts might be in your domain already.
 // If it exists, import and use it. If not, we’ll add it next.
@@ -67,6 +69,9 @@ export type Engine = {
   importPlaidTransactions(args: {
     transactions: import("@money-shepherd/domain").Transaction[];
   }): Promise<RecomputeResult>;
+
+  /** Called when a debounced push settles — store wires this to update syncState. */
+  onSyncResult: ((result: { syncOutcome: SyncOutcome; syncError?: string }) => void) | null;
 };
 
 export function createEngine(): Engine {
@@ -255,6 +260,56 @@ export function createEngine(): Engine {
     return local;
   }
 
+  /** Push state to Firestore (called by the debounced scheduler). */
+  async function pushToRemote(next: AppStateV1): Promise<void> {
+    const syncMeta = await loadSyncMeta();
+    if (!syncMeta) return;
+
+    const repo = new HouseholdStateRepo(syncMeta.householdId);
+    try {
+      await withTimeout(ensureAnonAuth(), SYNC_PUSH_TIMEOUT_MS, "Auth");
+      const pushed = await withRetry(
+        () => withTimeout(
+          repo.push({
+            expectedRev: syncMeta.rev,
+            nextState: next,
+            updatedBy: syncMeta.userId,
+          }),
+          SYNC_PUSH_TIMEOUT_MS,
+          "Sync push",
+        ),
+        {
+          maxRetries: 3,
+          baseDelayMs: 500,
+          shouldRetry: (err) => (err as any)?.code !== "SYNC_CONFLICT",
+        },
+      );
+
+      await saveSyncMeta({ ...syncMeta, rev: pushed.rev });
+      engineApi.onSyncResult?.({ syncOutcome: "pushed" });
+    } catch (err: any) {
+      if (err?.code === "SYNC_CONFLICT") {
+        try {
+          const remote = await withTimeout(repo.pull(), SYNC_PUSH_TIMEOUT_MS, "Sync pull");
+          if (remote) {
+            await saveAppState(remote.state);
+            await saveSyncMeta({ ...syncMeta, rev: remote.rev });
+            engineApi.onSyncResult?.({ syncOutcome: "conflict-resolved" });
+            return;
+          }
+        } catch (pullErr) {
+          console.warn("Sync pull after conflict failed", pullErr);
+        }
+      } else {
+        console.warn("Sync push failed", err);
+      }
+      const friendly = classifySyncError(err);
+      engineApi.onSyncResult?.({ syncOutcome: "error", syncError: friendly.message });
+    }
+  }
+
+  const schedulePush = debouncedAsync(pushToRemote, SYNC_DEBOUNCE_MS);
+
   async function recompute(state: AppStateV1): Promise<RecomputeResult> {
     // 1) Apply transactions to accounts (ledger balances)
     const accountAppliedSet = new Set(state.appliedAccountTransactionIds);
@@ -294,59 +349,12 @@ export function createEngine(): Engine {
     };
 
     await saveAppState(next);
+
     const syncMeta = await loadSyncMeta();
     if (syncMeta) {
-      const repo = new HouseholdStateRepo(syncMeta.householdId);
-
-      try {
-        await withTimeout(ensureAnonAuth(), SYNC_PUSH_TIMEOUT_MS, "Auth");
-        const pushed = await withRetry(
-          () => withTimeout(
-            repo.push({
-              expectedRev: syncMeta.rev,
-              nextState: next,
-              updatedBy: syncMeta.userId,
-            }),
-            SYNC_PUSH_TIMEOUT_MS,
-            "Sync push",
-          ),
-          {
-            maxRetries: 3,
-            baseDelayMs: 500,
-            shouldRetry: (err) => (err as any)?.code !== "SYNC_CONFLICT",
-          },
-        );
-
-        await saveSyncMeta({
-          ...syncMeta,
-          rev: pushed.rev,
-        });
-
-        return { state: next, syncOutcome: "pushed" };
-      } catch (err: any) {
-        if (err?.code === "SYNC_CONFLICT") {
-          // MVP strategy: pull remote and overwrite local
-          try {
-            const remote = await withTimeout(repo.pull(), SYNC_PUSH_TIMEOUT_MS, "Sync pull");
-            if (remote) {
-              await saveAppState(remote.state);
-              await saveSyncMeta({
-                ...syncMeta,
-                rev: remote.rev,
-              });
-              return { state: remote.state, syncOutcome: "conflict-resolved" };
-            }
-          } catch (pullErr) {
-            console.warn("Sync pull after conflict failed", pullErr);
-          }
-        } else {
-          console.warn("Sync push failed", err);
-        }
-        const friendly = classifySyncError(err);
-        return { state: next, syncOutcome: "error", syncError: friendly.message };
-      }
+      schedulePush(next);
     }
-    return { state: next, syncOutcome: syncMeta ? "error" : "local-only" };
+    return { state: next, syncOutcome: "local-only" };
   }
 
   async function addManualTransaction(args: {
@@ -403,7 +411,7 @@ export function createEngine(): Engine {
     return recompute(next);
   }
 
-  return {
+  const engineApi: Engine = {
     getState,
     seed,
     reset,
@@ -417,5 +425,7 @@ export function createEngine(): Engine {
     allocateToEnvelope: allocateToEnvelopeAction,
     importPlaidAccounts,
     importPlaidTransactions,
+    onSyncResult: null,
   };
+  return engineApi;
 }
