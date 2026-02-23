@@ -11,6 +11,7 @@ import { useAppStore } from "../../src/store/useAppStore";
 import { formatMoney } from "../../src/lib/moneyFormat";
 import { SyncIndicator } from "../../src/ui/components/SyncIndicator";
 import { ScriptureStrip } from "../../src/ui/components/ScriptureStrip";
+import { GreetingCard } from "../../src/ui/components/GreetingCard";
 import { Card } from "../../src/ui/components/Card";
 import { SectionHeader } from "../../src/ui/components/SectionHeader";
 import { Spacing, Radius, FontSize, FontWeight, Color } from "../../src/ui/tokens";
@@ -53,12 +54,12 @@ export default function DashboardScreen() {
     >
       {/* Header */}
       <View style={styles.header}>
-        <View>
-          <Text style={styles.appName}>Money Shepherd</Text>
-          <Text style={styles.subtitle}>Dashboard</Text>
-        </View>
+        <Text style={styles.appName}>Money Shepherd</Text>
         <SyncIndicator />
       </View>
+
+      {/* Greeting + envelope health */}
+      <GreetingCard envelopes={state.budget.envelopes} />
 
       {/* Available to Assign — hero card */}
       <View style={styles.heroCard}>
@@ -194,8 +195,7 @@ const styles = StyleSheet.create({
     paddingTop: 60,
     paddingBottom: Spacing.base,
   },
-  appName: { fontSize: FontSize.title, fontWeight: FontWeight.extrabold, color: Color.primary },
-  subtitle: { fontSize: FontSize.small, fontWeight: FontWeight.medium, color: Color.textMuted, marginTop: 2 },
+  appName: { fontSize: FontSize.small, fontWeight: FontWeight.semibold, color: Color.primary, textTransform: "uppercase" as const, letterSpacing: 1 },
 
   // Hero card
   heroCard: {
