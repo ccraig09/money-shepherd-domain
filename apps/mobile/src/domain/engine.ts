@@ -70,6 +70,9 @@ export type Engine = {
     transactions: import("@money-shepherd/domain").Transaction[];
   }): Promise<RecomputeResult>;
 
+  /** Immediately push current local state to remote (bypasses debounce). */
+  syncNow(): Promise<void>;
+
   /** Called when a debounced push settles — store wires this to update syncState. */
   onSyncResult: ((result: { syncOutcome: SyncOutcome; syncError?: string }) => void) | null;
 };
@@ -310,6 +313,12 @@ export function createEngine(): Engine {
 
   const schedulePush = debouncedAsync(pushToRemote, SYNC_DEBOUNCE_MS);
 
+  async function syncNow(): Promise<void> {
+    const state = await loadAppState();
+    if (!state) return;
+    await pushToRemote(state);
+  }
+
   async function recompute(state: AppStateV1): Promise<RecomputeResult> {
     // 1) Apply transactions to accounts (ledger balances)
     const accountAppliedSet = new Set(state.appliedAccountTransactionIds);
@@ -425,6 +434,7 @@ export function createEngine(): Engine {
     allocateToEnvelope: allocateToEnvelopeAction,
     importPlaidAccounts,
     importPlaidTransactions,
+    syncNow,
     onSyncResult: null,
   };
   return engineApi;

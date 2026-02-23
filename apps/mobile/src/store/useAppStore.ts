@@ -56,6 +56,7 @@ type AppStore = {
     postedAt?: string;
   }) => Promise<void>;
   refreshFromPlaid: (opts?: { force?: boolean }) => Promise<{ imported: number }>;
+  syncNow: () => Promise<void>;
 };
 
 const engine = createEngine();
@@ -346,6 +347,12 @@ export const useAppStore = create<AppStore>((set, get) => ({
         syncState: syncTransition(get().syncState, { type: "sync-error", error: err?.message ?? "Failed to add transaction" }),
       });
     }
+  },
+
+  syncNow: async () => {
+    set({ syncState: syncTransition(get().syncState, { type: "sync-start" }) });
+    await engine.syncNow();
+    // onSyncResult callback handles the final syncState transition
   },
 
   refreshFromPlaid: async (opts) => {

@@ -19,6 +19,7 @@ export default function SettingsScreen() {
   const switchUser = useAppStore((s) => s.switchUser);
   const lastSyncAt = useAppStore((s) => s.lastSyncAt);
   const syncState = useAppStore((s) => s.syncState);
+  const syncNow = useAppStore((s) => s.syncNow);
 
   const [meta, setMeta] = React.useState<SyncMeta | null>(null);
   const [isBusy, setIsBusy] = React.useState(false);
@@ -99,6 +100,12 @@ export default function SettingsScreen() {
         <Row label="Last synced" value={syncState.lastSyncedAt ? formatSyncTime(syncState.lastSyncedAt) : lastSyncAt ? formatSyncTime(lastSyncAt) : "Not yet this session"} />
         {syncState.lastError && <Row label="Last error" value={syncState.lastError} />}
         <Row label="User" value={meta ? userLabel(meta.userId) : "—"} />
+        <Divider />
+        <ActionButton
+          label="Sync now"
+          onPress={syncNow}
+          disabled={isBusy || syncState.status === "syncing"}
+        />
       </View>
 
       {/* Device info */}
