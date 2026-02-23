@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import {
   View,
   Text,
-  FlatList,
+  SectionList,
   Pressable,
   StyleSheet,
   ActivityIndicator,
@@ -11,6 +11,7 @@ import { router } from "expo-router";
 import { useAppStore } from "../../src/store/useAppStore";
 import { formatMoney } from "../../src/lib/moneyFormat";
 import { formatTimeAgo } from "../../src/lib/timeAgo";
+import { groupByDate } from "../../src/lib/dateGroup";
 import { InlineNotice } from "../../src/ui/components/InlineNotice";
 import { Card } from "../../src/ui/components/Card";
 import { Spacing, Radius, FontSize, FontWeight, Color } from "../../src/ui/tokens";
@@ -49,23 +50,14 @@ export default function TransactionsScreen() {
     (a, b) => b.postedAt.localeCompare(a.postedAt),
   );
 
+  const sections = groupByDate(transactions);
+
   const assignedTxIds = new Set(
     Object.values(state.inbox.assignmentsByTransactionId).map((a) => a.transactionId),
   );
 
   function accountName(accountId: string): string {
     return accounts.find((a) => a.id === accountId)?.name ?? accountId;
-  }
-
-  function formatDate(iso: string): string {
-    try {
-      return new Date(iso).toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-      });
-    } catch {
-      return "";
-    }
   }
 
   return (
@@ -130,10 +122,16 @@ export default function TransactionsScreen() {
           </Pressable>
         </Card>
       ) : (
-        <FlatList
-          data={transactions}
+        <SectionList
+          sections={sections}
           keyExtractor={(tx) => tx.id}
           contentContainerStyle={styles.list}
+          stickySectionHeadersEnabled={false}
+          renderSectionHeader={({ section }) => (
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionHeaderText}>{section.title}</Text>
+            </View>
+          )}
           renderItem={({ item }) => {
             const isExpense = item.amount.cents < 0;
             const desc = item.description || "Manual transaction";
@@ -159,14 +157,9 @@ export default function TransactionsScreen() {
                       <View style={styles.noteDot} accessibilityLabel="Has note" />
                     )}
                   </View>
-                  <View style={styles.metaRow}>
-                    <Text style={styles.rowAccountName} numberOfLines={1}>
-                      {accountName(item.accountId)}
-                    </Text>
-                    <Text style={styles.rowAccountDate}>
-                      {" · "}{formatDate(item.postedAt)}
-                    </Text>
-                  </View>
+                  <Text style={styles.rowAccountName} numberOfLines={1}>
+                    {accountName(item.accountId)}
+                  </Text>
                   {isUnassigned && (
                     <View style={styles.unassignedBadge} accessibilityLabel="Unassigned">
                       <Text style={styles.unassignedBadgeText}>Unassigned</Text>
@@ -243,7 +236,24 @@ const styles = StyleSheet.create({
     backgroundColor: Color.primary,
   },
   emptyBtnText: { color: Color.textOnColor, fontWeight: FontWeight.semibold, fontSize: FontSize.body },
-  list: { paddingVertical: Spacing.sm },
+  list: { paddingBottom: Spacing.bottomPad },
+
+  // Section headers
+  sectionHeader: {
+    paddingHorizontal: Spacing.base,
+    paddingTop: Spacing.base,
+    paddingBottom: Spacing.xs,
+    backgroundColor: Color.surface,
+  },
+  sectionHeaderText: {
+    fontSize: FontSize.small,
+    fontWeight: FontWeight.semibold,
+    color: Color.textMuted,
+    textTransform: "uppercase" as const,
+    letterSpacing: 0.5,
+  },
+
+  // Rows
   row: {
     flexDirection: "row",
     alignItems: "flex-start",
@@ -263,9 +273,7 @@ const styles = StyleSheet.create({
     backgroundColor: Color.primary,
     flexShrink: 0,
   },
-  metaRow: { flexDirection: "row", alignItems: "center" },
-  rowAccountName: { fontSize: FontSize.caption, color: Color.textMuted, flexShrink: 1 },
-  rowAccountDate: { fontSize: FontSize.caption, color: Color.textMuted, flexShrink: 0 },
+  rowAccountName: { fontSize: FontSize.caption, color: Color.textMuted },
   unassignedBadge: {
     alignSelf: "flex-start",
     paddingHorizontal: Spacing.xs,

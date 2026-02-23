@@ -213,7 +213,7 @@
 - [x] MS-18.13 ScriptureStrip on Dashboard (daily rotating verse, compacted below hero card)
 - [x] MS-18.17 Design Identity (warm palette tokens + DESIGN.md + Button component + token migration)
 - [x] MS-18.14 GreetingCard on Dashboard (time-aware greeting + envelope health summary)
-- [ ] MS-18.15 DateGroupHeaders in Transactions (Today / Yesterday / date)
+- [x] MS-18.15 DateGroupHeaders in Transactions (Today / Yesterday / date)
 - [ ] MS-18.16 ProgressBar on Envelope rows (balance / allocated, color-coded)
 
 ### Phase 18 Smoke Check
