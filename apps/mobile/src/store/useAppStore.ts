@@ -18,6 +18,8 @@ const PLAID_SYNC_TIMEOUT_MS = 15_000;
 type LoadState = "idle" | "loading" | "ready" | "error";
 type GuardState = "checking" | "needs-setup" | "needs-pin-setup" | "needs-pin" | "ready";
 
+type ToastMessage = { text: string; variant: "success" | "error" | "info" };
+
 type AppStore = {
   // state
   status: LoadState;
@@ -28,8 +30,10 @@ type AppStore = {
   lastSyncAt: string | null;
   lastPlaidRefreshAt: string | null;
   plaidSyncError: PlaidErrorInfo | null;
+  toast: ToastMessage | null;
 
   // actions
+  showToast: (text: string, variant?: ToastMessage["variant"]) => void;
   bootstrap: () => Promise<void>;
   setGuardReady: () => void;
   clearPlaidSyncError: () => void;
@@ -67,6 +71,9 @@ engine.onSyncResult = ({ syncOutcome, syncError }) => {
   useAppStore.setState({
     syncState: applyOutcome(syncState, syncOutcome, syncError),
     ...(syncOutcome !== "error" ? { lastSyncAt: new Date().toISOString() } : {}),
+    ...(syncOutcome === "error"
+      ? { toast: { text: "Sync failed, saved locally", variant: "error" } }
+      : {}),
   });
 };
 
@@ -118,7 +125,9 @@ export const useAppStore = create<AppStore>((set, get) => ({
   lastSyncAt: null,
   lastPlaidRefreshAt: null,
   plaidSyncError: null,
+  toast: null,
 
+  showToast: (text, variant = "success") => set({ toast: { text, variant } }),
   setGuardReady: () => set({ guardState: "ready" }),
   clearPlaidSyncError: () => set({ plaidSyncError: null }),
 
@@ -207,6 +216,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
         status: "ready",
         lastSyncAt: new Date().toISOString(),
         syncState: applyOutcome(get().syncState, result.syncOutcome, result.syncError),
+        toast: { text: "Envelope created", variant: "success" },
       });
     } catch (err: any) {
       set({
@@ -251,6 +261,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
         status: "ready",
         lastSyncAt: new Date().toISOString(),
         syncState: applyOutcome(get().syncState, result.syncOutcome, result.syncError),
+        toast: { text: "Envelope deleted", variant: "info" },
       });
     } catch (err: any) {
       set({
@@ -290,11 +301,18 @@ export const useAppStore = create<AppStore>((set, get) => ({
     set({ status: "loading", errorMessage: null, syncState: syncTransition(get().syncState, { type: "sync-start" }) });
     try {
       const result = await engine.assignTransaction(args);
+      const envelopeName = result.state.budget.envelopes.find(
+        (e) => e.id === args.envelopeId,
+      )?.name;
       set({
         state: result.state,
         status: "ready",
         lastSyncAt: new Date().toISOString(),
         syncState: applyOutcome(get().syncState, result.syncOutcome, result.syncError),
+        toast: {
+          text: envelopeName ? `Assigned to ${envelopeName}` : "Transaction assigned",
+          variant: "success",
+        },
       });
     } catch (err: any) {
       set({
@@ -317,6 +335,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
         status: "ready",
         lastSyncAt: new Date().toISOString(),
         syncState: applyOutcome(get().syncState, result.syncOutcome, result.syncError),
+        toast: { text: "Funds allocated", variant: "success" },
       });
     } catch (err: any) {
       set({
@@ -339,6 +358,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
         status: "ready",
         lastSyncAt: new Date().toISOString(),
         syncState: applyOutcome(get().syncState, result.syncOutcome, result.syncError),
+        toast: { text: "Transaction saved", variant: "success" },
       });
     } catch (err: any) {
       set({
@@ -353,7 +373,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
     set({ syncState: syncTransition(get().syncState, { type: "sync-start" }) });
     const result = await engine.syncNow();
     if (result.pulledRemote && result.state) {
-      set({ state: result.state });
+      set({ state: result.state, toast: { text: "Updated from another device", variant: "info" } });
     }
     // onSyncResult callback handles the final syncState transition
   },

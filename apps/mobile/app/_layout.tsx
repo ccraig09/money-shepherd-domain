@@ -21,6 +21,7 @@ import { useAppStore } from "@/src/store/useAppStore";
 import { loadSyncMeta } from "@/src/infra/local/syncMeta";
 import { loadPinHash } from "@/src/infra/local/pin";
 import { Spacing, Radius, FontSize, FontWeight, Color } from "@/src/ui/tokens";
+import { Toast } from "@/src/ui/components/Toast";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -144,6 +145,8 @@ export default function RootLayout() {
             </Pressable>
           </View>
         )}
+
+        <Toast />
       </View>
       <StatusBar style="auto" />
     </ThemeProvider>
