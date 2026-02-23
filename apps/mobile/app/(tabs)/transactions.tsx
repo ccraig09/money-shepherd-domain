@@ -49,6 +49,10 @@ export default function TransactionsScreen() {
     (a, b) => b.postedAt.localeCompare(a.postedAt),
   );
 
+  const assignedTxIds = new Set(
+    Object.values(state.inbox.assignmentsByTransactionId).map((a) => a.transactionId),
+  );
+
   function accountName(accountId: string): string {
     return accounts.find((a) => a.id === accountId)?.name ?? accountId;
   }
@@ -83,7 +87,7 @@ export default function TransactionsScreen() {
             disabled={refreshing}
           >
             {refreshing ? (
-              <ActivityIndicator size="small" color="#4f8ef7" />
+              <ActivityIndicator size="small" color={Color.primary} />
             ) : (
               <Text style={styles.refreshBtnText}>↻ Sync</Text>
             )}
@@ -134,7 +138,7 @@ export default function TransactionsScreen() {
             const isExpense = item.amount.cents < 0;
             const desc = item.description || "Manual transaction";
             const hasNote = !!state.transactionNotes?.[item.id];
-            const meta = `${accountName(item.accountId)} · ${formatDate(item.postedAt)}`;
+            const isUnassigned = isExpense && !assignedTxIds.has(item.id);
             return (
               <Pressable
                 style={styles.row}
@@ -154,9 +158,19 @@ export default function TransactionsScreen() {
                       <View style={styles.noteDot} accessibilityLabel="Has note" />
                     )}
                   </View>
-                  <Text style={styles.rowAccount} numberOfLines={1}>
-                    {meta}
-                  </Text>
+                  <View style={styles.metaRow}>
+                    <Text style={styles.rowAccountName} numberOfLines={1}>
+                      {accountName(item.accountId)}
+                    </Text>
+                    <Text style={styles.rowAccountDate}>
+                      {" · "}{formatDate(item.postedAt)}
+                    </Text>
+                  </View>
+                  {isUnassigned && (
+                    <View style={styles.unassignedBadge} accessibilityLabel="Unassigned">
+                      <Text style={styles.unassignedBadgeText}>Unassigned</Text>
+                    </View>
+                  )}
                 </View>
                 <Text
                   style={[
@@ -188,15 +202,15 @@ const styles = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderColor: Color.border,
   },
-  title: { fontSize: 24, fontWeight: FontWeight.bold },
-  lastSynced: { fontSize: FontSize.caption, color: "#999", marginTop: 2 },
+  title: { fontSize: FontSize.title, fontWeight: FontWeight.bold, color: Color.textDark },
+  lastSynced: { fontSize: FontSize.caption, color: Color.textMuted, marginTop: 2 },
   headerActions: {
     flexDirection: "row",
     alignItems: "center",
     gap: Spacing.sm,
   },
   refreshBtn: {
-    paddingHorizontal: 14,
+    paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.sm,
     borderRadius: Radius.pill,
     borderWidth: 1,
@@ -215,14 +229,13 @@ const styles = StyleSheet.create({
   },
   addBtnText: { color: Color.textOnColor, fontWeight: FontWeight.semibold, fontSize: FontSize.body },
   empty: {
-    padding: 20,
+    padding: Spacing.lg,
     alignItems: "center",
     backgroundColor: Color.surfaceLight,
     gap: Spacing.sm,
   },
-  emptyText: { fontSize: 17, fontWeight: FontWeight.semibold, color: Color.textDark, textAlign: "center" },
+  emptyText: { fontSize: FontSize.subtitle, fontWeight: FontWeight.semibold, color: Color.textDark, textAlign: "center" },
   emptyBtn: {
-    marginTop: Spacing.sm,
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.md,
     borderRadius: Radius.lg,
@@ -232,24 +245,36 @@ const styles = StyleSheet.create({
   list: { paddingVertical: Spacing.sm },
   row: {
     flexDirection: "row",
-    alignItems: "center",
+    alignItems: "flex-start",
     paddingHorizontal: Spacing.base,
-    paddingVertical: 14,
+    paddingVertical: Spacing.md,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderColor: Color.borderLight,
   },
-  rowMain: { flex: 1, gap: 2 },
-  descRow: { flexDirection: "row", alignItems: "center", gap: 6 },
+  rowMain: { flex: 1, gap: Spacing.xs, paddingRight: Spacing.sm },
+  descRow: { flexDirection: "row", alignItems: "center", gap: Spacing.xs },
   rowDescription: { fontSize: FontSize.body, fontWeight: FontWeight.medium, color: Color.textDark, flexShrink: 1 },
   noteDot: {
-    width: 7,
-    height: 7,
-    borderRadius: 4,
+    width: 6,
+    height: 6,
+    borderRadius: 3,
     backgroundColor: Color.primary,
     flexShrink: 0,
   },
-  rowAccount: { fontSize: FontSize.caption, color: Color.textMuted },
-  rowAmount: { fontSize: FontSize.subtitle, fontWeight: FontWeight.semibold, minWidth: 80, textAlign: "right" },
+  metaRow: { flexDirection: "row", alignItems: "center" },
+  rowAccountName: { fontSize: FontSize.caption, color: Color.textMuted, flexShrink: 1 },
+  rowAccountDate: { fontSize: FontSize.caption, color: Color.textMuted, flexShrink: 0 },
+  unassignedBadge: {
+    alignSelf: "flex-start",
+    paddingHorizontal: Spacing.xs,
+    paddingVertical: 2,
+    borderRadius: Radius.sm,
+    backgroundColor: Color.warningSurface,
+    borderWidth: 1,
+    borderColor: Color.borderWarning,
+  },
+  unassignedBadgeText: { fontSize: FontSize.caption, fontWeight: FontWeight.semibold, color: Color.warning },
+  rowAmount: { fontSize: FontSize.subtitle, fontWeight: FontWeight.semibold, minWidth: 80, textAlign: "right", paddingTop: 2 },
   income: { color: Color.success },
   expense: { color: Color.error },
 });

@@ -202,7 +202,7 @@
 - [x] MS-18.2 Card + SectionHeader
 - [x] MS-18.3 Navigation audit
 - [x] MS-18.4 Dashboard pass
-- [ ] MS-18.5 Transactions pass
+- [x] MS-18.5 Transactions pass
 - [ ] MS-18.6 Inbox pass
 - [ ] MS-18.7 Envelopes list + sorting
 - [ ] MS-18.8 Envelope detail pass
