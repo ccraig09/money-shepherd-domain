@@ -13,6 +13,7 @@ import { SyncIndicator } from "../../src/ui/components/SyncIndicator";
 import { ScriptureStrip } from "../../src/ui/components/ScriptureStrip";
 import { GreetingCard } from "../../src/ui/components/GreetingCard";
 import { Card } from "../../src/ui/components/Card";
+import { ProgressBar } from "../../src/ui/components/ProgressBar";
 import { SectionHeader } from "../../src/ui/components/SectionHeader";
 import { Spacing, Radius, FontSize, FontWeight, Color } from "../../src/ui/tokens";
 
@@ -163,17 +164,22 @@ export default function DashboardScreen() {
                 accessibilityLabel={`${env.name} envelope`}
                 accessibilityRole="button"
               >
-                <Text style={styles.envelopeName} numberOfLines={1}>
-                  {env.name}
-                </Text>
-                <Text
-                  style={[
-                    styles.envelopeBalance,
-                    isNegative && styles.envelopeBalanceNegative,
-                  ]}
-                >
-                  ${formatMoney(env.balance.cents)}
-                </Text>
+                <View style={styles.envelopeRowContent}>
+                  <View style={styles.envelopeRowTop}>
+                    <Text style={styles.envelopeName} numberOfLines={1}>
+                      {env.name}
+                    </Text>
+                    <Text
+                      style={[
+                        styles.envelopeBalance,
+                        isNegative && styles.envelopeBalanceNegative,
+                      ]}
+                    >
+                      ${formatMoney(env.balance.cents)}
+                    </Text>
+                  </View>
+                  <ProgressBar balance={env.balance.cents} goal={env.goal?.cents} />
+                </View>
               </Pressable>
             );
           })}
@@ -296,14 +302,17 @@ const styles = StyleSheet.create({
   },
   emptyEnvelopeBtnText: { color: Color.textOnColor, fontWeight: FontWeight.semibold, fontSize: FontSize.body },
   envelopeRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
     paddingHorizontal: Spacing.base,
     paddingVertical: Spacing.md,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderColor: Color.borderLight,
     backgroundColor: Color.surface,
+  },
+  envelopeRowContent: { gap: Spacing.sm },
+  envelopeRowTop: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
   },
   envelopeName: { fontSize: FontSize.body, fontWeight: FontWeight.medium, color: Color.textDark, flex: 1 },
   envelopeBalance: { fontSize: FontSize.body, fontWeight: FontWeight.semibold, color: Color.success, marginLeft: Spacing.md },

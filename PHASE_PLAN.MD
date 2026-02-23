@@ -214,7 +214,7 @@
 - [x] MS-18.17 Design Identity (warm palette tokens + DESIGN.md + Button component + token migration)
 - [x] MS-18.14 GreetingCard on Dashboard (time-aware greeting + envelope health summary)
 - [x] MS-18.15 DateGroupHeaders in Transactions (Today / Yesterday / date)
-- [ ] MS-18.16 ProgressBar on Envelope rows (balance / allocated, color-coded)
+- [x] MS-18.16 ProgressBar on Envelope rows (balance / allocated, color-coded)
 
 ### Phase 18 Smoke Check
 

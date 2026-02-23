@@ -10,6 +10,7 @@ import { router } from "expo-router";
 import { useAppStore } from "../../src/store/useAppStore";
 import { formatMoney } from "../../src/lib/moneyFormat";
 import { Card } from "../../src/ui/components/Card";
+import { ProgressBar } from "../../src/ui/components/ProgressBar";
 import { Spacing, Radius, FontSize, FontWeight, Color } from "../../src/ui/tokens";
 
 type SortOrder = "alpha" | "balance";
@@ -115,18 +116,23 @@ export default function EnvelopesScreen() {
                     accessibilityLabel={`${item.name} envelope`}
                     accessibilityRole="button"
                   >
-                    <Text style={styles.rowName} numberOfLines={1}>
-                      {item.name || "Unnamed envelope"}
-                    </Text>
-                    <Text
-                      style={[
-                        styles.rowBalance,
-                        isNegative && styles.rowBalanceNegative,
-                        isZero && styles.rowBalanceZero,
-                      ]}
-                    >
-                      ${formatMoney(item.balance.cents)}
-                    </Text>
+                    <View style={styles.rowContent}>
+                      <View style={styles.rowTop}>
+                        <Text style={styles.rowName} numberOfLines={1}>
+                          {item.name || "Unnamed envelope"}
+                        </Text>
+                        <Text
+                          style={[
+                            styles.rowBalance,
+                            isNegative && styles.rowBalanceNegative,
+                            isZero && styles.rowBalanceZero,
+                          ]}
+                        >
+                          ${formatMoney(item.balance.cents)}
+                        </Text>
+                      </View>
+                      <ProgressBar balance={item.balance.cents} goal={item.goal?.cents} />
+                    </View>
                   </Pressable>
                 );
               }}
@@ -210,14 +216,17 @@ const styles = StyleSheet.create({
   // List
   listCard: { marginTop: Spacing.xs },
   row: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
     paddingHorizontal: Spacing.base,
     paddingVertical: Spacing.base,
     minHeight: 44,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderColor: Color.borderLight,
+  },
+  rowContent: { gap: Spacing.sm },
+  rowTop: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
   },
   rowName: { fontSize: FontSize.subtitle, fontWeight: FontWeight.medium, color: Color.textDark, flex: 1 },
   rowBalance: { fontSize: FontSize.subtitle, fontWeight: FontWeight.semibold, color: Color.textDark, marginLeft: Spacing.md },
