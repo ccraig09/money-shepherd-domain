@@ -13,6 +13,7 @@ import { loadSyncMeta, type SyncMeta } from "../../src/infra/local/syncMeta";
 import { useAppStore } from "../../src/store/useAppStore";
 import type { SyncStatus } from "../../src/domain/syncStatus";
 import { Spacing, Radius, FontSize, FontWeight, Color } from "../../src/ui/tokens";
+import { Features } from "../../src/config/features";
 
 export default function SettingsScreen() {
   const router = useRouter();
@@ -118,14 +119,16 @@ export default function SettingsScreen() {
       </View>
 
       {/* Plaid */}
-      <View style={styles.card}>
-        <Text style={styles.cardTitle}>Bank Connections</Text>
-        <ActionButton
-          label="Connect Accounts"
-          onPress={() => router.push("/settings/connect-accounts")}
-          disabled={isBusy}
-        />
-      </View>
+      {Features.PLAID && (
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Bank Connections</Text>
+          <ActionButton
+            label="Connect Accounts"
+            onPress={() => router.push("/settings/connect-accounts")}
+            disabled={isBusy}
+          />
+        </View>
+      )}
 
       {/* Actions */}
       <View style={styles.card}>

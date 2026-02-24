@@ -227,6 +227,36 @@
 
 ---
 
+---
+
+## Phase 19: Hardening + release readiness (migrations, backups, guardrails)
+
+### Recommended build order
+
+- [x] MS-19.5 Feature flags
+- [ ] MS-19.2 Crash-safe persistence
+- [ ] MS-19.1 Migrations scaffold
+- [ ] MS-19.8 Guardrails
+- [ ] MS-19.13 Seed Available to Assign from connected account balances (domain command)
+- [ ] MS-19.14 Post-connect onboarding: seed budget from bank balances (UI prompt)
+- [ ] MS-19.6 Core tests
+- [ ] MS-19.3 Export
+- [ ] MS-19.4 Import
+- [ ] MS-19.7 Release checklist
+- [ ] MS-19.10 Install plan
+- [ ] MS-19.11 Security sanity
+- [ ] MS-19.9 Performance sanity
+- [ ] MS-19.12 Support bundle (optional)
+
+### Phase 19 Smoke Check
+
+- [ ] Export + import works
+- [ ] App recovers from corrupted local state
+- [ ] Feature flags can disable risky features cleanly
+- [ ] Install plan works for Jackia
+
+---
+
 ## Phase 23: Daily Use Essentials (budget periods, tx editing, transfers, giving)
 
 > **Build order note:** Build Phase 23 immediately after Phase 19 and before Phase 20.
@@ -277,34 +307,6 @@
 - [ ] Fill envelopes from paycheck → guided by targets, one-tap fill
 - [ ] Create a Giving envelope → appears first in envelope list
 - [ ] Period summary shows monthly breakdown by envelope
-
----
-
-## Phase 19: Hardening + release readiness (migrations, backups, guardrails)
-
-### Recommended build order
-
-- [ ] MS-19.5 Feature flags
-- [ ] MS-19.2 Crash-safe persistence
-- [ ] MS-19.1 Migrations scaffold
-- [ ] MS-19.8 Guardrails
-- [ ] MS-19.13 Seed Available to Assign from connected account balances (domain command)
-- [ ] MS-19.14 Post-connect onboarding: seed budget from bank balances (UI prompt)
-- [ ] MS-19.6 Core tests
-- [ ] MS-19.3 Export
-- [ ] MS-19.4 Import
-- [ ] MS-19.7 Release checklist
-- [ ] MS-19.10 Install plan
-- [ ] MS-19.11 Security sanity
-- [ ] MS-19.9 Performance sanity
-- [ ] MS-19.12 Support bundle (optional)
-
-### Phase 19 Smoke Check
-
-- [ ] Export + import works
-- [ ] App recovers from corrupted local state
-- [ ] Feature flags can disable risky features cleanly
-- [ ] Install plan works for Jackia
 
 ---
 

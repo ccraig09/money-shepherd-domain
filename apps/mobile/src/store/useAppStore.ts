@@ -11,6 +11,7 @@ import { syncTransactions } from "../infra/plaid/plaidClient";
 import { mapPlaidTransactions } from "../infra/plaid/mapTransaction";
 import { classifyPlaidError, makePlaidError, type PlaidErrorInfo } from "../infra/plaid/errors";
 import { withTimeout } from "../lib/timeout";
+import { Features } from "../config/features";
 
 const REFRESH_COOLDOWN_MS = 2 * 60 * 1000; // 2 minutes
 const PLAID_SYNC_TIMEOUT_MS = 15_000;
@@ -379,6 +380,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
   },
 
   refreshFromPlaid: async (opts) => {
+    if (!Features.PLAID) return { imported: 0 };
     // Cooldown check: skip Plaid API call if refreshed recently
     const meta = await loadSyncMeta();
     const currentUserId = meta?.userId ?? "user-los";

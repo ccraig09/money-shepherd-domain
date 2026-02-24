@@ -20,6 +20,7 @@ import type { SyncOutcome } from "./syncStatus";
 import { classifySyncError } from "../infra/remote/syncErrors";
 import type { SyncMeta } from "../infra/local/syncMeta";
 import type { RemoteSnapshot } from "../infra/remote/householdStateRepo";
+import { Features } from "../config/features";
 
 const SYNC_PUSH_TIMEOUT_MS = 10_000;
 const SYNC_PULL_ON_OPEN_TIMEOUT_MS = 5_000;
@@ -279,6 +280,7 @@ export function createEngine(): Engine {
 
   /** Pull remote snapshot, returning null on any failure (graceful degradation). */
   async function pullFromRemote(syncMeta: SyncMeta): Promise<RemoteSnapshot | null> {
+    if (!Features.REMOTE_SYNC) return null;
     try {
       await withTimeout(ensureAnonAuth(), SYNC_PULL_ON_OPEN_TIMEOUT_MS, "Auth");
       const repo = new HouseholdStateRepo(syncMeta.householdId);
@@ -291,6 +293,7 @@ export function createEngine(): Engine {
 
   /** Push state to Firestore (called by the debounced scheduler). */
   async function pushToRemote(next: AppStateV1): Promise<void> {
+    if (!Features.REMOTE_SYNC) return;
     const syncMeta = await loadSyncMeta();
     if (!syncMeta) return;
 

@@ -15,6 +15,7 @@ import { groupByDate } from "../../src/lib/dateGroup";
 import { InlineNotice } from "../../src/ui/components/InlineNotice";
 import { Card } from "../../src/ui/components/Card";
 import { Spacing, Radius, FontSize, FontWeight, Color } from "../../src/ui/tokens";
+import { Features } from "../../src/config/features";
 
 export default function TransactionsScreen() {
   const state = useAppStore((s) => s.state);
@@ -65,25 +66,27 @@ export default function TransactionsScreen() {
       <View style={styles.header}>
         <View>
           <Text style={styles.title}>Transactions</Text>
-          {lastPlaidRefreshAt && (
+          {Features.PLAID && lastPlaidRefreshAt && (
             <Text style={styles.lastSynced}>
               Last synced {formatTimeAgo(lastPlaidRefreshAt)}
             </Text>
           )}
         </View>
         <View style={styles.headerActions}>
-          <Pressable
-            onPress={handleRefresh}
-            style={[styles.refreshBtn, refreshing && styles.refreshBtnDisabled]}
-            accessibilityLabel="Refresh from Plaid"
-            disabled={refreshing}
-          >
-            {refreshing ? (
-              <ActivityIndicator size="small" color={Color.primary} />
-            ) : (
-              <Text style={styles.refreshBtnText}>↻ Sync</Text>
-            )}
-          </Pressable>
+          {Features.PLAID && (
+            <Pressable
+              onPress={handleRefresh}
+              style={[styles.refreshBtn, refreshing && styles.refreshBtnDisabled]}
+              accessibilityLabel="Refresh from Plaid"
+              disabled={refreshing}
+            >
+              {refreshing ? (
+                <ActivityIndicator size="small" color={Color.primary} />
+              ) : (
+                <Text style={styles.refreshBtnText}>↻ Sync</Text>
+              )}
+            </Pressable>
+          )}
           <Pressable
             onPress={() => router.push("/add-transaction")}
             style={styles.addBtn}
@@ -94,7 +97,7 @@ export default function TransactionsScreen() {
         </View>
       </View>
 
-      {plaidSyncError && (
+      {Features.PLAID && plaidSyncError && (
         <InlineNotice
           variant={plaidSyncError.category === "not-connected" ? "info" : plaidSyncError.category === "unknown" ? "error" : "warning"}
           message={plaidSyncError.message}
