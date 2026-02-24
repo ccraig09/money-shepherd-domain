@@ -1,6 +1,6 @@
 import { Money } from "@money-shepherd/domain";
 import type { AppStateV1 } from "../appState";
-import { createEnvelope, renameEnvelope, deleteEnvelope, setTransactionNote } from "../commands";
+import { createEnvelope, renameEnvelope, deleteEnvelope, setTransactionNote, seedBudgetFromBalances } from "../commands";
 
 function makeState(envelopeNames: string[] = []): AppStateV1 {
   return {
@@ -274,5 +274,44 @@ describe("setTransactionNote", () => {
     expect(() =>
       setTransactionNote(state, { transactionId: "tx-999", note: "Oops" }),
     ).toThrow("Transaction not found.");
+  });
+});
+
+describe("seedBudgetFromBalances", () => {
+  it("seeds availableToAssign from totalCents when currently zero", () => {
+    const state = makeState();
+    const next = seedBudgetFromBalances(state, { totalCents: 650000 });
+    expect(next.budget.availableToAssign.cents).toBe(650000);
+  });
+
+  it("throws when availableToAssign is already nonzero", () => {
+    const state = makeState();
+    state.budget.availableToAssign = Money.fromCents(100);
+    expect(() =>
+      seedBudgetFromBalances(state, { totalCents: 650000 }),
+    ).toThrow("Budget already seeded");
+  });
+
+  it("allows seeding with zero totalCents", () => {
+    const state = makeState();
+    const next = seedBudgetFromBalances(state, { totalCents: 0 });
+    expect(next.budget.availableToAssign.cents).toBe(0);
+  });
+
+  it("does not modify envelopes or assignments", () => {
+    const state = makeState(["Groceries", "Bills"]);
+    state.inbox.assignmentsByTransactionId = {
+      "tx-1": {
+        transactionId: "tx-1",
+        envelopeId: "env-0",
+        assignedByUserId: "user-los",
+        assignedAt: "2024-01-01T00:00:00.000Z",
+      },
+    };
+    const next = seedBudgetFromBalances(state, { totalCents: 500000 });
+    expect(next.budget.envelopes).toHaveLength(2);
+    expect(next.budget.envelopes[0].name).toBe("Groceries");
+    expect(next.budget.envelopes[1].name).toBe("Bills");
+    expect(next.inbox.assignmentsByTransactionId["tx-1"].envelopeId).toBe("env-0");
   });
 });

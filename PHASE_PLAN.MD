@@ -237,7 +237,7 @@
 - [x] MS-19.2 Crash-safe persistence
 - [x] MS-19.1 Migrations scaffold
 - [x] MS-19.8 Guardrails
-- [ ] MS-19.13 Seed Available to Assign from connected account balances (domain command)
+- [x] MS-19.13 Seed Available to Assign from connected account balances (domain command)
 - [ ] MS-19.14 Post-connect onboarding: seed budget from bank balances (UI prompt)
 - [ ] MS-19.6 Core tests
 - [ ] MS-19.3 Export

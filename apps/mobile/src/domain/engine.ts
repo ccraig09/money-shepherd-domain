@@ -6,7 +6,7 @@ import {
 import { ensureAnonAuth } from "../infra/firebase/firebaseClient";
 import { HouseholdStateRepo } from "../infra/remote/householdStateRepo";
 import { loadSyncMeta, saveSyncMeta } from "../infra/local/syncMeta";
-import { createEnvelope, renameEnvelope, deleteEnvelope, setTransactionNote, assignTransaction } from "./commands";
+import { createEnvelope, renameEnvelope, deleteEnvelope, setTransactionNote, assignTransaction, seedBudgetFromBalances } from "./commands";
 import { allocateToEnvelope } from "./allocate";
 import type { AppStateV1 } from "./appState";
 import { APP_STATE_VERSION } from "./appState";
@@ -67,6 +67,7 @@ export type Engine = {
     envelopeId: string;
     amountCents: number;
   }): Promise<RecomputeResult>;
+  seedBudgetFromBalances(args: { totalCents: number }): Promise<RecomputeResult>;
 
   importPlaidAccounts(args: {
     newAccounts: Account[];
@@ -443,6 +444,12 @@ export function createEngine(): Engine {
     return recompute(next);
   }
 
+  async function seedBudget(args: { totalCents: number }): Promise<RecomputeResult> {
+    const state = await getState();
+    const next = seedBudgetFromBalances(state, args);
+    return recompute(next);
+  }
+
   async function importPlaidAccounts(args: {
     newAccounts: Account[];
   }): Promise<RecomputeResult> {
@@ -484,6 +491,7 @@ export function createEngine(): Engine {
     setTransactionNote: setTransactionNoteAction,
     assignTransaction: assignTransactionAction,
     allocateToEnvelope: allocateToEnvelopeAction,
+    seedBudgetFromBalances: seedBudget,
     importPlaidAccounts,
     importPlaidTransactions,
     syncNow,
