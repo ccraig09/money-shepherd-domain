@@ -3,6 +3,8 @@ import { Money } from "@money-shepherd/domain";
 import type { AppStateV1 } from "./appState";
 
 const KEY = "moneyShepherd.appState.v1";
+const KEY_TMP = "moneyShepherd.appState.v1.tmp";
+const KEY_BACKUP = "moneyShepherd.appState.v1.backup";
 
 function hydrateMoney(value: any): Money {
   // supports:
@@ -52,22 +54,68 @@ function hydrateState(raw: any): AppStateV1 {
   } as AppStateV1;
 }
 
-export async function loadAppState(): Promise<AppStateV1 | null> {
-  const raw = await AsyncStorage.getItem(KEY);
+/** Try to parse + hydrate a raw JSON string. Returns null on any failure. */
+function tryParse(raw: string | null): AppStateV1 | null {
   if (!raw) return null;
-
   try {
-    const parsed = JSON.parse(raw);
-    return hydrateState(parsed);
+    return hydrateState(JSON.parse(raw));
   } catch {
     return null;
   }
 }
 
+/**
+ * Load app state with fallback chain: main → tmp → backup.
+ * Recovers from interrupted writes or corrupted JSON.
+ */
+export async function loadAppState(): Promise<AppStateV1 | null> {
+  // 1. Try main key
+  const main = tryParse(await AsyncStorage.getItem(KEY));
+  if (main) return main;
+
+  // 2. Try in-flight tmp (crash during save before commit)
+  const tmp = tryParse(await AsyncStorage.getItem(KEY_TMP));
+  if (tmp) {
+    console.warn("[storage] Main key corrupt/missing — recovered from tmp");
+    await AsyncStorage.setItem(KEY, await AsyncStorage.getItem(KEY_TMP) as string);
+    return tmp;
+  }
+
+  // 3. Try backup (last known good before most recent save)
+  const backup = tryParse(await AsyncStorage.getItem(KEY_BACKUP));
+  if (backup) {
+    console.warn("[storage] Main + tmp corrupt/missing — recovered from backup");
+    await AsyncStorage.setItem(KEY, await AsyncStorage.getItem(KEY_BACKUP) as string);
+    return backup;
+  }
+
+  console.warn("[storage] All keys empty or corrupt — returning null");
+  return null;
+}
+
+/**
+ * Atomic save: stage → backup → commit → cleanup.
+ * If the app crashes at any point, loadAppState can recover.
+ */
 export async function saveAppState(state: AppStateV1): Promise<void> {
-  await AsyncStorage.setItem(KEY, JSON.stringify(state));
+  const json = JSON.stringify(state);
+
+  // 1. Stage: write to tmp key
+  await AsyncStorage.setItem(KEY_TMP, json);
+
+  // 2. Backup: preserve current main as backup (if it exists and is valid)
+  const currentMain = await AsyncStorage.getItem(KEY);
+  if (currentMain && tryParse(currentMain)) {
+    await AsyncStorage.setItem(KEY_BACKUP, currentMain);
+  }
+
+  // 3. Commit: write to main key
+  await AsyncStorage.setItem(KEY, json);
+
+  // 4. Cleanup: remove tmp
+  await AsyncStorage.removeItem(KEY_TMP);
 }
 
 export async function clearAppState(): Promise<void> {
-  await AsyncStorage.removeItem(KEY);
+  await AsyncStorage.multiRemove([KEY, KEY_TMP, KEY_BACKUP]);
 }
