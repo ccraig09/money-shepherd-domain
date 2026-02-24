@@ -42,10 +42,17 @@ npx tsc -p apps/mobile/tsconfig.json --noEmit
 ### Layered Architecture (Mobile)
 
 ```
-UI Layer          app/ + components/       Expo Router file-based routes
-Store Layer       src/store/               Zustand store (snapshots)
-Engine Layer      src/domain/engine.ts     Orchestrates mutations, persistence, sync
-Infra Layer       src/infra/               Firebase client, AsyncStorage, sync metadata
+Routes            app/                     Expo Router file-based routes
+UI Components     src/ui/components/       Design system (Button, Card, MoneyInput, Toast, etc.)
+Design Tokens     src/ui/tokens.ts         Color, typography, spacing constants
+Config            src/config/features.ts   Feature flags
+Helpers           src/lib/                 Utilities (moneyFormat, dateGroup, retry, id, etc.)
+Store             src/store/               Zustand store (snapshots)
+Engine            src/domain/engine.ts     Orchestrates mutations, persistence, sync
+Commands          src/domain/commands.ts   Pure AppState → AppState mutations
+Storage           src/domain/storage.ts    AsyncStorage load/save/clear
+Migrations        src/domain/migrations/   Versioned data migration pipeline
+Infra             src/infra/               Firebase, Plaid, local storage, remote sync
 Domain Package    packages/domain/         Pure business logic (no I/O)
 ```
 
@@ -53,8 +60,8 @@ Domain Package    packages/domain/         Pure business logic (no I/O)
 
 1. UI calls a store action (e.g., `createEnvelope`)
 2. Store calls the Engine method
-3. Engine applies domain logic from `@money-shepherd/domain`
-4. Engine persists to AsyncStorage
+3. Engine runs a **command** (`commands.ts`) — a pure `AppState → AppState` mutation
+4. Engine persists updated state to AsyncStorage (`storage.ts`)
 5. Engine pushes to Firebase Firestore (if configured)
 6. Engine updates the Zustand snapshot
 7. UI re-renders
@@ -65,8 +72,8 @@ Pure TypeScript with no framework, network, or environment dependencies. Uses in
 
 Key areas:
 
-- `src/models/` — Value Objects and Entities (Money, Account, Transaction, Envelope, Budget, etc.)
-- `src/logic/` — Domain services (allocateFunds, assignTransactionToEnvelope, spendFromEnvelope, etc.)
+- `src/models/` — Value Objects and Entities (Money, Account, Transaction, Envelope, Budget, TransactionAssignment, TransactionInbox, UserRef)
+- `src/logic/` — Domain services (allocateFunds, assignTransactionToEnvelope, spendFromEnvelope, applyTransactionToAccount, applyTransactionsToBudget, buildInbox, etc.)
 - `src/errors/` — Typed domain errors
 - `tests/` — Jest + ts-jest tests
 
@@ -75,6 +82,15 @@ Key areas:
 - **Routing:** Expo Router (file-based under `app/`)
 - **State:** Zustand store at `src/store/useAppStore.ts`
 - **Engine:** `src/domain/engine.ts` — central coordinator
+- **Commands:** `src/domain/commands.ts` — pure `AppState → AppState` mutations (createEnvelope, assignTransaction, seedBudgetFromBalances, etc.)
+- **AppState:** `src/domain/appState.ts` — canonical `AppStateV1` type with version field, idempotency guards, and all domain entities
+- **Migrations:** `src/domain/migrations/` — versioned data migration pipeline (runs on app boot)
+- **Storage:** `src/domain/storage.ts` — AsyncStorage load/save/clear with atomic writes
+- **Design system:** `src/ui/tokens.ts` (colors, typography, spacing) + `src/ui/components/` (Button, Card, MoneyInput, Toast, etc.)
+- **Helpers:** `src/lib/` — moneyFormat, moneyInput, dateGroup, id, retry, logger, etc.
+- **Config:** `src/config/features.ts` — feature flags
+- **Infra:** `src/infra/firebase/` (auth + Firestore), `src/infra/local/` (AsyncStorage, PIN, sync metadata), `src/infra/plaid/` (Plaid client + mappers), `src/infra/remote/` (HouseholdStateRepo + sync)
+- **Cloud Functions:** `functions/` (top-level) — post-sync triggers (e.g., budget seeding)
 - **Sync:** Firebase anonymous auth + Firestore at `src/infra/`
 - **Path alias:** `@/*` maps to `apps/mobile/` root
 
@@ -169,8 +185,26 @@ Every ticket response must include:
 | `PHASE_PLAN.MD`                        | Living ticket checklist for Phases 13–19                       |
 | `PROMPT_TEMPLATES.md`                  | Reusable prompts for consistent agent behavior                 |
 | `SMOKE_TESTS.md`                       | Manual test checklists per phase                               |
+| `DESIGN.md`                            | Visual identity, color system, typography, brand guidelines    |
+| `DEV_CHEATSHEET.md`                    | Dev setup, device UDIDs, Firebase project, Plaid sandbox creds |
 | `packages/domain/docs/DOMAIN_RULES.md` | Domain purity constraints                                      |
 
 ## Firebase
 
 The app uses anonymous Firebase auth and Firestore for multi-device sync. Config is in `.env` as `EXPO_PUBLIC_FIREBASE_*` variables (safe to expose in client). The Firebase project is `money-shepherd`.
+
+## Session Context (for agent continuity)
+
+### Workflow Preferences
+- **`/done` command**: Close GH issue(s), mark [x] in PHASE_PLAN.MD, commit each ticket separately with conventional commit message (feat/fix/docs + ticket ID in body), push to origin/main, verify clean tree.
+- **Paths with parens** (e.g. `apps/mobile/app/(tabs)/`): always quote them in `git add` to avoid zsh glob errors.
+- **Repo**: `ccraig09/money-shepherd-domain`
+
+### Known Issues
+- Pre-existing TS error in `apps/mobile/src/infra/firebase/firebaseClient.ts`: `getReactNativePersistence` not exported from `firebase/auth` — do not flag as a regression.
+
+### Current Status
+- **Active phase**: Phase 19 (Hardening + release readiness)
+- **Next ticket**: MS-19.15 (Accounts overview)
+- **Recently completed**: MS-19.14 (seed budget from bank balances)
+- Run `git log --oneline -20` and `gh issue list --state open` to catch up on recent work.
