@@ -415,7 +415,16 @@ export function createEngine(): Engine {
     description: string;
     postedAt?: string;
   }): Promise<RecomputeResult> {
+    if (args.amountCents === 0) {
+      throw new Error("Amount must be nonzero.");
+    }
+
     const state = await getState();
+
+    const accountExists = state.accounts.some((a) => a.id === args.accountId);
+    if (!accountExists) {
+      throw new Error(`Account "${args.accountId}" not found.`);
+    }
 
     const tx = {
       id: makeId("tx"),

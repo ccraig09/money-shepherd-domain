@@ -69,8 +69,8 @@ export default function CreateEnvelopeScreen() {
 
         <Pressable
           onPress={handleSave}
-          disabled={saving}
-          style={[styles.saveBtn, saving && styles.saveBtnDisabled]}
+          disabled={saving || !name.trim()}
+          style={[styles.saveBtn, (saving || !name.trim()) && styles.saveBtnDisabled]}
           accessibilityLabel="Save envelope"
         >
           <Text style={styles.saveBtnText}>{saving ? "Saving…" : "Save"}</Text>

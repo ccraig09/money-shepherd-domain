@@ -269,8 +269,8 @@ export default function AddTransactionScreen() {
 
         <Pressable
           onPress={handleSave}
-          disabled={saving}
-          style={[styles.saveBtn, saving && styles.saveBtnDisabled]}
+          disabled={saving || !selectedAccountId || !(parsedPreview.ok && parsedPreview.cents > 0)}
+          style={[styles.saveBtn, (saving || !selectedAccountId || !(parsedPreview.ok && parsedPreview.cents > 0)) && styles.saveBtnDisabled]}
           accessibilityLabel="Save transaction"
         >
           <Text style={styles.saveBtnText}>{saving ? "Saving…" : "Save"}</Text>

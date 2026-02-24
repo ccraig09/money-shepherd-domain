@@ -54,6 +54,19 @@ export default function AssignTransactionScreen() {
 
   async function handleAssign() {
     if (!selectedEnvelopeId || !transactionId) return;
+
+    // Stale data guard: verify tx and envelope still exist
+    const currentState = useAppStore.getState().state;
+    if (currentState) {
+      const txStillExists = currentState.transactions.some((t) => t.id === transactionId);
+      const envStillExists = currentState.budget.envelopes.some((e) => e.id === selectedEnvelopeId);
+      if (!txStillExists || !envStillExists) {
+        useAppStore.getState().showToast("Data changed — please go back and try again.", "error");
+        router.back();
+        return;
+      }
+    }
+
     setSaving(true);
     try {
       await assignTransaction({
