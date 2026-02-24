@@ -257,3 +257,162 @@ Expected
 - Example:
   - [ ] BUG: Sync indicator stuck after airplane mode toggle
   - [ ] BUG: Duplicate envelopes after conflict resolution
+
+---
+
+## Phase 23 Smoke Test: Daily Use Essentials (budget periods, tx editing, transfers, giving)
+
+> **Build order note:** Run this after Phase 19, before Phase 20.
+
+### Pre-flight
+
+- [ ] App boots successfully
+- [ ] At least 2 envelopes exist with balances
+- [ ] At least 3 transactions exist (1 manual, 2+ assigned)
+
+---
+
+### A) Unassign a transaction
+
+1. Open a transaction that is assigned to an envelope (e.g., "Walmart" → Groceries)
+2. Tap **Unassign** (or equivalent)
+3. Confirm
+
+**Expected**
+
+- [ ] Transaction returns to **Inbox** as unassigned
+- [ ] Envelope balance is restored (Groceries increases by the transaction amount)
+- [ ] Transaction detail no longer shows envelope assignment
+
+---
+
+### B) Edit a manual transaction
+
+1. Open a **manual** transaction (not Plaid-synced)
+2. Edit description from "Walmart" to "Walmart Groceries"
+3. Save
+
+**Expected**
+
+- [ ] Description updates in transaction list, detail, and envelope activity
+- [ ] Amount and date remain unchanged
+
+---
+
+### C) Delete a manual transaction
+
+1. Open a **manual** transaction
+2. Tap **Delete** → confirm destructive action
+
+**Expected**
+
+- [ ] Transaction removed from list
+- [ ] If assigned: envelope balance restored, assignment removed
+- [ ] If unassigned: removed from Inbox
+- [ ] Budget recalculated (Available to Assign adjusts)
+
+---
+
+### D) Plaid transaction guardrails
+
+1. Open a **Plaid-synced** transaction
+
+**Expected**
+
+- [ ] Can edit description/note
+- [ ] Cannot change amount (locked or hidden)
+- [ ] Cannot delete (button disabled or absent)
+
+---
+
+### E) Transfer between envelopes
+
+1. Go to an envelope (e.g., Groceries with $200 balance)
+2. Tap **Move money** (or navigate to transfer screen)
+3. Transfer $50 from Groceries → Entertainment
+
+**Expected**
+
+- [ ] Groceries balance decreases by $50
+- [ ] Entertainment balance increases by $50
+- [ ] Available to Assign unchanged
+- [ ] Both devices show updated balances after sync
+
+---
+
+### F) Set envelope goal + fill envelopes
+
+1. Open Groceries envelope detail
+2. Set monthly goal to **$500**
+3. Go to Dashboard — verify progress bar shows funding %
+4. Navigate to **Fill Envelopes** screen (from paycheck nudge or quick action)
+5. Tap **Fill All** (or adjust individual amounts)
+
+**Expected**
+
+- [ ] Goal set successfully, visible in envelope detail
+- [ ] ProgressBar on Dashboard/Envelopes reflects funding progress toward $500
+- [ ] Fill Envelopes screen shows each envelope with target, funded-this-month, and remaining
+- [ ] Fill All allocates remaining amounts from Available
+- [ ] Available to Assign decreases by total filled amount
+
+---
+
+### G) Period-aware dashboard
+
+1. Open Dashboard
+
+**Expected**
+
+- [ ] "This Month" summary card shows income, spending, and net for current month
+- [ ] Envelope rows show "spent this month" alongside balance
+- [ ] Data matches manual calculation
+
+---
+
+### H) Giving envelope
+
+1. Create a new envelope
+2. Mark type as **Giving** (e.g., "Tithe")
+3. Go to Envelopes list
+
+**Expected**
+
+- [ ] Giving envelope appears **first** in the list (before spending envelopes)
+- [ ] Dashboard shows giving total in a visible location
+- [ ] Envelope detail shows type as Giving
+
+---
+
+### I) Period summary
+
+1. Tap "This Month" summary card on Dashboard (or navigate to Period Summary)
+
+**Expected**
+
+- [ ] Shows monthly income total
+- [ ] Shows monthly spending total
+- [ ] Shows monthly giving total
+- [ ] Shows net (income - spending)
+- [ ] Shows per-envelope spending breakdown
+- [ ] Data matches manual calculation
+
+---
+
+### J) Persistence + sync
+
+1. Complete steps A–I above
+2. Force close app, reopen
+3. Sync to second device
+
+**Expected**
+
+- [ ] All changes persist locally
+- [ ] Second device shows same goals, types, balances after sync
+- [ ] No data loss or duplication
+
+---
+
+### Notes / Bugs Found (Phase 23)
+
+- (Add bullets when you find issues)

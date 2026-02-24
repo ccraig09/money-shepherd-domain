@@ -184,13 +184,13 @@
 - [x] MS-17.6 Sync now button
 - [x] MS-17.7 Conflict UX message
 - [x] MS-17.9 Settings summary
-- [ ] MS-17.10 Two-device checklist
+- [x] MS-17.10 Two-device checklist
 
 ### Phase 17 Smoke Check
 
-- [ ] Offline edit -> shows pending
-- [ ] Online -> retries, then syncs
-- [ ] Conflict -> pulls remote and informs user
+- [x] Offline edit -> shows pending
+- [x] Online -> retries, then syncs
+- [x] Conflict -> pulls remote and informs user
 
 ---
 
@@ -218,19 +218,72 @@
 
 ### Phase 18 Smoke Check
 
-- [ ] Navigation is predictable (tabs + modals)
-- [ ] All empty states look intentional
-- [ ] Assign + allocate flows feel fast
-- [ ] Dashboard shows scripture strip and greeting card
-- [ ] Transactions grouped by date
-- [ ] Envelope rows show spending progress bars
+- [x] Navigation is predictable (tabs + modals)
+- [x] All empty states look intentional
+- [x] Assign + allocate flows feel fast
+- [x] Dashboard shows scripture strip and greeting card
+- [x] Transactions grouped by date
+- [x] Envelope rows show spending progress bars
+
+---
+
+## Phase 23: Daily Use Essentials (budget periods, tx editing, transfers, giving)
+
+> **Build order note:** Build Phase 23 immediately after Phase 19 and before Phase 20.
+> Phases 20–22 depend on the foundations built here (budget periods, transaction corrections, envelope types).
+
+### Recommended build order
+
+#### Tier 1 — Transaction Corrections (unblock daily use)
+
+- [ ] MS-23.1 Unassign transaction (domain + engine + UI)
+- [ ] MS-23.2 Edit transaction description + amount (domain + engine + UI; Plaid txs: description only)
+- [ ] MS-23.3 Delete transaction (domain + engine + UI; Plaid txs: not deletable)
+
+#### Tier 2 — Envelope Transfers
+
+- [ ] MS-23.4 Transfer between envelopes (domain + engine + new modal screen)
+
+#### Tier 3 — Budget Periods + Envelope Goals
+
+- [ ] MS-23.5 Budget period model (domain: period bounds, spending-in-period, funding-in-period helpers)
+- [ ] MS-23.6 Envelope goal targets (activate goal field as monthly funding target + set/clear in UI)
+- [ ] MS-23.7 Period-aware dashboard ("This Month" summary card, per-envelope monthly spend)
+- [ ] MS-23.8 Envelope fill flow (paycheck → guided allocation screen with targets as guide)
+
+#### Tier 4 — Stewardship Identity
+
+- [ ] MS-23.9 Giving envelope type (envelope type tag, giving-first sort, dashboard giving total)
+- [ ] MS-23.10 Period summary screen (monthly income/spending/giving/net breakdown)
+
+### Architecture Notes
+
+- Budget periods are monthly. Balances always roll over; goals/targets reset monthly.
+- Sole breadwinner, biweekly paycheck: fill flow runs ~2× per month guided by monthly targets.
+- `Envelope.goal` field already exists — MS-23.6 activates it, no model change needed.
+- Transaction corrections (unassign/edit/delete) are domain-pure functions with engine wiring.
+- Giving envelope uses new `type?: 'spending' | 'giving' | 'savings'` field on Envelope model.
+- Plaid-synced transactions: description editable, amount locked, not deletable (they'd return on next sync).
+
+### Phase 23 Smoke Check
+
+- [ ] Unassign a transaction → returns to inbox, envelope balance restored
+- [ ] Edit a manual transaction description → updates everywhere
+- [ ] Delete a manual transaction → removed, budget recalculated
+- [ ] Plaid transaction: can edit description but cannot delete or change amount
+- [ ] Transfer $50 from Groceries to Entertainment → both balances update
+- [ ] Set $500 monthly goal on Groceries → progress bar shows funding %
+- [ ] Dashboard shows "This Month" income/spending/net
+- [ ] Fill envelopes from paycheck → guided by targets, one-tap fill
+- [ ] Create a Giving envelope → appears first in envelope list
+- [ ] Period summary shows monthly breakdown by envelope
 
 ---
 
 ## Phase 19: Hardening + release readiness (migrations, backups, guardrails)
 
-<!--
 ### Recommended build order
+
 - [ ] MS-19.5 Feature flags
 - [ ] MS-19.2 Crash-safe persistence
 - [ ] MS-19.1 Migrations scaffold
@@ -247,11 +300,11 @@
 - [ ] MS-19.12 Support bundle (optional)
 
 ### Phase 19 Smoke Check
+
 - [ ] Export + import works
 - [ ] App recovers from corrupted local state
 - [ ] Feature flags can disable risky features cleanly
 - [ ] Install plan works for Jackia
--->
 
 ---
 
@@ -329,3 +382,5 @@
 - [ ] At least one insight appears on Dashboard
 - [ ] Insights are dismissable
 -->
+
+---
