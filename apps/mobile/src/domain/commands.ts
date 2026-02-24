@@ -208,23 +208,20 @@ export function assignTransaction(
 
 /**
  * Seeds the budget's Available to Assign from the total of connected account balances.
- * One-time operation: guard prevents double-seeding if Available is already nonzero.
- * The totalCents is pre-computed by the caller (UI layer sums Account.balance).
+ * Sets Available to the provided totalCents (caller computes any delta).
+ * Idempotency is guarded by the `budgetSeeded` flag — not by a zero check.
  */
 export function seedBudgetFromBalances(
   state: AppStateV1,
   args: { totalCents: number },
 ): AppStateV1 {
-  if (state.budget.availableToAssign.cents !== 0) {
-    throw new Error("Budget already seeded — Available to Assign is nonzero.");
-  }
-
   return {
     ...state,
     budget: {
       ...state.budget,
       availableToAssign: Money.fromCents(args.totalCents),
     },
+    budgetSeeded: true,
     updatedAt: nowIso(),
   };
 }

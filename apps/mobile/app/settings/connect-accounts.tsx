@@ -20,6 +20,7 @@ import {
 import { mapPlaidAccounts } from "../../src/infra/plaid/mapAccounts";
 import { classifyPlaidError } from "../../src/infra/plaid/errors";
 import { createEngine } from "../../src/domain/engine";
+import { useAppStore } from "../../src/store/useAppStore";
 import { Spacing, Radius, FontSize, FontWeight, Color, Shadow } from "../../src/ui/tokens";
 
 type UserEntry = {
@@ -73,7 +74,13 @@ export default function ConnectAccountsScreen() {
             // Refresh token list
             const updated = await loadPlaidTokens(userId);
             setTokens((prev) => ({ ...prev, [userId]: updated }));
-            Alert.alert("Bank connected!", `${institutionName} was linked with ${plaidAccounts.length} account(s).`);
+
+            // Sync the store with the latest persisted state (the local engine
+            // already saved via importPlaidAccounts, but the Zustand store is stale)
+            const freshState = await engine.getState();
+            useAppStore.setState({ state: freshState });
+
+            Alert.alert("Bank connected!", `${institutionName} was linked with ${plaidAccounts.length} account(s). Sync transactions to populate balances.`);
           } catch (err: unknown) {
             const info = classifyPlaidError(err);
             Alert.alert("Connection failed", info.message);
@@ -122,21 +129,28 @@ export default function ConnectAccountsScreen() {
         transactions.
       </Text>
 
-      {USERS.map((user) => {
-        const isCurrentUser = meta?.userId === user.id;
-        const userTokens = tokens[user.id] ?? [];
-        return (
-          <UserCard
-            key={user.id}
-            user={user}
-            isCurrentUser={isCurrentUser}
-            isConnecting={connecting === user.id}
-            connectedBanks={userTokens}
-            onConnect={() => handleConnect(user.id)}
-            onDisconnect={(itemId, name) => handleDisconnect(user.id, itemId, name)}
-          />
-        );
-      })}
+      {/* Current user first, then partner */}
+      {USERS
+        .sort((a, b) => {
+          const aIsMe = a.id === meta?.userId ? -1 : 1;
+          const bIsMe = b.id === meta?.userId ? -1 : 1;
+          return aIsMe - bIsMe;
+        })
+        .map((user) => {
+          const isCurrentUser = meta?.userId === user.id;
+          const userTokens = tokens[user.id] ?? [];
+          return (
+            <UserCard
+              key={user.id}
+              user={user}
+              isCurrentUser={isCurrentUser}
+              isConnecting={connecting === user.id}
+              connectedBanks={userTokens}
+              onConnect={() => handleConnect(user.id)}
+              onDisconnect={(itemId, name) => handleDisconnect(user.id, itemId, name)}
+            />
+          );
+        })}
 
       {!plaidConfigured && (
         <View style={styles.warningCard}>
@@ -173,9 +187,16 @@ function UserCard({
     <View style={[styles.card, isCurrentUser && styles.cardActive]}>
       <View style={styles.cardHeader}>
         <View>
-          <Text style={styles.userName}>{user.label}</Text>
+          <Text style={styles.userName}>
+            {user.label}{isCurrentUser ? " (You)" : ""}
+          </Text>
           {isCurrentUser && (
             <Text style={styles.currentBadge}>This device</Text>
+          )}
+          {!isCurrentUser && !hasConnections && (
+            <Text style={styles.partnerHint}>
+              {user.label} can connect from their device, or log in here
+            </Text>
           )}
         </View>
         <StatusPill connected={hasConnections} />
@@ -201,7 +222,7 @@ function UserCard({
 
       <Pressable
         style={({ pressed }) => [
-          styles.connectBtn,
+          isCurrentUser ? styles.connectBtn : styles.connectBtnSecondary,
           pressed && styles.connectBtnPressed,
           disabled && styles.connectBtnDisabled,
         ]}
@@ -209,15 +230,15 @@ function UserCard({
         disabled={disabled}
       >
         {isConnecting ? (
-          <ActivityIndicator color={Color.textDisabled} size="small" />
+          <ActivityIndicator color={isCurrentUser ? Color.textDisabled : Color.primary} size="small" />
         ) : (
           <Text
             style={[
-              styles.connectBtnText,
+              isCurrentUser ? styles.connectBtnText : styles.connectBtnTextSecondary,
               disabled && styles.connectBtnTextDisabled,
             ]}
           >
-            {hasConnections ? "Add Another Bank" : "Connect Bank"}
+            {hasConnections ? "Add Another Bank" : `Connect ${isCurrentUser ? "Your" : user.label + "'s"} Bank`}
           </Text>
         )}
       </Pressable>
@@ -269,6 +290,12 @@ const styles = StyleSheet.create({
     fontWeight: FontWeight.semibold,
     marginTop: 2,
   },
+  partnerHint: {
+    fontSize: FontSize.caption,
+    color: Color.textMuted,
+    marginTop: 2,
+    maxWidth: 220,
+  },
   pill: {
     paddingHorizontal: 10,
     paddingVertical: 4,
@@ -305,9 +332,18 @@ const styles = StyleSheet.create({
     borderRadius: Radius.md,
     backgroundColor: Color.primary,
   },
+  connectBtnSecondary: {
+    alignItems: "center",
+    paddingVertical: Spacing.md,
+    borderRadius: Radius.md,
+    backgroundColor: "transparent",
+    borderWidth: 1.5,
+    borderColor: Color.primary,
+  },
   connectBtnPressed: { opacity: 0.7 },
-  connectBtnDisabled: { backgroundColor: Color.surfaceLight },
+  connectBtnDisabled: { backgroundColor: Color.surfaceLight, borderColor: "transparent" },
   connectBtnText: { fontSize: FontSize.body, fontWeight: FontWeight.semibold, color: Color.textOnColor },
+  connectBtnTextSecondary: { fontSize: FontSize.body, fontWeight: FontWeight.semibold, color: Color.primary },
   connectBtnTextDisabled: { color: Color.textDisabled },
   warningCard: {
     backgroundColor: Color.warningSurface,

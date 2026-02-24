@@ -22,6 +22,9 @@ export type AppStateV1 = {
   // User notes on transactions (transactionId → note text)
   transactionNotes?: Record<string, string>;
 
+  // Set true after user seeds Available to Assign from bank balances (prevents re-prompting)
+  budgetSeeded?: boolean;
+
   // Idempotency guards
   appliedAccountTransactionIds: string[];
   appliedBudgetTransactionIds: string[];

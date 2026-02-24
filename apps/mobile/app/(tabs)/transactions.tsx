@@ -34,8 +34,11 @@ export default function TransactionsScreen() {
 
   async function handleRefresh() {
     setRefreshing(true);
-    await refreshFromPlaid();
+    const result = await refreshFromPlaid();
     setRefreshing(false);
+    if (result.shouldSeedBudget) {
+      setTimeout(() => router.push("/seed-budget"), 300);
+    }
   }
 
   if (!state) {

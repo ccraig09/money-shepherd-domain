@@ -84,6 +84,22 @@ export default function DashboardScreen() {
       {/* Daily scripture */}
       <ScriptureStrip />
 
+      {/* Seed budget nudge — show when accounts exist but budget not yet seeded */}
+      {state.accounts.length > 0 &&
+        !state.budgetSeeded && (
+          <Pressable
+            style={styles.seedNudge}
+            onPress={() => router.push("/seed-budget")}
+            accessibilityLabel="Seed your budget from bank balances"
+            accessibilityRole="button"
+          >
+            <Text style={styles.seedNudgeText}>
+              Seed your budget from bank balances
+            </Text>
+            <Text style={styles.nudgeArrow}>→</Text>
+          </Pressable>
+        )}
+
       {/* Unassigned nudge */}
       {unassignedExpenseCount > 0 && (
         <Pressable
@@ -226,6 +242,22 @@ const styles = StyleSheet.create({
   },
   heroStatLabel: { fontSize: FontSize.small, color: "rgba(255,255,255,0.75)" },
   heroStatValue: { fontSize: FontSize.small, fontWeight: FontWeight.semibold, color: Color.textOnColor },
+
+  // Seed nudge
+  seedNudge: {
+    marginHorizontal: Spacing.base,
+    marginBottom: Spacing.md,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    backgroundColor: Color.primarySurface,
+    borderRadius: Radius.lg,
+    paddingHorizontal: Spacing.base,
+    paddingVertical: Spacing.md,
+    borderWidth: 1,
+    borderColor: Color.primary,
+  },
+  seedNudgeText: { fontSize: 14, fontWeight: FontWeight.medium, color: Color.primaryDark, flex: 1 },
 
   // Nudge
   nudge: {

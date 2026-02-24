@@ -278,18 +278,18 @@ describe("setTransactionNote", () => {
 });
 
 describe("seedBudgetFromBalances", () => {
-  it("seeds availableToAssign from totalCents when currently zero", () => {
+  it("seeds availableToAssign from totalCents and sets budgetSeeded", () => {
     const state = makeState();
     const next = seedBudgetFromBalances(state, { totalCents: 650000 });
     expect(next.budget.availableToAssign.cents).toBe(650000);
+    expect(next.budgetSeeded).toBe(true);
   });
 
-  it("throws when availableToAssign is already nonzero", () => {
+  it("overwrites availableToAssign when already nonzero (delta handled by caller)", () => {
     const state = makeState();
     state.budget.availableToAssign = Money.fromCents(100);
-    expect(() =>
-      seedBudgetFromBalances(state, { totalCents: 650000 }),
-    ).toThrow("Budget already seeded");
+    const next = seedBudgetFromBalances(state, { totalCents: 650000 });
+    expect(next.budget.availableToAssign.cents).toBe(650000);
   });
 
   it("allows seeding with zero totalCents", () => {

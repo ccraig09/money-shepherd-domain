@@ -238,7 +238,12 @@
 - [x] MS-19.1 Migrations scaffold
 - [x] MS-19.8 Guardrails
 - [x] MS-19.13 Seed Available to Assign from connected account balances (domain command)
-- [ ] MS-19.14 Post-connect onboarding: seed budget from bank balances (UI prompt)
+- [x] MS-19.14 Post-connect onboarding: seed budget from bank balances (UI prompt)
+- [ ] MS-19.15 Accounts overview — display individual bank account balances
+- [ ] MS-19.14.1 Re-seed Available when additional accounts are connected (after 19.15)
+- [ ] MS-19.16 Feedback & confirmation polish (enhanced toasts: assign, note save, user switch)
+- [ ] MS-19.17 Empty state & dead-end fixes (Inbox empty state, Allocate zero-balance)
+- [ ] MS-19.18 Overspend warnings & source indicators (Plaid badge, overspent badge, assign warning)
 - [ ] MS-19.6 Core tests
 - [ ] MS-19.3 Export
 - [ ] MS-19.4 Import
@@ -285,6 +290,15 @@
 
 - [ ] MS-23.9 Giving envelope type (envelope type tag, giving-first sort, dashboard giving total)
 - [ ] MS-23.10 Period summary screen (monthly income/spending/giving/net breakdown)
+
+#### Tier 5 — Safety & Polish
+
+- [ ] MS-23.11 Undo envelope delete (soft delete with undo toast, ~8s recovery window)
+- [ ] MS-23.12 Transaction search & filter in Transactions tab
+- [ ] MS-23.13 Transaction attribution — show who assigned/created each transaction
+- [ ] MS-23.14 In-app help tooltips for budgeting concepts
+- [ ] MS-23.15 UI micro-polish batch (real-time validation, placeholders, edit button, sort persistence, zero-balance styling, loading message)
+- [ ] MS-23.16 Sync UX improvements (prominent error indicator, Plaid timeout feedback)
 
 ### Architecture Notes
 

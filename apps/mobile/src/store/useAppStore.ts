@@ -61,7 +61,8 @@ type AppStore = {
     postedAt?: string;
   }) => Promise<void>;
   seedBudgetFromBalances: (args: { totalCents: number }) => Promise<void>;
-  refreshFromPlaid: (opts?: { force?: boolean }) => Promise<{ imported: number }>;
+  markBudgetSeeded: () => Promise<void>;
+  refreshFromPlaid: (opts?: { force?: boolean }) => Promise<{ imported: number; shouldSeedBudget?: boolean }>;
   syncNow: () => Promise<void>;
 };
 
@@ -379,7 +380,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
     try {
       const result = await engine.seedBudgetFromBalances(args);
       set({
-        state: result.state,
+        state: { ...result.state, budgetSeeded: true },
         status: "ready",
         lastSyncAt: new Date().toISOString(),
         syncState: applyOutcome(get().syncState, result.syncOutcome, result.syncError),
@@ -391,6 +392,23 @@ export const useAppStore = create<AppStore>((set, get) => ({
         errorMessage: err?.message ?? "Failed to seed budget",
         syncState: syncTransition(get().syncState, { type: "sync-error", error: err?.message ?? "Failed to seed budget" }),
       });
+    }
+  },
+
+  markBudgetSeeded: async () => {
+    const current = get().state;
+    if (!current) return;
+    const next = { ...current, budgetSeeded: true };
+    set({ state: next });
+    // Persist via engine recompute so it hits storage + sync
+    try {
+      const result = await engine.recompute(next);
+      set({
+        state: result.state,
+        syncState: applyOutcome(get().syncState, result.syncOutcome, result.syncError),
+      });
+    } catch {
+      // State already set locally — sync will catch up
     }
   },
 
@@ -473,6 +491,11 @@ export const useAppStore = create<AppStore>((set, get) => ({
 
       const now = new Date().toISOString();
       await savePlaidRefreshAt(currentUserId, now);
+
+      // Determine if we should prompt the seed-budget screen:
+      // first sync that actually imported transactions AND budget not yet seeded.
+      const shouldSeedBudget = imported > 0 && !result.state.budgetSeeded;
+
       set({
         state: result.state,
         status: "ready",
@@ -482,7 +505,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
           ? applyOutcome(get().syncState, result.syncOutcome, result.syncError)
           : syncTransition(get().syncState, { type: "sync-success", at: now }),
       });
-      return { imported };
+      return { imported, shouldSeedBudget };
     } catch (err: unknown) {
       const info = classifyPlaidError(err);
       set({
