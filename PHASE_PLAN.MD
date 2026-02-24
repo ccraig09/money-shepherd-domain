@@ -235,7 +235,7 @@
 
 - [x] MS-19.5 Feature flags
 - [x] MS-19.2 Crash-safe persistence
-- [ ] MS-19.1 Migrations scaffold
+- [x] MS-19.1 Migrations scaffold
 - [ ] MS-19.8 Guardrails
 - [ ] MS-19.13 Seed Available to Assign from connected account balances (domain command)
 - [ ] MS-19.14 Post-connect onboarding: seed budget from bank balances (UI prompt)

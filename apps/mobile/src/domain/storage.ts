@@ -1,6 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Money } from "@money-shepherd/domain";
 import type { AppStateV1 } from "./appState";
+import { runMigrations } from "./migrations";
 
 const KEY = "moneyShepherd.appState.v1";
 const KEY_TMP = "moneyShepherd.appState.v1.tmp";
@@ -54,11 +55,13 @@ function hydrateState(raw: any): AppStateV1 {
   } as AppStateV1;
 }
 
-/** Try to parse + hydrate a raw JSON string. Returns null on any failure. */
+/** Try to parse, migrate, and hydrate a raw JSON string. Returns null on any failure. */
 function tryParse(raw: string | null): AppStateV1 | null {
   if (!raw) return null;
   try {
-    return hydrateState(JSON.parse(raw));
+    const parsed = JSON.parse(raw);
+    const migrated = runMigrations(parsed);
+    return hydrateState(migrated);
   } catch {
     return null;
   }
