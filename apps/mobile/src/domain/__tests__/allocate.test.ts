@@ -61,4 +61,36 @@ describe("allocateToEnvelope", () => {
     expect(next.budget.envelopes[1].balance.cents).toBe(0);
     expect(next.budget.envelopes[1].name).toBe("Bills");
   });
+
+  it("logs an Allocation record with envelopeId, amount, and date", () => {
+    const state = makeState(["Groceries"], 50000);
+    const next = allocateToEnvelope(state, { envelopeId: "env-0", amountCents: 20000 });
+    expect(next.allocations).toHaveLength(1);
+    const alloc = next.allocations![0];
+    expect(alloc.envelopeId).toBe("env-0");
+    expect(alloc.amount.cents).toBe(20000);
+    // allocatedAt should be a YYYY-MM-DD string
+    expect(alloc.allocatedAt).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+  });
+
+  it("appends to existing allocations (accumulates)", () => {
+    const state = makeState(["Groceries"], 50000);
+    const existing: AppStateV1["allocations"] = [
+      { envelopeId: "env-0", amount: Money.fromCents(10000), allocatedAt: "2026-01-15" },
+    ];
+    const stateWithAllocs = { ...state, allocations: existing };
+    const next = allocateToEnvelope(stateWithAllocs, { envelopeId: "env-0", amountCents: 5000 });
+    expect(next.allocations).toHaveLength(2);
+    expect(next.allocations![0].amount.cents).toBe(10000);
+    expect(next.allocations![1].amount.cents).toBe(5000);
+  });
+
+  it("handles undefined allocations gracefully (legacy state)", () => {
+    const state = makeState(["Groceries"], 50000);
+    // Ensure allocations is explicitly undefined (legacy state)
+    expect(state.allocations).toBeUndefined();
+    const next = allocateToEnvelope(state, { envelopeId: "env-0", amountCents: 15000 });
+    expect(next.allocations).toHaveLength(1);
+    expect(next.allocations![0].envelopeId).toBe("env-0");
+  });
 });

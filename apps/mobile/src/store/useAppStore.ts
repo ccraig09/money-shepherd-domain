@@ -70,6 +70,7 @@ type AppStore = {
     envelopeId: string;
     amountCents: number;
   }) => Promise<void>;
+  fillEnvelopes: (items: { envelopeId: string; amountCents: number }[]) => Promise<void>;
   addManualTransaction: (args: {
     accountId: string;
     amountCents: number;
@@ -518,6 +519,44 @@ export const useAppStore = create<AppStore>((set, get) => ({
         status: "error",
         errorMessage: err?.message ?? "Failed to allocate",
         syncState: syncTransition(get().syncState, { type: "sync-error", error: err?.message ?? "Failed to allocate" }),
+      });
+    }
+  },
+
+  fillEnvelopes: async (items) => {
+    const current = get().state;
+    if (!current) return;
+
+    const nonZero = items.filter((i) => i.amountCents > 0);
+    if (nonZero.length === 0) return;
+
+    set({ status: "loading", errorMessage: null, syncState: syncTransition(get().syncState, { type: "sync-start" }) });
+    let filled = 0;
+    try {
+      for (const item of nonZero) {
+        const result = await engine.allocateToEnvelope(item);
+        set({
+          state: result.state,
+          syncState: applyOutcome(get().syncState, result.syncOutcome, result.syncError),
+        });
+        filled++;
+      }
+      set({
+        status: "ready",
+        lastSyncAt: new Date().toISOString(),
+        toast: { text: `${filled} envelope${filled === 1 ? "" : "s"} filled`, variant: "success" },
+      });
+    } catch (err: any) {
+      // Partial fill — re-fetch state from engine to reflect committed allocations
+      try {
+        const latest = await engine.getState();
+        set({ state: latest });
+      } catch { /* state already partially updated */ }
+      set({
+        status: "error",
+        errorMessage: err?.message ?? "Failed to fill envelopes",
+        syncState: syncTransition(get().syncState, { type: "sync-error", error: err?.message ?? "Failed to fill envelopes" }),
+        toast: { text: `Filled ${filled} of ${nonZero.length} — error on remaining`, variant: "error" },
       });
     }
   },

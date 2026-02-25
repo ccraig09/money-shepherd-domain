@@ -47,11 +47,20 @@ function hydrateState(raw: any): AppStateV1 {
     })),
   };
 
+  // allocations
+  const allocations = raw.allocations
+    ? (raw.allocations as any[]).map((a: any) => ({
+        ...a,
+        amount: hydrateMoney(a.amount),
+      }))
+    : undefined;
+
   return {
     ...raw,
     accounts,
     transactions,
     budget,
+    ...(allocations !== undefined && { allocations }),
   } as AppStateV1;
 }
 

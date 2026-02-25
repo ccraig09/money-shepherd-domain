@@ -18,6 +18,7 @@ import { SectionHeader } from "../../src/ui/components/SectionHeader";
 import { AccountsCard } from "../../src/ui/components/AccountsCard";
 import { Spacing, Radius, FontSize, FontWeight, Color } from "../../src/ui/tokens";
 import { getThisMonthSummary } from "../../src/lib/periodSummary";
+import { getCurrentPeriod, getFundingInPeriod } from "@money-shepherd/domain";
 
 export default function DashboardScreen() {
   const state = useAppStore((s) => s.state);
@@ -49,6 +50,17 @@ export default function DashboardScreen() {
       state.budget.envelopes,
       now,
     );
+  }, [state]);
+
+  const hasUnfilledGoals = useMemo(() => {
+    if (!state) return false;
+    if (state.budget.availableToAssign.cents <= 0) return false;
+    const period = getCurrentPeriod(new Date().toISOString());
+    return state.budget.envelopes.some((env) => {
+      if (!env.goal || env.goal.cents <= 0) return false;
+      const funded = getFundingInPeriod(state.allocations ?? [], env.id, period).cents;
+      return funded < env.goal.cents;
+    });
   }, [state]);
 
   if (!state) {
@@ -158,6 +170,19 @@ export default function DashboardScreen() {
             <Text style={styles.nudgeArrow}>→</Text>
           </Pressable>
         )}
+
+      {/* Fill envelopes nudge */}
+      {hasUnfilledGoals && (
+        <Pressable
+          style={styles.fillNudge}
+          onPress={() => router.push("/fill-envelopes")}
+          accessibilityLabel="Fill your envelopes from available funds"
+          accessibilityRole="button"
+        >
+          <Text style={styles.fillNudgeText}>Ready to fill your envelopes?</Text>
+          <Text style={styles.nudgeArrow}>→</Text>
+        </Pressable>
+      )}
 
       {/* Unassigned nudge */}
       {unassignedExpenseCount > 0 && (
@@ -360,6 +385,22 @@ const styles = StyleSheet.create({
     borderColor: Color.primary,
   },
   seedNudgeText: { fontSize: 14, fontWeight: FontWeight.medium, color: Color.primaryDark, flex: 1 },
+
+  // Fill nudge
+  fillNudge: {
+    marginHorizontal: Spacing.base,
+    marginBottom: Spacing.md,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    backgroundColor: Color.primarySurface,
+    borderRadius: Radius.lg,
+    paddingHorizontal: Spacing.base,
+    paddingVertical: Spacing.md,
+    borderWidth: 1,
+    borderColor: Color.primary,
+  },
+  fillNudgeText: { fontSize: 14, fontWeight: FontWeight.medium, color: Color.primaryDark, flex: 1 },
 
   // Nudge
   nudge: {

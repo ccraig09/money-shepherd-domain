@@ -1,4 +1,4 @@
-import { Money, allocateFunds } from "@money-shepherd/domain";
+import { Money, allocateFunds, type Allocation } from "@money-shepherd/domain";
 import type { AppStateV1 } from "./appState";
 import { nowIso } from "../lib/id";
 
@@ -14,9 +14,16 @@ export function allocateToEnvelope(
 
   const budget = allocateFunds(state.budget, args.envelopeId, amount);
 
+  const record: Allocation = {
+    envelopeId: args.envelopeId,
+    amount,
+    allocatedAt: nowIso().slice(0, 10),
+  };
+
   return {
     ...state,
     budget,
+    allocations: [...(state.allocations ?? []), record],
     updatedAt: nowIso(),
   };
 }

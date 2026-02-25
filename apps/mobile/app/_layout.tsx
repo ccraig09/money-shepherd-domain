@@ -123,6 +123,10 @@ export default function RootLayout() {
             options={{ headerBackTitle: "Back" }}
           />
           <Stack.Screen
+            name="fill-envelopes"
+            options={{ presentation: "modal", title: "Fill Envelopes" }}
+          />
+          <Stack.Screen
             name="seed-budget"
             options={{ presentation: "modal", title: "Seed Budget" }}
           />
