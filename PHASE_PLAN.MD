@@ -290,7 +290,7 @@
 #### Tier 4 — Stewardship Identity
 
 - [x] MS-23.9 Giving envelope type (envelope type tag, giving-first sort, dashboard giving total)
-- [ ] MS-23.10 Period summary screen (monthly income/spending/giving/net breakdown)
+- [x] MS-23.10 Period summary screen (monthly income/spending/giving/net breakdown)
 
 #### Tier 5 — Safety & Polish
 

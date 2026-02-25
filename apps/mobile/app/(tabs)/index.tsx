@@ -126,7 +126,7 @@ export default function DashboardScreen() {
 
       {/* This Month summary */}
       {monthSummary && (monthSummary.incomeCents > 0 || monthSummary.spendingCents > 0) && (
-        <Card style={styles.monthCard}>
+        <Card style={styles.monthCard} onPress={() => router.push("/period-summary")} accessibilityLabel="View monthly summary">
           <Text style={styles.monthTitle}>This Month</Text>
           <View style={styles.monthRow}>
             <View style={styles.monthStat}>
