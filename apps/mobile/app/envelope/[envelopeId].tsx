@@ -126,6 +126,17 @@ export default function EnvelopeDetailScreen() {
           <Text style={styles.allocateBtnText}>$ Allocate Funds</Text>
         </Pressable>
 
+        {/* Transfer — move money to another envelope */}
+        <Pressable
+          onPress={() =>
+            router.push(`/transfer?from=${envelopeId}` as any)
+          }
+          style={styles.transferBtn}
+          accessibilityLabel="Move money to another envelope"
+        >
+          <Text style={styles.transferBtnText}>Move Money</Text>
+        </Pressable>
+
         {/* Delete — subdued text action */}
         <Pressable
           onPress={() => {
@@ -278,6 +289,17 @@ const styles = StyleSheet.create({
     backgroundColor: Color.primary,
   },
   allocateBtnText: { fontSize: FontSize.body, fontWeight: FontWeight.bold, color: Color.textOnColor },
+
+  // Transfer
+  transferBtn: {
+    marginTop: Spacing.xs,
+    paddingHorizontal: Spacing.xl,
+    paddingVertical: Spacing.md,
+    borderRadius: Radius.pill,
+    borderWidth: 1,
+    borderColor: Color.primary,
+  },
+  transferBtnText: { fontSize: FontSize.body, fontWeight: FontWeight.bold, color: Color.primary },
 
   // Delete
   deleteBtn: {

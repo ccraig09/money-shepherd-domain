@@ -278,7 +278,7 @@
 
 #### Tier 2 — Envelope Transfers
 
-- [ ] MS-23.4 Transfer between envelopes (domain + engine + new modal screen)
+- [x] MS-23.4 Transfer between envelopes (domain + engine + new modal screen)
 
 #### Tier 3 — Budget Periods + Envelope Goals
 

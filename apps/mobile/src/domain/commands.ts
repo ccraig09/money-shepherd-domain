@@ -470,3 +470,61 @@ export function seedBudgetFromBalances(
     updatedAt: nowIso(),
   };
 }
+
+/**
+ * Moves money from one envelope to another.
+ * Available to Assign is unchanged — money stays within envelopes.
+ */
+export function transferBetweenEnvelopes(
+  state: AppStateV1,
+  args: {
+    fromEnvelopeId: string;
+    toEnvelopeId: string;
+    amountCents: number;
+  },
+): AppStateV1 {
+  if (args.amountCents <= 0) {
+    throw new Error("Amount must be greater than zero.");
+  }
+
+  if (args.fromEnvelopeId === args.toEnvelopeId) {
+    throw new Error("Cannot transfer to the same envelope.");
+  }
+
+  const source = state.budget.envelopes.find(
+    (e) => e.id === args.fromEnvelopeId,
+  );
+  if (!source) {
+    throw new Error("Source envelope not found.");
+  }
+
+  const dest = state.budget.envelopes.find(
+    (e) => e.id === args.toEnvelopeId,
+  );
+  if (!dest) {
+    throw new Error("Destination envelope not found.");
+  }
+
+  if (source.balance.cents < args.amountCents) {
+    throw new Error("Insufficient balance in source envelope.");
+  }
+
+  const amount = Money.fromCents(args.amountCents);
+
+  return {
+    ...state,
+    budget: {
+      ...state.budget,
+      envelopes: state.budget.envelopes.map((env) => {
+        if (env.id === args.fromEnvelopeId) {
+          return { ...env, balance: env.balance.add(Money.fromCents(-args.amountCents)) };
+        }
+        if (env.id === args.toEnvelopeId) {
+          return { ...env, balance: env.balance.add(amount) };
+        }
+        return env;
+      }),
+    },
+    updatedAt: nowIso(),
+  };
+}

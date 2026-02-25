@@ -6,7 +6,7 @@ import {
 import { ensureAnonAuth } from "../infra/firebase/firebaseClient";
 import { HouseholdStateRepo } from "../infra/remote/householdStateRepo";
 import { loadSyncMeta, saveSyncMeta } from "../infra/local/syncMeta";
-import { createEnvelope, renameEnvelope, deleteEnvelope, setTransactionNote, assignTransaction, unassignTransaction, editTransaction, deleteTransaction, seedBudgetFromBalances } from "./commands";
+import { createEnvelope, renameEnvelope, deleteEnvelope, setTransactionNote, assignTransaction, unassignTransaction, editTransaction, deleteTransaction, transferBetweenEnvelopes, seedBudgetFromBalances } from "./commands";
 import { allocateToEnvelope } from "./allocate";
 import type { AppStateV1 } from "./appState";
 import { APP_STATE_VERSION } from "./appState";
@@ -73,6 +73,11 @@ export type Engine = {
   }): Promise<RecomputeResult>;
   deleteTransaction(args: {
     transactionId: string;
+  }): Promise<RecomputeResult>;
+  transferBetweenEnvelopes(args: {
+    fromEnvelopeId: string;
+    toEnvelopeId: string;
+    amountCents: number;
   }): Promise<RecomputeResult>;
   allocateToEnvelope(args: {
     envelopeId: string;
@@ -198,6 +203,16 @@ export function createEngine(): Engine {
   }): Promise<RecomputeResult> {
     const state = await getState();
     const next = deleteTransaction(state, args);
+    return recompute(next);
+  }
+
+  async function transferBetweenEnvelopesAction(args: {
+    fromEnvelopeId: string;
+    toEnvelopeId: string;
+    amountCents: number;
+  }): Promise<RecomputeResult> {
+    const state = await getState();
+    const next = transferBetweenEnvelopes(state, args);
     return recompute(next);
   }
 
@@ -565,6 +580,7 @@ export function createEngine(): Engine {
     unassignTransaction: unassignTransactionAction,
     editTransaction: editTransactionAction,
     deleteTransaction: deleteTransactionAction,
+    transferBetweenEnvelopes: transferBetweenEnvelopesAction,
     allocateToEnvelope: allocateToEnvelopeAction,
     seedBudgetFromBalances: seedBudget,
     importPlaidAccounts,

@@ -59,6 +59,11 @@ type AppStore = {
     amountCents?: number;
   }) => Promise<void>;
   deleteTransaction: (transactionId: string) => Promise<void>;
+  transferBetweenEnvelopes: (args: {
+    fromEnvelopeId: string;
+    toEnvelopeId: string;
+    amountCents: number;
+  }) => Promise<void>;
   allocateToEnvelope: (args: {
     envelopeId: string;
     amountCents: number;
@@ -417,6 +422,31 @@ export const useAppStore = create<AppStore>((set, get) => ({
         status: "error",
         errorMessage: err?.message ?? "Failed to delete transaction",
         syncState: syncTransition(get().syncState, { type: "sync-error", error: err?.message ?? "Failed to delete transaction" }),
+      });
+    }
+  },
+
+  transferBetweenEnvelopes: async (args) => {
+    const current = get().state;
+    if (!current) return;
+
+    set({ status: "loading", errorMessage: null, syncState: syncTransition(get().syncState, { type: "sync-start" }) });
+    try {
+      const result = await engine.transferBetweenEnvelopes(args);
+      const fromName = result.state.budget.envelopes.find((e) => e.id === args.fromEnvelopeId)?.name ?? "envelope";
+      const toName = result.state.budget.envelopes.find((e) => e.id === args.toEnvelopeId)?.name ?? "envelope";
+      set({
+        state: result.state,
+        status: "ready",
+        lastSyncAt: new Date().toISOString(),
+        syncState: applyOutcome(get().syncState, result.syncOutcome, result.syncError),
+        toast: { text: `Moved funds: ${fromName} → ${toName}`, variant: "success" },
+      });
+    } catch (err: any) {
+      set({
+        status: "error",
+        errorMessage: err?.message ?? "Failed to transfer",
+        syncState: syncTransition(get().syncState, { type: "sync-error", error: err?.message ?? "Failed to transfer" }),
       });
     }
   },
