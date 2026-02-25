@@ -9,19 +9,23 @@ import {
 import { router } from "expo-router";
 import { useAppStore } from "../../src/store/useAppStore";
 import { formatMoney } from "../../src/lib/moneyFormat";
+import { sortEnvelopesGivingFirst } from "@money-shepherd/domain";
 import { Card } from "../../src/ui/components/Card";
 import { ProgressBar } from "../../src/ui/components/ProgressBar";
 import { Spacing, Radius, FontSize, FontWeight, Color } from "../../src/ui/tokens";
 
-type SortOrder = "alpha" | "balance";
+type SortOrder = "alpha" | "balance" | "giving";
 
 export default function EnvelopesScreen() {
   const state = useAppStore((s) => s.state);
-  const [sortOrder, setSortOrder] = useState<SortOrder>("alpha");
+  const [sortOrder, setSortOrder] = useState<SortOrder>("giving");
 
   const sortedEnvelopes = useMemo(() => {
     if (!state) return [];
     const envelopes = [...state.budget.envelopes];
+    if (sortOrder === "giving") {
+      return sortEnvelopesGivingFirst(envelopes);
+    }
     if (sortOrder === "alpha") {
       return envelopes.sort((a, b) => a.name.localeCompare(b.name));
     }
@@ -76,6 +80,17 @@ export default function EnvelopesScreen() {
           {/* Sort toggle */}
           <View style={styles.sortRow}>
             <Pressable
+              style={[styles.sortChip, sortOrder === "giving" && styles.sortChipActive]}
+              onPress={() => setSortOrder("giving")}
+              accessibilityLabel="Sort giving first"
+              accessibilityRole="button"
+              accessibilityState={{ selected: sortOrder === "giving" }}
+            >
+              <Text style={[styles.sortChipText, sortOrder === "giving" && styles.sortChipTextActive]}>
+                Giving first
+              </Text>
+            </Pressable>
+            <Pressable
               style={[styles.sortChip, sortOrder === "alpha" && styles.sortChipActive]}
               onPress={() => setSortOrder("alpha")}
               accessibilityLabel="Sort alphabetically"
@@ -107,6 +122,7 @@ export default function EnvelopesScreen() {
               renderItem={({ item }) => {
                 const isNegative = item.balance.cents < 0;
                 const isZero = item.balance.cents === 0;
+                const isGiving = item.type === "giving";
                 return (
                   <Pressable
                     style={styles.row}
@@ -118,9 +134,16 @@ export default function EnvelopesScreen() {
                   >
                     <View style={styles.rowContent}>
                       <View style={styles.rowTop}>
-                        <Text style={styles.rowName} numberOfLines={1}>
-                          {item.name || "Unnamed envelope"}
-                        </Text>
+                        <View style={styles.rowNameArea}>
+                          <Text style={styles.rowName} numberOfLines={1}>
+                            {item.name || "Unnamed envelope"}
+                          </Text>
+                          {isGiving && (
+                            <View style={styles.givingBadge} accessibilityLabel="Giving envelope">
+                              <Text style={styles.givingBadgeText}>GIVING</Text>
+                            </View>
+                          )}
+                        </View>
                         <Text
                           style={[
                             styles.rowBalance,
@@ -228,8 +251,23 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
   },
-  rowName: { fontSize: FontSize.subtitle, fontWeight: FontWeight.medium, color: Color.textDark, flex: 1 },
+  rowNameArea: { flexDirection: "row", alignItems: "center", gap: Spacing.xs, flex: 1 },
+  rowName: { fontSize: FontSize.subtitle, fontWeight: FontWeight.medium, color: Color.textDark, flexShrink: 1 },
   rowBalance: { fontSize: FontSize.subtitle, fontWeight: FontWeight.semibold, color: Color.textDark, marginLeft: Spacing.md },
   rowBalanceNegative: { color: Color.error },
   rowBalanceZero: { color: Color.textMuted },
+
+  // Giving badge
+  givingBadge: {
+    paddingHorizontal: 6,
+    paddingVertical: 1,
+    borderRadius: Radius.sm,
+    backgroundColor: Color.givingSurface,
+  },
+  givingBadgeText: {
+    fontSize: 9,
+    fontWeight: FontWeight.bold,
+    color: Color.giving,
+    letterSpacing: 0.5,
+  },
 });

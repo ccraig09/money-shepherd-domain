@@ -99,6 +99,10 @@ export const Color = {
   // ── Hero negative ──────────────────────────
   heroNegative: "#ffcdd2",
 
+  // ── Giving ───────────────────────────────────
+  giving: "#8e6bbf",
+  givingSurface: "#f3eef9",
+
   // ── Nudge ──────────────────────────────────
   nudgeText: "#795548",
 } as const;

@@ -18,3 +18,4 @@ export * from "./logic/spendFromEnvelope";
 export * from "./logic/unassignTransaction";
 export * from "./logic/periodHelpers";
 export * from "./logic/envelopeGoals";
+export * from "./logic/envelopeSorting";

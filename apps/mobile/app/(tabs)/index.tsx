@@ -18,7 +18,7 @@ import { SectionHeader } from "../../src/ui/components/SectionHeader";
 import { AccountsCard } from "../../src/ui/components/AccountsCard";
 import { Spacing, Radius, FontSize, FontWeight, Color } from "../../src/ui/tokens";
 import { getThisMonthSummary } from "../../src/lib/periodSummary";
-import { getCurrentPeriod, getFundingInPeriod } from "@money-shepherd/domain";
+import { getCurrentPeriod, getFundingInPeriod, getSpendingInPeriod } from "@money-shepherd/domain";
 
 export default function DashboardScreen() {
   const state = useAppStore((s) => s.state);
@@ -61,6 +61,17 @@ export default function DashboardScreen() {
       const funded = getFundingInPeriod(state.allocations ?? [], env.id, period).cents;
       return funded < env.goal.cents;
     });
+  }, [state]);
+
+  const givingThisMonthCents = useMemo(() => {
+    if (!state) return 0;
+    const givingEnvelopes = state.budget.envelopes.filter((e) => e.type === "giving");
+    if (givingEnvelopes.length === 0) return 0;
+    const period = getCurrentPeriod(new Date().toISOString());
+    const assignments = Object.values(state.inbox.assignmentsByTransactionId);
+    return givingEnvelopes.reduce((sum, env) => {
+      return sum + getSpendingInPeriod(state.transactions, assignments, env.id, period).cents;
+    }, 0);
   }, [state]);
 
   if (!state) {
@@ -142,6 +153,12 @@ export default function DashboardScreen() {
               </Text>
             </View>
           </View>
+          {givingThisMonthCents > 0 && (
+            <View style={styles.givingRow}>
+              <Text style={styles.givingRowLabel}>Giving this month</Text>
+              <Text style={styles.givingRowValue}>${formatMoney(givingThisMonthCents)}</Text>
+            </View>
+          )}
         </Card>
       )}
 
@@ -277,6 +294,11 @@ export default function DashboardScreen() {
                       <Text style={styles.envelopeName} numberOfLines={1}>
                         {env.name}
                       </Text>
+                      {env.type === "giving" && (
+                        <View style={styles.givingBadge} accessibilityLabel="Giving envelope">
+                          <Text style={styles.givingBadgeText}>GIVING</Text>
+                        </View>
+                      )}
                       {isNegative && (
                         <View style={styles.overspentBadge} accessibilityLabel="Overspent">
                           <Text style={styles.overspentBadgeText}>OVERSPENT</Text>
@@ -369,6 +391,19 @@ const styles = StyleSheet.create({
   monthStatValue: { fontSize: FontSize.body, fontWeight: FontWeight.bold },
   monthIncome: { color: Color.success },
   monthSpending: { color: Color.error },
+
+  // Giving row in This Month card
+  givingRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginTop: Spacing.md,
+    paddingTop: Spacing.md,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderColor: Color.borderLight,
+  },
+  givingRowLabel: { fontSize: FontSize.small, color: Color.giving, fontWeight: FontWeight.semibold },
+  givingRowValue: { fontSize: FontSize.body, fontWeight: FontWeight.bold, color: Color.giving },
 
   // Seed nudge
   seedNudge: {
@@ -501,6 +536,13 @@ const styles = StyleSheet.create({
     backgroundColor: Color.errorSurface,
   },
   overspentBadgeText: { fontSize: 9, fontWeight: FontWeight.bold, color: Color.error, letterSpacing: 0.5 },
+  givingBadge: {
+    paddingHorizontal: 5,
+    paddingVertical: 1,
+    borderRadius: Radius.sm,
+    backgroundColor: Color.givingSurface,
+  },
+  givingBadgeText: { fontSize: 9, fontWeight: FontWeight.bold, color: Color.giving, letterSpacing: 0.5 },
   envelopeSpentMonth: { fontSize: FontSize.caption, color: Color.textMuted },
   envelopeBalance: { fontSize: FontSize.body, fontWeight: FontWeight.semibold, color: Color.success, marginLeft: Spacing.md },
   envelopeBalanceNegative: { color: Color.error },

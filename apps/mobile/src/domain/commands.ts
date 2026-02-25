@@ -1,4 +1,5 @@
 import { Money, unassignTransaction as unassignTxDomain, setEnvelopeGoal as setGoalDomain, clearEnvelopeGoal as clearGoalDomain } from "@money-shepherd/domain";
+import type { EnvelopeType } from "@money-shepherd/domain";
 import { nowIso, makeId } from "../lib/id";
 import type { AppStateV1 } from "./appState";
 
@@ -10,7 +11,7 @@ import type { AppStateV1 } from "./appState";
  */
 export function createEnvelope(
   state: AppStateV1,
-  args: { name: string },
+  args: { name: string; type?: EnvelopeType },
 ): AppStateV1 {
   const normalizedName = args.name.trim().replace(/\s+/g, " ");
 
@@ -29,6 +30,7 @@ export function createEnvelope(
     id: makeId("env"),
     name: normalizedName,
     balance: Money.zero(),
+    ...(args.type && { type: args.type }),
   };
 
   return {
@@ -551,4 +553,30 @@ export function clearEnvelopeGoal(
 ): AppStateV1 {
   const budget = clearGoalDomain(state.budget, args.envelopeId);
   return { ...state, budget, updatedAt: nowIso() };
+}
+
+/**
+ * Sets the type on an envelope (spending, giving, or savings).
+ */
+export function setEnvelopeType(
+  state: AppStateV1,
+  args: { envelopeId: string; envelopeType: EnvelopeType },
+): AppStateV1 {
+  const envelope = state.budget.envelopes.find(
+    (e) => e.id === args.envelopeId,
+  );
+  if (!envelope) {
+    throw new Error("Envelope not found.");
+  }
+
+  return {
+    ...state,
+    budget: {
+      ...state.budget,
+      envelopes: state.budget.envelopes.map((e) =>
+        e.id === args.envelopeId ? { ...e, type: args.envelopeType } : e,
+      ),
+    },
+    updatedAt: nowIso(),
+  };
 }

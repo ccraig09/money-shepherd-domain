@@ -6,7 +6,7 @@ import {
 import { ensureAnonAuth } from "../infra/firebase/firebaseClient";
 import { HouseholdStateRepo } from "../infra/remote/householdStateRepo";
 import { loadSyncMeta, saveSyncMeta } from "../infra/local/syncMeta";
-import { createEnvelope, renameEnvelope, deleteEnvelope, setTransactionNote, assignTransaction, unassignTransaction, editTransaction, deleteTransaction, transferBetweenEnvelopes, seedBudgetFromBalances, setEnvelopeGoal, clearEnvelopeGoal } from "./commands";
+import { createEnvelope, renameEnvelope, deleteEnvelope, setTransactionNote, assignTransaction, unassignTransaction, editTransaction, deleteTransaction, transferBetweenEnvelopes, seedBudgetFromBalances, setEnvelopeGoal, clearEnvelopeGoal, setEnvelopeType } from "./commands";
 import { allocateToEnvelope } from "./allocate";
 import type { AppStateV1 } from "./appState";
 import { APP_STATE_VERSION } from "./appState";
@@ -54,7 +54,7 @@ export type Engine = {
     postedAt?: string;
   }): Promise<RecomputeResult>;
 
-  createEnvelope(args: { name: string }): Promise<RecomputeResult>;
+  createEnvelope(args: { name: string; type?: import("@money-shepherd/domain").EnvelopeType }): Promise<RecomputeResult>;
   renameEnvelope(args: { envelopeId: string; name: string }): Promise<RecomputeResult>;
   deleteEnvelope(args: { envelopeId: string }): Promise<RecomputeResult>;
   setTransactionNote(args: { transactionId: string; note: string }): Promise<RecomputeResult>;
@@ -81,6 +81,7 @@ export type Engine = {
   }): Promise<RecomputeResult>;
   setEnvelopeGoal(args: { envelopeId: string; goalCents: number }): Promise<RecomputeResult>;
   clearEnvelopeGoal(args: { envelopeId: string }): Promise<RecomputeResult>;
+  setEnvelopeType(args: { envelopeId: string; envelopeType: import("@money-shepherd/domain").EnvelopeType }): Promise<RecomputeResult>;
   allocateToEnvelope(args: {
     envelopeId: string;
     amountCents: number;
@@ -232,6 +233,15 @@ export function createEngine(): Engine {
   }): Promise<RecomputeResult> {
     const state = await getState();
     const next = clearEnvelopeGoal(state, args);
+    return recompute(next);
+  }
+
+  async function setEnvelopeTypeAction(args: {
+    envelopeId: string;
+    envelopeType: import("@money-shepherd/domain").EnvelopeType;
+  }): Promise<RecomputeResult> {
+    const state = await getState();
+    const next = setEnvelopeType(state, args);
     return recompute(next);
   }
 
@@ -602,6 +612,7 @@ export function createEngine(): Engine {
     transferBetweenEnvelopes: transferBetweenEnvelopesAction,
     setEnvelopeGoal: setEnvelopeGoalAction,
     clearEnvelopeGoal: clearEnvelopeGoalAction,
+    setEnvelopeType: setEnvelopeTypeAction,
     allocateToEnvelope: allocateToEnvelopeAction,
     seedBudgetFromBalances: seedBudget,
     importPlaidAccounts,

@@ -17,6 +17,7 @@ export default function CreateEnvelopeScreen() {
   const createEnvelope = useAppStore((s) => s.createEnvelope);
 
   const [name, setName] = React.useState("");
+  const [isGiving, setIsGiving] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const [saving, setSaving] = React.useState(false);
 
@@ -38,7 +39,7 @@ export default function CreateEnvelopeScreen() {
 
     setSaving(true);
     try {
-      await createEnvelope(normalized);
+      await createEnvelope(normalized, isGiving ? "giving" : undefined);
       router.back();
     } finally {
       setSaving(false);
@@ -66,6 +67,25 @@ export default function CreateEnvelopeScreen() {
           accessibilityLabel="Envelope name"
         />
         {error ? <Text style={styles.errorText}>{error}</Text> : null}
+
+        {/* Giving toggle */}
+        <Pressable
+          style={[styles.givingToggle, isGiving && styles.givingToggleActive]}
+          onPress={() => setIsGiving(!isGiving)}
+          accessibilityLabel="Mark as giving envelope"
+          accessibilityRole="switch"
+          accessibilityState={{ checked: isGiving }}
+        >
+          <View style={styles.givingToggleContent}>
+            <Text style={[styles.givingLabel, isGiving && styles.givingLabelActive]}>
+              Giving
+            </Text>
+            <Text style={[styles.givingHint, isGiving && styles.givingHintActive]}>
+              Set aside for generosity
+            </Text>
+          </View>
+          <View style={[styles.toggleDot, isGiving && styles.toggleDotActive]} />
+        </Pressable>
 
         <Pressable
           onPress={handleSave}
@@ -114,6 +134,49 @@ const styles = StyleSheet.create({
   },
   inputError: { borderColor: Color.error },
   errorText: { fontSize: FontSize.small, color: Color.error, marginTop: Spacing.xs },
+
+  // Giving toggle
+  givingToggle: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginTop: Spacing.md,
+    padding: Spacing.base,
+    borderRadius: Radius.lg,
+    borderWidth: 1,
+    borderColor: Color.border,
+    backgroundColor: Color.surface,
+  },
+  givingToggleActive: {
+    borderColor: Color.giving,
+    backgroundColor: Color.givingSurface,
+  },
+  givingToggleContent: { flex: 1 },
+  givingLabel: {
+    fontSize: FontSize.subtitle,
+    fontWeight: FontWeight.semibold,
+    color: Color.textDark,
+  },
+  givingLabelActive: { color: Color.giving },
+  givingHint: {
+    fontSize: FontSize.small,
+    color: Color.textMuted,
+    marginTop: 2,
+  },
+  givingHintActive: { color: Color.giving },
+  toggleDot: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    borderWidth: 2,
+    borderColor: Color.border,
+    marginLeft: Spacing.md,
+  },
+  toggleDotActive: {
+    borderColor: Color.giving,
+    backgroundColor: Color.giving,
+  },
+
   saveBtn: {
     marginTop: Spacing.lg,
     backgroundColor: Color.primary,

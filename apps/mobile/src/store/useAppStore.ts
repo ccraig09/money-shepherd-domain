@@ -43,7 +43,7 @@ type AppStore = {
   resetAll: () => Promise<void>;
   switchUser: () => Promise<void>;
   resetAndSeed: () => Promise<void>;
-  createEnvelope: (name: string) => Promise<void>;
+  createEnvelope: (name: string, type?: import("@money-shepherd/domain").EnvelopeType) => Promise<void>;
   renameEnvelope: (envelopeId: string, name: string) => Promise<void>;
   deleteEnvelope: (envelopeId: string) => Promise<void>;
   setTransactionNote: (transactionId: string, note: string) => Promise<void>;
@@ -66,6 +66,7 @@ type AppStore = {
   }) => Promise<void>;
   setEnvelopeGoal: (envelopeId: string, goalCents: number) => Promise<void>;
   clearEnvelopeGoal: (envelopeId: string) => Promise<void>;
+  setEnvelopeType: (envelopeId: string, envelopeType: import("@money-shepherd/domain").EnvelopeType) => Promise<void>;
   allocateToEnvelope: (args: {
     envelopeId: string;
     amountCents: number;
@@ -227,13 +228,13 @@ export const useAppStore = create<AppStore>((set, get) => ({
     }
   },
 
-  createEnvelope: async (name: string) => {
+  createEnvelope: async (name, type) => {
     const current = get().state;
     if (!current) return;
 
     set({ status: "loading", errorMessage: null, syncState: syncTransition(get().syncState, { type: "sync-start" }) });
     try {
-      const result = await engine.createEnvelope({ name });
+      const result = await engine.createEnvelope({ name, type });
       set({
         state: result.state,
         status: "ready",
@@ -496,6 +497,28 @@ export const useAppStore = create<AppStore>((set, get) => ({
         status: "error",
         errorMessage: err?.message ?? "Failed to clear goal",
         syncState: syncTransition(get().syncState, { type: "sync-error", error: err?.message ?? "Failed to clear goal" }),
+      });
+    }
+  },
+
+  setEnvelopeType: async (envelopeId, envelopeType) => {
+    const current = get().state;
+    if (!current) return;
+
+    set({ status: "loading", errorMessage: null, syncState: syncTransition(get().syncState, { type: "sync-start" }) });
+    try {
+      const result = await engine.setEnvelopeType({ envelopeId, envelopeType });
+      set({
+        state: result.state,
+        status: "ready",
+        lastSyncAt: new Date().toISOString(),
+        syncState: applyOutcome(get().syncState, result.syncOutcome, result.syncError),
+      });
+    } catch (err: any) {
+      set({
+        status: "error",
+        errorMessage: err?.message ?? "Failed to set envelope type",
+        syncState: syncTransition(get().syncState, { type: "sync-error", error: err?.message ?? "Failed to set envelope type" }),
       });
     }
   },
