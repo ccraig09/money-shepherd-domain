@@ -111,8 +111,9 @@ For each GitHub ticket:
 1. **Plan:** Restate goal, list exact files to touch, decide if tests are required.
 2. **Implement:** Modify only those files (add new files only if declared in plan).
 3. **Run checks:** Execute only the checks that apply (see below).
-4. **Fix until green** without widening scope.
-5. **Summarize:** What changed, files touched, how to test, risks/follow-ups.
+4. **Fix until green** without widening scope. If checks fail, use `systematic-debugging` — identify root cause before proposing fixes. Do not thrash.
+5. **Verify before complete:** Use `verification-before-completion` to confirm all checks are green and output is captured before writing the summary.
+6. **Summarize:** What changed, files touched, how to test, risks/follow-ups.
 
 ### Required Checks
 
@@ -144,6 +145,8 @@ Write tests where regressions are expensive. Avoid UI test explosion.
 
 If tests already exist, extend only what you changed. No snapshot tests.
 
+When tests are required, use `test-driven-development` skill to write tests before implementation code.
+
 ## Skills Usage Policy
 
 Use **1 skill per ticket**, max **2** only if clearly required. Agent states chosen skill(s) in the **Plan** step — wait for approval before coding.
@@ -158,6 +161,11 @@ Use **1 skill per ticket**, max **2** only if clearly required. Agent states cho
 | `github-actions-templates`  | CI/automation                                             |
 | `design-md`                 | Design system polish                                      |
 | `git-pushing`               | Git hygiene (clean history, commits, PR hygiene)          |
+| `verification-before-completion` | Before `/done` — verify all checks pass before claiming complete |
+| `systematic-debugging`      | When checks fail in Step 4 — structured root-cause debugging |
+| `test-driven-development`   | Domain/engine tickets where tests are REQUIRED per testing policy |
+| `brainstorming`             | Plan step only — when ticket scope is ambiguous or has design decisions |
+| `revise-claude-md`          | Phase boundaries — capture learnings after completing a phase |
 
 ## Output Format
 
