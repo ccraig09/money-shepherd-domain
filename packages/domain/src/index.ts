@@ -14,3 +14,4 @@ export * from "./logic/applyTransactionsToBudget";
 export * from "./logic/assignTransactionToEnvelope";
 export * from "./logic/buildInbox";
 export * from "./logic/spendFromEnvelope";
+export * from "./logic/unassignTransaction";

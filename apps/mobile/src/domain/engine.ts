@@ -6,7 +6,7 @@ import {
 import { ensureAnonAuth } from "../infra/firebase/firebaseClient";
 import { HouseholdStateRepo } from "../infra/remote/householdStateRepo";
 import { loadSyncMeta, saveSyncMeta } from "../infra/local/syncMeta";
-import { createEnvelope, renameEnvelope, deleteEnvelope, setTransactionNote, assignTransaction, seedBudgetFromBalances } from "./commands";
+import { createEnvelope, renameEnvelope, deleteEnvelope, setTransactionNote, assignTransaction, unassignTransaction, seedBudgetFromBalances } from "./commands";
 import { allocateToEnvelope } from "./allocate";
 import type { AppStateV1 } from "./appState";
 import { APP_STATE_VERSION } from "./appState";
@@ -62,6 +62,9 @@ export type Engine = {
     transactionId: string;
     envelopeId: string;
     assignedByUserId: string;
+  }): Promise<RecomputeResult>;
+  unassignTransaction(args: {
+    transactionId: string;
   }): Promise<RecomputeResult>;
   allocateToEnvelope(args: {
     envelopeId: string;
@@ -161,6 +164,14 @@ export function createEngine(): Engine {
   }): Promise<RecomputeResult> {
     const state = await getState();
     const next = assignTransaction(state, args);
+    return recompute(next);
+  }
+
+  async function unassignTransactionAction(args: {
+    transactionId: string;
+  }): Promise<RecomputeResult> {
+    const state = await getState();
+    const next = unassignTransaction(state, args);
     return recompute(next);
   }
 
@@ -525,6 +536,7 @@ export function createEngine(): Engine {
     deleteEnvelope: deleteEnvelopeAction,
     setTransactionNote: setTransactionNoteAction,
     assignTransaction: assignTransactionAction,
+    unassignTransaction: unassignTransactionAction,
     allocateToEnvelope: allocateToEnvelopeAction,
     seedBudgetFromBalances: seedBudget,
     importPlaidAccounts,

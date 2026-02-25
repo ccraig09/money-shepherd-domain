@@ -1,4 +1,4 @@
-import { Money } from "@money-shepherd/domain";
+import { Money, unassignTransaction as unassignTxDomain } from "@money-shepherd/domain";
 import { nowIso, makeId } from "../lib/id";
 import type { AppStateV1 } from "./appState";
 
@@ -109,15 +109,23 @@ export function deleteEnvelope(
   // Return the envelope's balance to Available to Assign
   const returnedBalance = state.budget.availableToAssign.add(envelope.balance);
 
-  // Remove assignments that point to this envelope
+  // Remove assignments that point to this envelope and collect freed tx IDs
   const nextAssignments: typeof state.inbox.assignmentsByTransactionId = {};
+  const freedTxIds = new Set<string>();
   for (const [txId, assignment] of Object.entries(
     state.inbox.assignmentsByTransactionId,
   )) {
     if (assignment.envelopeId !== args.envelopeId) {
       nextAssignments[txId] = assignment;
+    } else {
+      freedTxIds.add(txId);
     }
   }
+
+  // Clear freed txs from applied set so they can be re-assigned
+  const nextAppliedIds = state.appliedBudgetTransactionIds.filter(
+    (id) => !freedTxIds.has(id),
+  );
 
   return {
     ...state,
@@ -132,6 +140,7 @@ export function deleteEnvelope(
       ...state.inbox,
       assignmentsByTransactionId: nextAssignments,
     },
+    appliedBudgetTransactionIds: nextAppliedIds,
     updatedAt: nowIso(),
   };
 }
@@ -202,6 +211,56 @@ export function assignTransaction(
       ...state.inbox,
       assignmentsByTransactionId: nextAssignments,
     },
+    updatedAt: nowIso(),
+  };
+}
+
+/**
+ * Removes an assignment from a transaction, returning it to the Inbox.
+ * Restores the envelope balance and clears the tx from appliedBudgetTransactionIds
+ * so it can be re-assigned to a different envelope later.
+ */
+export function unassignTransaction(
+  state: AppStateV1,
+  args: { transactionId: string },
+): AppStateV1 {
+  const tx = state.transactions.find((t) => t.id === args.transactionId);
+  if (!tx) {
+    throw new Error("Transaction not found.");
+  }
+
+  // Domain function handles inbox: removes assignment, adds to unassigned list
+  const nextInbox = unassignTxDomain({
+    inbox: state.inbox,
+    transactions: state.transactions,
+    transactionId: args.transactionId,
+  });
+
+  // Restore envelope balance: add the expense amount back
+  const assignment = state.inbox.assignmentsByTransactionId[args.transactionId];
+  let nextBudget = state.budget;
+  if (assignment && tx.amount.cents < 0) {
+    const restoreAmount = Money.fromCents(Math.abs(tx.amount.cents));
+    nextBudget = {
+      ...nextBudget,
+      envelopes: nextBudget.envelopes.map((env) =>
+        env.id === assignment.envelopeId
+          ? { ...env, balance: env.balance.add(restoreAmount) }
+          : env,
+      ),
+    };
+  }
+
+  // Remove from applied budget IDs so re-assignment works
+  const nextAppliedBudgetIds = state.appliedBudgetTransactionIds.filter(
+    (id) => id !== args.transactionId,
+  );
+
+  return {
+    ...state,
+    inbox: nextInbox,
+    budget: nextBudget,
+    appliedBudgetTransactionIds: nextAppliedBudgetIds,
     updatedAt: nowIso(),
   };
 }

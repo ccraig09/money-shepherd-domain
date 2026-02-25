@@ -52,6 +52,7 @@ type AppStore = {
     envelopeId: string;
     assignedByUserId: string;
   }) => Promise<void>;
+  unassignTransaction: (transactionId: string) => Promise<void>;
   allocateToEnvelope: (args: {
     envelopeId: string;
     amountCents: number;
@@ -335,6 +336,35 @@ export const useAppStore = create<AppStore>((set, get) => ({
         status: "error",
         errorMessage: err?.message ?? "Failed to assign transaction",
         syncState: syncTransition(get().syncState, { type: "sync-error", error: err?.message ?? "Failed to assign transaction" }),
+      });
+    }
+  },
+
+  unassignTransaction: async (transactionId: string) => {
+    const current = get().state;
+    if (!current) return;
+
+    set({ status: "loading", errorMessage: null, syncState: syncTransition(get().syncState, { type: "sync-start" }) });
+    try {
+      const result = await engine.unassignTransaction({ transactionId });
+      const tx = result.state.transactions.find((t) => t.id === transactionId);
+      set({
+        state: result.state,
+        status: "ready",
+        lastSyncAt: new Date().toISOString(),
+        syncState: applyOutcome(get().syncState, result.syncOutcome, result.syncError),
+        toast: {
+          text: tx?.description
+            ? `"${tx.description}" returned to Inbox`
+            : "Transaction returned to Inbox",
+          variant: "success",
+        },
+      });
+    } catch (err: any) {
+      set({
+        status: "error",
+        errorMessage: err?.message ?? "Failed to unassign transaction",
+        syncState: syncTransition(get().syncState, { type: "sync-error", error: err?.message ?? "Failed to unassign transaction" }),
       });
     }
   },

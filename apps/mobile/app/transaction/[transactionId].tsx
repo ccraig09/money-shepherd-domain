@@ -8,6 +8,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  Alert,
 } from "react-native";
 import { router, Stack, useLocalSearchParams } from "expo-router";
 import { useAppStore } from "../../src/store/useAppStore";
@@ -22,6 +23,7 @@ export default function TransactionDetailScreen() {
   }>();
   const state = useAppStore((s) => s.state);
   const setTransactionNote = useAppStore((s) => s.setTransactionNote);
+  const unassignTransaction = useAppStore((s) => s.unassignTransaction);
 
   const tx = state?.transactions.find((t) => t.id === transactionId);
   const note = (transactionId && state?.transactionNotes?.[transactionId]) || "";
@@ -29,6 +31,7 @@ export default function TransactionDetailScreen() {
   const [draft, setDraft] = React.useState(note);
   const [saving, setSaving] = React.useState(false);
   const [saved, setSaved] = React.useState(false);
+  const [unassigning, setUnassigning] = React.useState(false);
   const dirty = draft.trim() !== note;
 
   // Sync draft if note changes externally
@@ -81,6 +84,29 @@ export default function TransactionDetailScreen() {
     }
   }
 
+  function handleUnassign() {
+    Alert.alert(
+      "Unassign Transaction",
+      "This will return the transaction to the Inbox and restore the envelope balance.",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Unassign",
+          style: "destructive",
+          onPress: async () => {
+            setUnassigning(true);
+            try {
+              await unassignTransaction(transactionId!);
+              router.back();
+            } finally {
+              setUnassigning(false);
+            }
+          },
+        },
+      ],
+    );
+  }
+
   return (
     <KeyboardAvoidingView
       style={styles.flex}
@@ -124,6 +150,23 @@ export default function TransactionDetailScreen() {
             }
           />
         </View>
+
+        {/* Unassign action — only for assigned expenses */}
+        {assignment && isExpense && (
+          <View style={styles.unassignSection}>
+            <Pressable
+              onPress={handleUnassign}
+              disabled={unassigning}
+              style={[styles.unassignBtn, unassigning && styles.saveBtnDisabled]}
+              accessibilityLabel="Unassign transaction"
+              accessibilityRole="button"
+            >
+              <Text style={styles.unassignBtnText}>
+                {unassigning ? "Unassigning…" : "Unassign from Envelope"}
+              </Text>
+            </Pressable>
+          </View>
+        )}
 
         {/* Note */}
         <View style={styles.noteSection}>
@@ -266,4 +309,20 @@ const styles = StyleSheet.create({
   saveBtnDisabled: { opacity: 0.6 },
   saveBtnText: { color: Color.textOnColor, fontSize: 14, fontWeight: FontWeight.semibold },
   savedLabel: { fontSize: FontSize.caption, color: Color.success, fontWeight: FontWeight.semibold },
+  unassignSection: {
+    paddingHorizontal: Spacing.base,
+    paddingTop: Spacing.lg,
+  },
+  unassignBtn: {
+    paddingVertical: Spacing.md,
+    borderRadius: Radius.md,
+    borderWidth: 1,
+    borderColor: Color.error,
+    alignItems: "center" as const,
+  },
+  unassignBtnText: {
+    color: Color.error,
+    fontSize: FontSize.body,
+    fontWeight: FontWeight.semibold,
+  },
 });
