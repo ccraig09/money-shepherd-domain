@@ -245,7 +245,7 @@
 - [x] MS-19.16 Feedback & confirmation polish (enhanced toasts: assign, note save, user switch)
 - [x] MS-19.17 Empty state & dead-end fixes (Inbox empty state, Allocate zero-balance)
 - [x] MS-19.18 Overspend warnings & source indicators (Plaid badge, overspent badge, assign warning)
-- [ ] MS-19.6 Core tests
+- [x] MS-19.6 Core tests
 - [ ] MS-19.3 Export
 - [ ] MS-19.4 Import
 - [ ] MS-19.7 Release checklist
