@@ -26,6 +26,7 @@ export default function TransactionDetailScreen() {
   const setTransactionNote = useAppStore((s) => s.setTransactionNote);
   const unassignTransaction = useAppStore((s) => s.unassignTransaction);
   const editTransactionAction = useAppStore((s) => s.editTransaction);
+  const deleteTransactionAction = useAppStore((s) => s.deleteTransaction);
 
   const tx = state?.transactions.find((t) => t.id === transactionId);
   const note = (transactionId && state?.transactionNotes?.[transactionId]) || "";
@@ -34,6 +35,7 @@ export default function TransactionDetailScreen() {
   const [saving, setSaving] = React.useState(false);
   const [saved, setSaved] = React.useState(false);
   const [unassigning, setUnassigning] = React.useState(false);
+  const [deleting, setDeleting] = React.useState(false);
   const dirty = draft.trim() !== note;
 
   // Edit mode state
@@ -111,6 +113,29 @@ export default function TransactionDetailScreen() {
               router.back();
             } finally {
               setUnassigning(false);
+            }
+          },
+        },
+      ],
+    );
+  }
+
+  function handleDelete() {
+    Alert.alert(
+      "Delete Transaction",
+      "This will permanently remove this transaction and reverse its effects on your budget.",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: async () => {
+            setDeleting(true);
+            try {
+              await deleteTransactionAction(transactionId!);
+              router.back();
+            } finally {
+              setDeleting(false);
             }
           },
         },
@@ -297,6 +322,23 @@ export default function TransactionDetailScreen() {
             >
               <Text style={styles.unassignBtnText}>
                 {unassigning ? "Unassigning…" : "Unassign from Envelope"}
+              </Text>
+            </Pressable>
+          </View>
+        )}
+
+        {/* Delete — manual transactions only, hidden in edit mode */}
+        {!isPlaid && !editing && (
+          <View style={styles.deleteSection}>
+            <Pressable
+              onPress={handleDelete}
+              disabled={deleting}
+              style={[styles.deleteBtn, deleting && styles.saveBtnDisabled]}
+              accessibilityLabel="Delete transaction"
+              accessibilityRole="button"
+            >
+              <Text style={styles.deleteBtnText}>
+                {deleting ? "Deleting…" : "Delete Transaction"}
               </Text>
             </Pressable>
           </View>
@@ -534,6 +576,21 @@ const styles = StyleSheet.create({
   },
   unassignBtnText: {
     color: Color.error,
+    fontSize: FontSize.body,
+    fontWeight: FontWeight.semibold,
+  },
+  deleteSection: {
+    paddingHorizontal: Spacing.base,
+    paddingTop: Spacing.md,
+  },
+  deleteBtn: {
+    paddingVertical: Spacing.md,
+    borderRadius: Radius.md,
+    backgroundColor: Color.error,
+    alignItems: "center" as const,
+  },
+  deleteBtnText: {
+    color: Color.textOnColor,
     fontSize: FontSize.body,
     fontWeight: FontWeight.semibold,
   },

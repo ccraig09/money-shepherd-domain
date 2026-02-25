@@ -216,6 +216,94 @@ export function assignTransaction(
 }
 
 /**
+ * Deletes a manual transaction, reversing all its effects:
+ *   - Account balance reversed (subtract tx amount)
+ *   - If assigned expense: envelope balance restored
+ *   - If income: availableToAssign reduced
+ *   - Assignment removed (if any)
+ *   - Tx ID removed from both applied sets
+ * Plaid-synced transactions cannot be deleted.
+ */
+export function deleteTransaction(
+  state: AppStateV1,
+  args: { transactionId: string },
+): AppStateV1 {
+  const tx = state.transactions.find((t) => t.id === args.transactionId);
+  if (!tx) {
+    throw new Error("Transaction not found.");
+  }
+
+  if (tx.id.startsWith("plaid-tx-")) {
+    throw new Error("Cannot delete a Plaid-synced transaction.");
+  }
+
+  // Remove from transactions list
+  const nextTransactions = state.transactions.filter(
+    (t) => t.id !== args.transactionId,
+  );
+
+  // Reverse account balance: subtract the original tx amount
+  const reverseDiff = Money.fromCents(-tx.amount.cents);
+  const nextAccounts = state.accounts.map((a) =>
+    a.id === tx.accountId
+      ? { ...a, balance: a.balance.add(reverseDiff) }
+      : a,
+  );
+
+  // Reverse budget effects
+  let nextBudget = state.budget;
+  const assignment =
+    state.inbox.assignmentsByTransactionId[args.transactionId];
+
+  if (assignment && tx.amount.cents < 0) {
+    // Assigned expense: restore envelope balance
+    const restoreAmount = Money.fromCents(Math.abs(tx.amount.cents));
+    nextBudget = {
+      ...nextBudget,
+      envelopes: nextBudget.envelopes.map((env) =>
+        env.id === assignment.envelopeId
+          ? { ...env, balance: env.balance.add(restoreAmount) }
+          : env,
+      ),
+    };
+  } else if (tx.amount.cents > 0) {
+    // Income: reduce availableToAssign
+    nextBudget = {
+      ...nextBudget,
+      availableToAssign: nextBudget.availableToAssign.add(
+        Money.fromCents(-tx.amount.cents),
+      ),
+    };
+  }
+
+  // Remove assignment if it exists
+  const { [args.transactionId]: _, ...nextAssignments } =
+    state.inbox.assignmentsByTransactionId;
+
+  // Remove from applied sets — tx no longer exists
+  const nextAppliedAccount = state.appliedAccountTransactionIds.filter(
+    (id) => id !== args.transactionId,
+  );
+  const nextAppliedBudget = state.appliedBudgetTransactionIds.filter(
+    (id) => id !== args.transactionId,
+  );
+
+  return {
+    ...state,
+    transactions: nextTransactions,
+    accounts: nextAccounts,
+    budget: nextBudget,
+    inbox: {
+      ...state.inbox,
+      assignmentsByTransactionId: nextAssignments,
+    },
+    appliedAccountTransactionIds: nextAppliedAccount,
+    appliedBudgetTransactionIds: nextAppliedBudget,
+    updatedAt: nowIso(),
+  };
+}
+
+/**
  * Edits a transaction's description and/or amount.
  * Plaid-synced transactions (id starts with "plaid-tx-") cannot have their amount changed.
  * When amount changes:

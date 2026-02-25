@@ -58,6 +58,7 @@ type AppStore = {
     description?: string;
     amountCents?: number;
   }) => Promise<void>;
+  deleteTransaction: (transactionId: string) => Promise<void>;
   allocateToEnvelope: (args: {
     envelopeId: string;
     amountCents: number;
@@ -393,6 +394,29 @@ export const useAppStore = create<AppStore>((set, get) => ({
         status: "error",
         errorMessage: err?.message ?? "Failed to edit transaction",
         syncState: syncTransition(get().syncState, { type: "sync-error", error: err?.message ?? "Failed to edit transaction" }),
+      });
+    }
+  },
+
+  deleteTransaction: async (transactionId: string) => {
+    const current = get().state;
+    if (!current) return;
+
+    set({ status: "loading", errorMessage: null, syncState: syncTransition(get().syncState, { type: "sync-start" }) });
+    try {
+      const result = await engine.deleteTransaction({ transactionId });
+      set({
+        state: result.state,
+        status: "ready",
+        lastSyncAt: new Date().toISOString(),
+        syncState: applyOutcome(get().syncState, result.syncOutcome, result.syncError),
+        toast: { text: "Transaction deleted", variant: "info" },
+      });
+    } catch (err: any) {
+      set({
+        status: "error",
+        errorMessage: err?.message ?? "Failed to delete transaction",
+        syncState: syncTransition(get().syncState, { type: "sync-error", error: err?.message ?? "Failed to delete transaction" }),
       });
     }
   },
