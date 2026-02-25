@@ -125,6 +125,28 @@ export default function SettingsScreen() {
     );
   }
 
+  async function handleCopyDebugInfo() {
+    const lines: string[] = [
+      "— Money Shepherd Debug Info —",
+      `App version: 1.0.0`,
+      `User: ${meta?.userId ? userLabel(meta.userId) : "unknown"}`,
+      `Household: ${meta?.householdId ?? "none"}`,
+      `Sync status: ${syncStatusLabel(syncState.status)}`,
+      `Last synced: ${syncState.lastSyncedAt ? formatSyncTime(syncState.lastSyncedAt) : lastSyncAt ? formatSyncTime(lastSyncAt) : "never"}`,
+      `Pending changes: ${syncState.pendingChanges}`,
+      ...(syncState.lastError ? [`Last error: ${syncState.lastError}`] : []),
+      `Feature flags: PLAID=${Features.PLAID}, REMOTE_SYNC=${Features.REMOTE_SYNC}`,
+      `Transactions: ${state?.transactions.length ?? 0}`,
+      `Envelopes: ${state?.budget.envelopes.length ?? 0}`,
+      `Accounts: ${state?.accounts.length ?? 0}`,
+    ];
+    try {
+      await Share.share({ message: lines.join("\n"), title: "Debug Info" });
+    } catch {
+      // User cancelled
+    }
+  }
+
   const otherUser = meta?.userId === "user-los" ? "Jackia" : "Los";
 
   return (
@@ -152,6 +174,12 @@ export default function SettingsScreen() {
       <View style={styles.card}>
         <Text style={styles.cardTitle}>Device</Text>
         <Row label="Household" value={meta?.householdId ?? "—"} />
+        <Divider />
+        <ActionButton
+          label="Share Debug Info"
+          onPress={handleCopyDebugInfo}
+          disabled={isBusy}
+        />
       </View>
 
       {/* Plaid */}
