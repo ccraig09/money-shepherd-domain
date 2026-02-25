@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import { loadSyncMeta, type SyncMeta } from "../../src/infra/local/syncMeta";
+import { clearPin } from "../../src/infra/local/pin";
 import { useAppStore } from "../../src/store/useAppStore";
 import { buildExportPayload } from "../../src/domain/exportData";
 import type { SyncStatus } from "../../src/domain/syncStatus";
@@ -106,6 +107,24 @@ export default function SettingsScreen() {
     }
   }
 
+  function handleResetPin() {
+    Alert.alert(
+      "Reset PIN",
+      "This will clear your PIN. You will need to set a new one on next app launch.",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Reset PIN",
+          style: "destructive",
+          onPress: async () => {
+            await clearPin();
+            useAppStore.setState({ guardState: "needs-pin-setup" });
+          },
+        },
+      ],
+    );
+  }
+
   const otherUser = meta?.userId === "user-los" ? "Jackia" : "Los";
 
   return (
@@ -171,6 +190,15 @@ export default function SettingsScreen() {
           label={`Switch to ${otherUser}`}
           onPress={handleSwitchUser}
           disabled={isBusy || !meta}
+        />
+
+        <Divider />
+
+        <ActionButton
+          label="Reset PIN"
+          onPress={handleResetPin}
+          disabled={isBusy}
+          destructive
         />
 
         <Divider />
