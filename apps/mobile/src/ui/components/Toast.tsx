@@ -1,9 +1,9 @@
 import React from "react";
-import { Animated, Pressable, StyleSheet, Text } from "react-native";
+import { Animated, Pressable, StyleSheet, Text, View } from "react-native";
 import { useAppStore } from "../../store/useAppStore";
 import { Spacing, Radius, FontSize, FontWeight, Color, Shadow } from "../tokens";
 
-const VISIBLE_MS = 2500;
+const DEFAULT_VISIBLE_MS = 2500;
 const FADE_MS = 250;
 
 export function Toast() {
@@ -35,8 +35,9 @@ export function Toast() {
       useNativeDriver: true,
     }).start();
 
-    // Auto-dismiss after VISIBLE_MS
-    timerRef.current = setTimeout(dismiss, VISIBLE_MS);
+    // Auto-dismiss after configured or default duration
+    const duration = toast.durationMs ?? DEFAULT_VISIBLE_MS;
+    timerRef.current = setTimeout(dismiss, duration);
 
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current);
@@ -71,9 +72,26 @@ export function Toast() {
         accessibilityLabel={toast.text}
         accessibilityRole="alert"
       >
-        <Text style={[styles.text, textStyle]} numberOfLines={2}>
-          {toast.text}
-        </Text>
+        <View style={styles.row}>
+          <Text style={[styles.text, textStyle, toast.action && styles.textFlex]} numberOfLines={2}>
+            {toast.text}
+          </Text>
+          {toast.action && (
+            <Pressable
+              onPress={() => {
+                toast.action!.onPress();
+                dismiss();
+              }}
+              style={styles.actionButton}
+              accessibilityLabel={toast.action.label}
+              accessibilityRole="button"
+            >
+              <Text style={[styles.actionText, textStyle]}>
+                {toast.action.label}
+              </Text>
+            </Pressable>
+          )}
+        </View>
       </Pressable>
     </Animated.View>
   );
@@ -94,9 +112,28 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.base,
     paddingVertical: Spacing.md,
   },
+  row: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
   text: {
     fontSize: FontSize.body,
     fontWeight: FontWeight.semibold,
+  },
+  textFlex: {
+    flex: 1,
+  },
+  actionButton: {
+    marginLeft: Spacing.md,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.xs,
+    borderRadius: Radius.sm,
+    backgroundColor: "rgba(0,0,0,0.08)",
+  },
+  actionText: {
+    fontSize: FontSize.body,
+    fontWeight: FontWeight.bold,
   },
   variantSuccess: {
     backgroundColor: Color.successSurface,

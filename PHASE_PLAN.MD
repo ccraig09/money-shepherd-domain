@@ -294,7 +294,7 @@
 
 #### Tier 5 — Safety & Polish
 
-- [ ] MS-23.11 Undo envelope delete (soft delete with undo toast, ~8s recovery window)
+- [x] MS-23.11 Undo envelope delete (soft delete with undo toast, ~8s recovery window)
 - [ ] MS-23.12 Transaction search & filter in Transactions tab
 - [ ] MS-23.13 Transaction attribution — show who assigned/created each transaction
 - [ ] MS-23.14 In-app help tooltips for budgeting concepts

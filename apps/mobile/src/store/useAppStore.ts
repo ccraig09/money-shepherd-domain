@@ -21,7 +21,12 @@ const PLAID_SYNC_TIMEOUT_MS = 15_000;
 type LoadState = "idle" | "loading" | "ready" | "error";
 type GuardState = "checking" | "needs-setup" | "needs-pin-setup" | "needs-pin" | "ready";
 
-type ToastMessage = { text: string; variant: "success" | "error" | "info" };
+type ToastMessage = {
+  text: string;
+  variant: "success" | "error" | "info";
+  action?: { label: string; onPress: () => void };
+  durationMs?: number;
+};
 
 type AppStore = {
   // state
@@ -46,6 +51,7 @@ type AppStore = {
   createEnvelope: (name: string, type?: import("@money-shepherd/domain").EnvelopeType) => Promise<void>;
   renameEnvelope: (envelopeId: string, name: string) => Promise<void>;
   deleteEnvelope: (envelopeId: string) => Promise<void>;
+  undoDelete: () => Promise<void>;
   setTransactionNote: (transactionId: string, note: string) => Promise<void>;
   assignTransaction: (args: {
     transactionId: string;
@@ -86,6 +92,11 @@ type AppStore = {
 };
 
 const engine = createEngine();
+
+// Undo-delete transient state (not persisted)
+let _undoSnapshot: AppStateV1 | null = null;
+let _undoTimer: ReturnType<typeof setTimeout> | null = null;
+const UNDO_WINDOW_MS = 8_000;
 
 // Wire debounced push callback — updates syncState when the push settles.
 engine.onSyncResult = ({ syncOutcome, syncError }) => {
@@ -277,21 +288,67 @@ export const useAppStore = create<AppStore>((set, get) => ({
     const current = get().state;
     if (!current) return;
 
+    // Find envelope name before deleting (for toast message)
+    const envName = current.budget.envelopes.find((e) => e.id === envelopeId)?.name ?? "Envelope";
+
+    // Save snapshot for undo
+    _undoSnapshot = current;
+    if (_undoTimer) clearTimeout(_undoTimer);
+
     set({ status: "loading", errorMessage: null, syncState: syncTransition(get().syncState, { type: "sync-start" }) });
     try {
       const result = await engine.deleteEnvelope({ envelopeId });
+      // Start undo timer — clears snapshot after window expires
+      _undoTimer = setTimeout(() => {
+        _undoSnapshot = null;
+        _undoTimer = null;
+      }, UNDO_WINDOW_MS);
       set({
         state: result.state,
         status: "ready",
         lastSyncAt: new Date().toISOString(),
         syncState: applyOutcome(get().syncState, result.syncOutcome, result.syncError),
-        toast: { text: "Envelope deleted", variant: "info" },
+        toast: {
+          text: `Deleted ${envName}`,
+          variant: "info",
+          action: { label: "Undo", onPress: () => get().undoDelete() },
+          durationMs: UNDO_WINDOW_MS,
+        },
       });
     } catch (err: any) {
+      _undoSnapshot = null;
       set({
         status: "error",
         errorMessage: err?.message ?? "Failed to delete envelope",
         syncState: syncTransition(get().syncState, { type: "sync-error", error: err?.message ?? "Failed to delete envelope" }),
+      });
+    }
+  },
+
+  undoDelete: async () => {
+    const snapshot = _undoSnapshot;
+    if (!snapshot) return;
+
+    // Clear undo state
+    if (_undoTimer) clearTimeout(_undoTimer);
+    _undoTimer = null;
+    _undoSnapshot = null;
+
+    set({ status: "loading", errorMessage: null, syncState: syncTransition(get().syncState, { type: "sync-start" }) });
+    try {
+      const result = await engine.importState(snapshot);
+      set({
+        state: result.state,
+        status: "ready",
+        lastSyncAt: new Date().toISOString(),
+        syncState: applyOutcome(get().syncState, result.syncOutcome, result.syncError),
+        toast: { text: "Envelope restored", variant: "success" },
+      });
+    } catch (err: any) {
+      set({
+        status: "error",
+        errorMessage: err?.message ?? "Failed to restore envelope",
+        syncState: syncTransition(get().syncState, { type: "sync-error", error: err?.message ?? "Failed to restore envelope" }),
       });
     }
   },
