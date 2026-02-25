@@ -94,81 +94,84 @@ export default function AllocateScreen() {
           )}
         </View>
 
-        {/* Envelope picker */}
-        <Text style={styles.sectionLabel}>Choose an envelope</Text>
-
-        {envelopes.length === 0 ? (
-          <View style={styles.noEnvelopes}>
-            <Text style={styles.noEnvelopesText}>No envelopes yet.</Text>
-            <Pressable
-              onPress={() => {
-                router.back();
-                router.push("/create-envelope");
-              }}
-              style={styles.createBtn}
-              accessibilityLabel="Create an envelope first"
-            >
-              <Text style={styles.createBtnText}>Create an envelope first</Text>
-            </Pressable>
-          </View>
-        ) : (
+        {/* When Available = $0, don't show envelope picker — just the CTA above */}
+        {!isZeroAvailable && (
           <>
-            <View style={styles.envelopeList}>
-              {envelopes.map((item) => {
-                const isSelected = item.id === selectedEnvelopeId;
-                return (
-                  <Pressable
-                    key={item.id}
-                    style={[styles.envelopeRow, isSelected && styles.envelopeRowSelected]}
-                    onPress={() => setSelectedEnvelopeId(item.id)}
-                    disabled={isZeroAvailable}
-                    accessibilityLabel={`Select ${item.name}`}
-                  >
-                    <Text style={[styles.envelopeName, isSelected && styles.envelopeNameSelected]}>
-                      {item.name}
-                    </Text>
-                    <Text style={[styles.envelopeBalance, isSelected && styles.envelopeBalanceSelected]}>
-                      ${formatMoney(item.balance.cents)}
-                    </Text>
-                  </Pressable>
-                );
-              })}
-            </View>
+            {/* Envelope picker */}
+            <Text style={styles.sectionLabel}>Choose an envelope</Text>
 
-            {/* Amount input */}
-            <Text style={styles.sectionLabel}>Amount</Text>
-            <MoneyInput
-              value={rawAmount}
-              onChangeText={setRawAmount}
-              error={amountError}
-              onErrorClear={() => setAmountError(null)}
-              placeholder="e.g. 50.00"
-              editable={!isZeroAvailable}
-              accessibilityLabel="Amount to allocate in dollars"
-            />
+            {envelopes.length === 0 ? (
+              <View style={styles.noEnvelopes}>
+                <Text style={styles.noEnvelopesText}>No envelopes yet.</Text>
+                <Pressable
+                  onPress={() => {
+                    router.back();
+                    router.push("/create-envelope");
+                  }}
+                  style={styles.createBtn}
+                  accessibilityLabel="Create an envelope first"
+                >
+                  <Text style={styles.createBtnText}>Create an envelope first</Text>
+                </Pressable>
+              </View>
+            ) : (
+              <>
+                <View style={styles.envelopeList}>
+                  {envelopes.map((item) => {
+                    const isSelected = item.id === selectedEnvelopeId;
+                    return (
+                      <Pressable
+                        key={item.id}
+                        style={[styles.envelopeRow, isSelected && styles.envelopeRowSelected]}
+                        onPress={() => setSelectedEnvelopeId(item.id)}
+                        accessibilityLabel={`Select ${item.name}`}
+                      >
+                        <Text style={[styles.envelopeName, isSelected && styles.envelopeNameSelected]}>
+                          {item.name}
+                        </Text>
+                        <Text style={[styles.envelopeBalance, isSelected && styles.envelopeBalanceSelected]}>
+                          ${formatMoney(item.balance.cents)}
+                        </Text>
+                      </Pressable>
+                    );
+                  })}
+                </View>
 
-            {/* Actions */}
-            <Pressable
-              onPress={handleAllocate}
-              disabled={!selectedEnvelopeId || saving || isZeroAvailable}
-              style={[
-                styles.allocateBtn,
-                (!selectedEnvelopeId || saving || isZeroAvailable) && styles.allocateBtnDisabled,
-              ]}
-              accessibilityLabel="Confirm allocation"
-            >
-              <Text style={styles.allocateBtnText}>
-                {saving ? "Allocating…" : "Allocate"}
-              </Text>
-            </Pressable>
+                {/* Amount input */}
+                <Text style={styles.sectionLabel}>Amount</Text>
+                <MoneyInput
+                  value={rawAmount}
+                  onChangeText={setRawAmount}
+                  error={amountError}
+                  onErrorClear={() => setAmountError(null)}
+                  placeholder="e.g. 50.00"
+                  accessibilityLabel="Amount to allocate in dollars"
+                />
 
-            <Pressable
-              onPress={() => router.back()}
-              style={styles.cancelBtn}
-              accessibilityLabel="Cancel"
-            >
-              <Text style={styles.cancelText}>Cancel</Text>
-            </Pressable>
+                {/* Actions */}
+                <Pressable
+                  onPress={handleAllocate}
+                  disabled={!selectedEnvelopeId || saving}
+                  style={[
+                    styles.allocateBtn,
+                    (!selectedEnvelopeId || saving) && styles.allocateBtnDisabled,
+                  ]}
+                  accessibilityLabel="Confirm allocation"
+                >
+                  <Text style={styles.allocateBtnText}>
+                    {saving ? "Allocating…" : "Allocate"}
+                  </Text>
+                </Pressable>
+
+                <Pressable
+                  onPress={() => router.back()}
+                  style={styles.cancelBtn}
+                  accessibilityLabel="Cancel"
+                >
+                  <Text style={styles.cancelText}>Cancel</Text>
+                </Pressable>
+              </>
+            )}
           </>
         )}
       </ScrollView>

@@ -243,7 +243,7 @@
 - [x] MS-19.16a Fix Plaid account balances — account type, balance initialization, cash vs debt (#129)
 - [x] MS-19.14.1 Re-seed Available when additional accounts are connected (after 19.16a)
 - [x] MS-19.16 Feedback & confirmation polish (enhanced toasts: assign, note save, user switch)
-- [ ] MS-19.17 Empty state & dead-end fixes (Inbox empty state, Allocate zero-balance)
+- [x] MS-19.17 Empty state & dead-end fixes (Inbox empty state, Allocate zero-balance)
 - [ ] MS-19.18 Overspend warnings & source indicators (Plaid badge, overspent badge, assign warning)
 - [ ] MS-19.6 Core tests
 - [ ] MS-19.3 Export

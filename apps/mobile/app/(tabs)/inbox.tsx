@@ -64,6 +64,16 @@ export default function InboxScreen() {
         <Card style={styles.empty}>
           <Text style={styles.emptyText}>Inbox is clear.</Text>
           <Text style={styles.emptyHint}>Assigned transactions will no longer appear here.</Text>
+          <View style={styles.nextActions}>
+            <Text style={styles.nextLabel}>Next:</Text>
+            <Pressable onPress={() => router.push("/add-transaction")} accessibilityRole="link">
+              <Text style={styles.nextLink}>Add income to allocate</Text>
+            </Pressable>
+            <Text style={styles.nextSep}>or</Text>
+            <Pressable onPress={() => router.push("/(tabs)/envelopes")} accessibilityRole="link">
+              <Text style={styles.nextLink}>view your Envelopes</Text>
+            </Pressable>
+          </View>
         </Card>
       ) : (
         <FlatList
@@ -162,6 +172,17 @@ const styles = StyleSheet.create({
   },
   emptyText: { fontSize: FontSize.subtitle, fontWeight: FontWeight.bold, color: Color.success },
   emptyHint: { fontSize: FontSize.body, color: Color.textMuted, textAlign: "center" },
+  nextActions: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "center",
+    alignItems: "center",
+    gap: 4,
+    marginTop: Spacing.sm,
+  },
+  nextLabel: { fontSize: FontSize.small, color: Color.textMuted },
+  nextLink: { fontSize: FontSize.small, color: Color.primary, fontWeight: FontWeight.semibold },
+  nextSep: { fontSize: FontSize.small, color: Color.textMuted },
   list: { paddingVertical: Spacing.sm },
   row: {
     flexDirection: "row",
