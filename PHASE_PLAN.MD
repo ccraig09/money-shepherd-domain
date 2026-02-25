@@ -283,7 +283,7 @@
 #### Tier 3 — Budget Periods + Envelope Goals
 
 - [x] MS-23.5 Budget period model (domain: period bounds, spending-in-period, funding-in-period helpers)
-- [ ] MS-23.6 Envelope goal targets (activate goal field as monthly funding target + set/clear in UI)
+- [x] MS-23.6 Envelope goal targets (activate goal field as monthly funding target + set/clear in UI)
 - [ ] MS-23.7 Period-aware dashboard ("This Month" summary card, per-envelope monthly spend)
 - [ ] MS-23.8 Envelope fill flow (paycheck → guided allocation screen with targets as guide)
 

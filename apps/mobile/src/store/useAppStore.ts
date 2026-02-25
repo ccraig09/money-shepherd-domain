@@ -64,6 +64,8 @@ type AppStore = {
     toEnvelopeId: string;
     amountCents: number;
   }) => Promise<void>;
+  setEnvelopeGoal: (envelopeId: string, goalCents: number) => Promise<void>;
+  clearEnvelopeGoal: (envelopeId: string) => Promise<void>;
   allocateToEnvelope: (args: {
     envelopeId: string;
     amountCents: number;
@@ -447,6 +449,52 @@ export const useAppStore = create<AppStore>((set, get) => ({
         status: "error",
         errorMessage: err?.message ?? "Failed to transfer",
         syncState: syncTransition(get().syncState, { type: "sync-error", error: err?.message ?? "Failed to transfer" }),
+      });
+    }
+  },
+
+  setEnvelopeGoal: async (envelopeId: string, goalCents: number) => {
+    const current = get().state;
+    if (!current) return;
+
+    set({ status: "loading", errorMessage: null, syncState: syncTransition(get().syncState, { type: "sync-start" }) });
+    try {
+      const result = await engine.setEnvelopeGoal({ envelopeId, goalCents });
+      set({
+        state: result.state,
+        status: "ready",
+        lastSyncAt: new Date().toISOString(),
+        syncState: applyOutcome(get().syncState, result.syncOutcome, result.syncError),
+        toast: { text: "Monthly goal set", variant: "success" },
+      });
+    } catch (err: any) {
+      set({
+        status: "error",
+        errorMessage: err?.message ?? "Failed to set goal",
+        syncState: syncTransition(get().syncState, { type: "sync-error", error: err?.message ?? "Failed to set goal" }),
+      });
+    }
+  },
+
+  clearEnvelopeGoal: async (envelopeId: string) => {
+    const current = get().state;
+    if (!current) return;
+
+    set({ status: "loading", errorMessage: null, syncState: syncTransition(get().syncState, { type: "sync-start" }) });
+    try {
+      const result = await engine.clearEnvelopeGoal({ envelopeId });
+      set({
+        state: result.state,
+        status: "ready",
+        lastSyncAt: new Date().toISOString(),
+        syncState: applyOutcome(get().syncState, result.syncOutcome, result.syncError),
+        toast: { text: "Goal cleared", variant: "info" },
+      });
+    } catch (err: any) {
+      set({
+        status: "error",
+        errorMessage: err?.message ?? "Failed to clear goal",
+        syncState: syncTransition(get().syncState, { type: "sync-error", error: err?.message ?? "Failed to clear goal" }),
       });
     }
   },

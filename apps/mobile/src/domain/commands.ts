@@ -1,4 +1,4 @@
-import { Money, unassignTransaction as unassignTxDomain } from "@money-shepherd/domain";
+import { Money, unassignTransaction as unassignTxDomain, setEnvelopeGoal as setGoalDomain, clearEnvelopeGoal as clearGoalDomain } from "@money-shepherd/domain";
 import { nowIso, makeId } from "../lib/id";
 import type { AppStateV1 } from "./appState";
 
@@ -527,4 +527,28 @@ export function transferBetweenEnvelopes(
     },
     updatedAt: nowIso(),
   };
+}
+
+/**
+ * Sets a monthly funding goal on an envelope.
+ * Delegates validation to the domain function.
+ */
+export function setEnvelopeGoal(
+  state: AppStateV1,
+  args: { envelopeId: string; goalCents: number },
+): AppStateV1 {
+  const goal = Money.fromCents(args.goalCents);
+  const budget = setGoalDomain(state.budget, args.envelopeId, goal);
+  return { ...state, budget, updatedAt: nowIso() };
+}
+
+/**
+ * Removes the monthly funding goal from an envelope.
+ */
+export function clearEnvelopeGoal(
+  state: AppStateV1,
+  args: { envelopeId: string },
+): AppStateV1 {
+  const budget = clearGoalDomain(state.budget, args.envelopeId);
+  return { ...state, budget, updatedAt: nowIso() };
 }

@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import {
   View,
   Text,
@@ -7,10 +7,13 @@ import {
   Alert,
   StyleSheet,
   ScrollView,
+  TextInput,
+  Modal,
 } from "react-native";
 import { router, Stack, useLocalSearchParams } from "expo-router";
 import { useAppStore } from "../../src/store/useAppStore";
 import { formatMoney } from "../../src/lib/moneyFormat";
+import { parseDollars } from "../../src/lib/moneyInput";
 import { Card } from "../../src/ui/components/Card";
 import { SectionHeader } from "../../src/ui/components/SectionHeader";
 import { Spacing, Radius, FontSize, FontWeight, Color } from "../../src/ui/tokens";
@@ -20,6 +23,11 @@ export default function EnvelopeDetailScreen() {
   const { envelopeId } = useLocalSearchParams<{ envelopeId: string }>();
   const state = useAppStore((s) => s.state);
   const deleteEnvelopeAction = useAppStore((s) => s.deleteEnvelope);
+  const setGoalAction = useAppStore((s) => s.setEnvelopeGoal);
+  const clearGoalAction = useAppStore((s) => s.clearEnvelopeGoal);
+
+  const [goalModalVisible, setGoalModalVisible] = useState(false);
+  const [goalInput, setGoalInput] = useState("");
 
   // Derive transactions assigned to this envelope
   const { assignmentByTxId, assignedTxs } = useMemo(() => {
@@ -116,6 +124,49 @@ export default function EnvelopeDetailScreen() {
         >
           ${formatMoney(envelope.balance.cents)}
         </Text>
+
+        {/* Goal row */}
+        <View style={styles.goalRow}>
+          <Text style={styles.goalLabel}>
+            {envelope.goal
+              ? `Monthly goal: $${formatMoney(envelope.goal.cents)}`
+              : "No monthly goal"}
+          </Text>
+          <Pressable
+            onPress={() => {
+              if (envelope.goal) {
+                setGoalInput(formatMoney(envelope.goal.cents));
+              } else {
+                setGoalInput("");
+              }
+              setGoalModalVisible(true);
+            }}
+            hitSlop={8}
+            accessibilityLabel={envelope.goal ? "Edit goal" : "Set goal"}
+          >
+            <Text style={styles.goalAction}>
+              {envelope.goal ? "Edit" : "Set Goal"}
+            </Text>
+          </Pressable>
+          {envelope.goal && (
+            <Pressable
+              onPress={() => {
+                Alert.alert("Clear Goal", "Remove the monthly goal from this envelope?", [
+                  { text: "Cancel", style: "cancel" },
+                  {
+                    text: "Clear",
+                    style: "destructive",
+                    onPress: () => clearGoalAction(envelopeId),
+                  },
+                ]);
+              }}
+              hitSlop={8}
+              accessibilityLabel="Clear goal"
+            >
+              <Text style={styles.goalClear}>Clear</Text>
+            </Pressable>
+          )}
+        </View>
 
         {/* Allocate CTA */}
         <Pressable
@@ -227,6 +278,57 @@ export default function EnvelopeDetailScreen() {
           />
         </Card>
       )}
+      {/* Set Goal Modal */}
+      <Modal
+        visible={goalModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setGoalModalVisible(false)}
+      >
+        <Pressable
+          style={styles.modalOverlay}
+          onPress={() => setGoalModalVisible(false)}
+        >
+          <Pressable style={styles.modalContent} onPress={() => {}}>
+            <Text style={styles.modalTitle}>Monthly Goal</Text>
+            <Text style={styles.modalHint}>
+              How much do you want to put into this envelope each month?
+            </Text>
+            <View style={styles.modalInputRow}>
+              <Text style={styles.modalDollarSign}>$</Text>
+              <TextInput
+                style={styles.modalInput}
+                value={goalInput}
+                onChangeText={setGoalInput}
+                keyboardType="decimal-pad"
+                placeholder="0.00"
+                placeholderTextColor={Color.textSubtle}
+                autoFocus
+              />
+            </View>
+            <Pressable
+              onPress={() => {
+                const parsed = parseDollars(goalInput);
+                if (!parsed.ok) {
+                  Alert.alert("Invalid Amount", parsed.error);
+                  return;
+                }
+                setGoalAction(envelopeId, parsed.cents);
+                setGoalModalVisible(false);
+              }}
+              style={styles.modalSaveBtn}
+            >
+              <Text style={styles.modalSaveBtnText}>Save Goal</Text>
+            </Pressable>
+            <Pressable
+              onPress={() => setGoalModalVisible(false)}
+              style={styles.modalCancelBtn}
+            >
+              <Text style={styles.modalCancelBtnText}>Cancel</Text>
+            </Pressable>
+          </Pressable>
+        </Pressable>
+      </Modal>
     </ScrollView>
   );
 }
@@ -279,6 +381,63 @@ const styles = StyleSheet.create({
   balance: { fontSize: FontSize.hero, fontWeight: FontWeight.extrabold, color: Color.success },
   balanceNegative: { color: Color.error },
   balanceZero: { color: Color.textMuted },
+
+  // Goal row
+  goalRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.sm,
+    marginTop: Spacing.sm,
+  },
+  goalLabel: { fontSize: FontSize.small, color: Color.textMuted },
+  goalAction: { fontSize: FontSize.small, fontWeight: FontWeight.semibold, color: Color.primary },
+  goalClear: { fontSize: FontSize.small, fontWeight: FontWeight.semibold, color: Color.error },
+
+  // Goal modal
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.4)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalContent: {
+    backgroundColor: Color.surface,
+    borderRadius: Radius.lg,
+    padding: Spacing.lg,
+    width: "85%",
+    maxWidth: 360,
+    gap: Spacing.md,
+  },
+  modalTitle: { fontSize: FontSize.subtitle, fontWeight: FontWeight.bold, color: Color.textDark, textAlign: "center" },
+  modalHint: { fontSize: FontSize.small, color: Color.textMuted, textAlign: "center" },
+  modalInputRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: Color.border,
+    borderRadius: Radius.md,
+    paddingHorizontal: Spacing.md,
+  },
+  modalDollarSign: { fontSize: FontSize.subtitle, fontWeight: FontWeight.bold, color: Color.textMid, marginRight: Spacing.xs },
+  modalInput: {
+    flex: 1,
+    fontSize: FontSize.subtitle,
+    fontWeight: FontWeight.bold,
+    color: Color.textDark,
+    paddingVertical: Spacing.md,
+  },
+  modalSaveBtn: {
+    backgroundColor: Color.primary,
+    borderRadius: Radius.pill,
+    paddingVertical: Spacing.md,
+    alignItems: "center",
+  },
+  modalSaveBtnText: { fontSize: FontSize.body, fontWeight: FontWeight.bold, color: Color.textOnColor },
+  modalCancelBtn: {
+    paddingVertical: Spacing.sm,
+    alignItems: "center",
+  },
+  modalCancelBtnText: { fontSize: FontSize.body, color: Color.textMuted },
 
   // Allocate CTA
   allocateBtn: {

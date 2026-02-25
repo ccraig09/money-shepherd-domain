@@ -6,7 +6,7 @@ import {
 import { ensureAnonAuth } from "../infra/firebase/firebaseClient";
 import { HouseholdStateRepo } from "../infra/remote/householdStateRepo";
 import { loadSyncMeta, saveSyncMeta } from "../infra/local/syncMeta";
-import { createEnvelope, renameEnvelope, deleteEnvelope, setTransactionNote, assignTransaction, unassignTransaction, editTransaction, deleteTransaction, transferBetweenEnvelopes, seedBudgetFromBalances } from "./commands";
+import { createEnvelope, renameEnvelope, deleteEnvelope, setTransactionNote, assignTransaction, unassignTransaction, editTransaction, deleteTransaction, transferBetweenEnvelopes, seedBudgetFromBalances, setEnvelopeGoal, clearEnvelopeGoal } from "./commands";
 import { allocateToEnvelope } from "./allocate";
 import type { AppStateV1 } from "./appState";
 import { APP_STATE_VERSION } from "./appState";
@@ -79,6 +79,8 @@ export type Engine = {
     toEnvelopeId: string;
     amountCents: number;
   }): Promise<RecomputeResult>;
+  setEnvelopeGoal(args: { envelopeId: string; goalCents: number }): Promise<RecomputeResult>;
+  clearEnvelopeGoal(args: { envelopeId: string }): Promise<RecomputeResult>;
   allocateToEnvelope(args: {
     envelopeId: string;
     amountCents: number;
@@ -213,6 +215,23 @@ export function createEngine(): Engine {
   }): Promise<RecomputeResult> {
     const state = await getState();
     const next = transferBetweenEnvelopes(state, args);
+    return recompute(next);
+  }
+
+  async function setEnvelopeGoalAction(args: {
+    envelopeId: string;
+    goalCents: number;
+  }): Promise<RecomputeResult> {
+    const state = await getState();
+    const next = setEnvelopeGoal(state, args);
+    return recompute(next);
+  }
+
+  async function clearEnvelopeGoalAction(args: {
+    envelopeId: string;
+  }): Promise<RecomputeResult> {
+    const state = await getState();
+    const next = clearEnvelopeGoal(state, args);
     return recompute(next);
   }
 
@@ -581,6 +600,8 @@ export function createEngine(): Engine {
     editTransaction: editTransactionAction,
     deleteTransaction: deleteTransactionAction,
     transferBetweenEnvelopes: transferBetweenEnvelopesAction,
+    setEnvelopeGoal: setEnvelopeGoalAction,
+    clearEnvelopeGoal: clearEnvelopeGoalAction,
     allocateToEnvelope: allocateToEnvelopeAction,
     seedBudgetFromBalances: seedBudget,
     importPlaidAccounts,
