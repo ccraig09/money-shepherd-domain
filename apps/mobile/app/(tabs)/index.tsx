@@ -17,6 +17,7 @@ import { ProgressBar } from "../../src/ui/components/ProgressBar";
 import { SectionHeader } from "../../src/ui/components/SectionHeader";
 import { AccountsCard } from "../../src/ui/components/AccountsCard";
 import { Spacing, Radius, FontSize, FontWeight, Color } from "../../src/ui/tokens";
+import { getThisMonthSummary } from "../../src/lib/periodSummary";
 
 export default function DashboardScreen() {
   const state = useAppStore((s) => s.state);
@@ -37,6 +38,17 @@ export default function DashboardScreen() {
     return state.transactions.filter(
       (tx) => tx.amount.cents < 0 && !assignedTxIds.has(tx.id),
     ).length;
+  }, [state]);
+
+  const monthSummary = useMemo(() => {
+    if (!state) return null;
+    const now = new Date().toISOString().slice(0, 10);
+    return getThisMonthSummary(
+      state.transactions,
+      state.inbox.assignmentsByTransactionId,
+      state.budget.envelopes,
+      now,
+    );
   }, [state]);
 
   if (!state) {
@@ -88,6 +100,38 @@ export default function DashboardScreen() {
 
       {/* Daily scripture */}
       <ScriptureStrip />
+
+      {/* This Month summary */}
+      {monthSummary && (monthSummary.incomeCents > 0 || monthSummary.spendingCents > 0) && (
+        <Card style={styles.monthCard}>
+          <Text style={styles.monthTitle}>This Month</Text>
+          <View style={styles.monthRow}>
+            <View style={styles.monthStat}>
+              <Text style={styles.monthStatLabel}>Income</Text>
+              <Text style={[styles.monthStatValue, styles.monthIncome]}>
+                +${formatMoney(monthSummary.incomeCents)}
+              </Text>
+            </View>
+            <View style={styles.monthStat}>
+              <Text style={styles.monthStatLabel}>Spending</Text>
+              <Text style={[styles.monthStatValue, styles.monthSpending]}>
+                -${formatMoney(monthSummary.spendingCents)}
+              </Text>
+            </View>
+            <View style={styles.monthStat}>
+              <Text style={styles.monthStatLabel}>Net</Text>
+              <Text
+                style={[
+                  styles.monthStatValue,
+                  monthSummary.netCents >= 0 ? styles.monthIncome : styles.monthSpending,
+                ]}
+              >
+                {monthSummary.netCents >= 0 ? "+" : "-"}${formatMoney(Math.abs(monthSummary.netCents))}
+              </Text>
+            </View>
+          </View>
+        </Card>
+      )}
 
       {/* Seed budget nudge — show when not yet seeded, or when new accounts need seeding */}
       {state.accounts.length > 0 &&
@@ -223,6 +267,11 @@ export default function DashboardScreen() {
                       ${formatMoney(env.balance.cents)}
                     </Text>
                   </View>
+                  {monthSummary && (monthSummary.spentByEnvelope[env.id] ?? 0) > 0 && (
+                    <Text style={styles.envelopeSpentMonth}>
+                      ${formatMoney(monthSummary.spentByEnvelope[env.id])} spent this month
+                    </Text>
+                  )}
                   <ProgressBar balance={env.balance.cents} goal={env.goal?.cents} />
                 </View>
               </Pressable>
@@ -271,6 +320,30 @@ const styles = StyleSheet.create({
   },
   heroStatLabel: { fontSize: FontSize.small, color: "rgba(255,255,255,0.75)" },
   heroStatValue: { fontSize: FontSize.small, fontWeight: FontWeight.semibold, color: Color.textOnColor },
+
+  // This Month card
+  monthCard: {
+    marginHorizontal: Spacing.base,
+    marginBottom: Spacing.base,
+    padding: Spacing.base,
+  },
+  monthTitle: {
+    fontSize: FontSize.small,
+    fontWeight: FontWeight.semibold,
+    color: Color.textMuted,
+    textTransform: "uppercase" as const,
+    letterSpacing: 0.5,
+    marginBottom: Spacing.md,
+  },
+  monthRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+  monthStat: { alignItems: "center", flex: 1 },
+  monthStatLabel: { fontSize: FontSize.caption, color: Color.textMuted, marginBottom: Spacing.xs },
+  monthStatValue: { fontSize: FontSize.body, fontWeight: FontWeight.bold },
+  monthIncome: { color: Color.success },
+  monthSpending: { color: Color.error },
 
   // Seed nudge
   seedNudge: {
@@ -387,6 +460,7 @@ const styles = StyleSheet.create({
     backgroundColor: Color.errorSurface,
   },
   overspentBadgeText: { fontSize: 9, fontWeight: FontWeight.bold, color: Color.error, letterSpacing: 0.5 },
+  envelopeSpentMonth: { fontSize: FontSize.caption, color: Color.textMuted },
   envelopeBalance: { fontSize: FontSize.body, fontWeight: FontWeight.semibold, color: Color.success, marginLeft: Spacing.md },
   envelopeBalanceNegative: { color: Color.error },
 });
