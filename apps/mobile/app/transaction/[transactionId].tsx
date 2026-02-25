@@ -28,6 +28,7 @@ export default function TransactionDetailScreen() {
 
   const [draft, setDraft] = React.useState(note);
   const [saving, setSaving] = React.useState(false);
+  const [saved, setSaved] = React.useState(false);
   const dirty = draft.trim() !== note;
 
   // Sync draft if note changes externally
@@ -73,6 +74,8 @@ export default function TransactionDetailScreen() {
     setSaving(true);
     try {
       await setTransactionNote(transactionId!, trimmed);
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
     } finally {
       setSaving(false);
     }
@@ -140,6 +143,9 @@ export default function TransactionDetailScreen() {
             <Text style={styles.charCount}>
               {draft.trim().length}/{MAX_NOTE_LENGTH}
             </Text>
+            {saved && !dirty && (
+              <Text style={styles.savedLabel}>Saved</Text>
+            )}
             {dirty && (
               <Pressable
                 onPress={handleSaveNote}
@@ -259,4 +265,5 @@ const styles = StyleSheet.create({
   },
   saveBtnDisabled: { opacity: 0.6 },
   saveBtnText: { color: Color.textOnColor, fontSize: 14, fontWeight: FontWeight.semibold },
+  savedLabel: { fontSize: FontSize.caption, color: Color.success, fontWeight: FontWeight.semibold },
 });

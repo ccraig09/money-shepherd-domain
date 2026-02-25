@@ -12,6 +12,7 @@ import { mapPlaidTransactions } from "../infra/plaid/mapTransaction";
 import { mapPlaidAccounts } from "../infra/plaid/mapAccounts";
 import { classifyPlaidError, makePlaidError, type PlaidErrorInfo } from "../infra/plaid/errors";
 import { withTimeout } from "../lib/timeout";
+import { formatMoney } from "../lib/moneyFormat";
 import { Features } from "../config/features";
 
 const REFRESH_COOLDOWN_MS = 2 * 60 * 1000; // 2 minutes
@@ -188,7 +189,9 @@ export const useAppStore = create<AppStore>((set, get) => ({
       const meta = await loadSyncMeta();
       if (!meta) return;
       const nextUserId = meta.userId === "user-los" ? "user-jackia" : "user-los";
+      const displayName = nextUserId === "user-los" ? "Los" : "Jackia";
       await saveSyncMeta({ ...meta, userId: nextUserId });
+      set({ toast: { text: `Switched to ${displayName}`, variant: "success" } });
     } catch (err: any) {
       set({ status: "error", errorMessage: err?.message ?? "Failed to switch user" });
     }
@@ -308,13 +311,21 @@ export const useAppStore = create<AppStore>((set, get) => ({
       const envelopeName = result.state.budget.envelopes.find(
         (e) => e.id === args.envelopeId,
       )?.name;
+      const tx = result.state.transactions.find((t) => t.id === args.transactionId);
+      const toastParts: string[] = [];
+      if (tx) {
+        const sign = tx.amount.cents < 0 ? "-" : "";
+        toastParts.push(`${sign}$${formatMoney(Math.abs(tx.amount.cents))}`);
+        if (tx.description) toastParts.push(tx.description);
+      }
+      if (envelopeName) toastParts.push(`→ ${envelopeName}`);
       set({
         state: result.state,
         status: "ready",
         lastSyncAt: new Date().toISOString(),
         syncState: applyOutcome(get().syncState, result.syncOutcome, result.syncError),
         toast: {
-          text: envelopeName ? `Assigned to ${envelopeName}` : "Transaction assigned",
+          text: toastParts.length > 0 ? toastParts.join(" ") : "Transaction assigned",
           variant: "success",
         },
       });
