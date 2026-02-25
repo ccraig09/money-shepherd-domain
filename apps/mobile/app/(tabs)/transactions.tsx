@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import {
   View,
   Text,
@@ -41,6 +41,24 @@ export default function TransactionsScreen() {
     }
   }
 
+  const sections = useMemo(() => {
+    if (!state) return [];
+    const sorted = [...state.transactions].sort(
+      (a, b) => b.postedAt.localeCompare(a.postedAt),
+    );
+    return groupByDate(sorted);
+  }, [state]);
+
+  const assignedTxIds = useMemo(
+    () => {
+      if (!state) return new Set<string>();
+      return new Set(
+        Object.values(state.inbox.assignmentsByTransactionId).map((a) => a.transactionId),
+      );
+    },
+    [state],
+  );
+
   if (!state) {
     return (
       <View style={styles.center}>
@@ -50,15 +68,6 @@ export default function TransactionsScreen() {
   }
 
   const accounts = state.accounts;
-  const transactions = [...state.transactions].sort(
-    (a, b) => b.postedAt.localeCompare(a.postedAt),
-  );
-
-  const sections = groupByDate(transactions);
-
-  const assignedTxIds = new Set(
-    Object.values(state.inbox.assignmentsByTransactionId).map((a) => a.transactionId),
-  );
 
   function accountName(accountId: string): string {
     return accounts.find((a) => a.id === accountId)?.name ?? accountId;
@@ -116,7 +125,7 @@ export default function TransactionsScreen() {
         />
       )}
 
-      {transactions.length === 0 ? (
+      {state.transactions.length === 0 ? (
         <Card style={styles.empty}>
           <Text style={styles.emptyText}>No transactions yet.</Text>
           <Pressable

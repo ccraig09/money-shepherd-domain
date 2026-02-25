@@ -251,7 +251,7 @@
 - [x] MS-19.7 Release checklist
 - [x] MS-19.10 Install plan
 - [x] MS-19.11 Security sanity
-- [ ] MS-19.9 Performance sanity
+- [x] MS-19.9 Performance sanity
 - [ ] MS-19.12 Support bundle (optional)
 
 ### Phase 19 Smoke Check

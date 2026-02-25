@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import {
   View,
   Text,
@@ -21,6 +21,24 @@ import { Spacing, Radius, FontSize, FontWeight, Color } from "../../src/ui/token
 export default function DashboardScreen() {
   const state = useAppStore((s) => s.state);
 
+  const totalEnvelopeCents = useMemo(
+    () => state?.budget.envelopes.reduce((sum, e) => sum + e.balance.cents, 0) ?? 0,
+    [state],
+  );
+
+  // Unassigned expenses — nudge the user to assign them
+  const unassignedExpenseCount = useMemo(() => {
+    if (!state) return 0;
+    const assignedTxIds = new Set(
+      Object.values(state.inbox.assignmentsByTransactionId).map(
+        (a) => a.transactionId,
+      ),
+    );
+    return state.transactions.filter(
+      (tx) => tx.amount.cents < 0 && !assignedTxIds.has(tx.id),
+    ).length;
+  }, [state]);
+
   if (!state) {
     return (
       <View style={styles.center}>
@@ -30,20 +48,6 @@ export default function DashboardScreen() {
   }
 
   const availableCents = state.budget.availableToAssign.cents;
-  const totalEnvelopeCents = state.budget.envelopes.reduce(
-    (sum, e) => sum + e.balance.cents,
-    0,
-  );
-
-  // Unassigned expenses — nudge the user to assign them
-  const assignedTxIds = new Set(
-    Object.values(state.inbox.assignmentsByTransactionId).map(
-      (a) => a.transactionId,
-    ),
-  );
-  const unassignedExpenseCount = state.transactions.filter(
-    (tx) => tx.amount.cents < 0 && !assignedTxIds.has(tx.id),
-  ).length;
 
   const envelopes = state.budget.envelopes.slice(0, 5);
   const hasMoreEnvelopes = state.budget.envelopes.length > 5;

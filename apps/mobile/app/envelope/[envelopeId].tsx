@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import {
   View,
   Text,
@@ -21,6 +21,28 @@ export default function EnvelopeDetailScreen() {
   const state = useAppStore((s) => s.state);
   const deleteEnvelopeAction = useAppStore((s) => s.deleteEnvelope);
 
+  // Derive transactions assigned to this envelope
+  const { assignmentByTxId, assignedTxs } = useMemo(() => {
+    if (!state || !envelopeId) return { assignmentByTxId: {} as Record<string, any>, assignedTxs: [] as Transaction[] };
+    const assignments = Object.values(state.inbox.assignmentsByTransactionId);
+    const byTxId = Object.fromEntries(
+      assignments.map((a) => [a.transactionId, a]),
+    );
+    const txIds = new Set(
+      assignments
+        .filter((a) => a.envelopeId === envelopeId)
+        .map((a) => a.transactionId),
+    );
+    const txById = Object.fromEntries(
+      state.transactions.map((tx) => [tx.id, tx]),
+    );
+    const txs = Array.from(txIds)
+      .map((id) => txById[id])
+      .filter((tx): tx is Transaction => tx !== undefined)
+      .sort((a, b) => b.postedAt.localeCompare(a.postedAt));
+    return { assignmentByTxId: byTxId, assignedTxs: txs };
+  }, [state, envelopeId]);
+
   if (!state || !envelopeId) {
     return (
       <View style={styles.center}>
@@ -41,26 +63,6 @@ export default function EnvelopeDetailScreen() {
       </View>
     );
   }
-
-  // Derive transactions assigned to this envelope
-  const assignments = Object.values(state.inbox.assignmentsByTransactionId);
-  const assignmentByTxId = Object.fromEntries(
-    assignments.map((a) => [a.transactionId, a]),
-  );
-  const assignedTxIds = new Set(
-    assignments
-      .filter((a) => a.envelopeId === envelopeId)
-      .map((a) => a.transactionId),
-  );
-
-  const txById = Object.fromEntries(
-    state.transactions.map((tx) => [tx.id, tx]),
-  );
-
-  const assignedTxs = Array.from(assignedTxIds)
-    .map((id) => txById[id])
-    .filter((tx): tx is Transaction => tx !== undefined)
-    .sort((a, b) => b.postedAt.localeCompare(a.postedAt));
 
   const accounts = state.accounts;
 

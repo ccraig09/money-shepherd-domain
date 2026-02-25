@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import {
   View,
   Text,
@@ -16,6 +16,16 @@ import type { Transaction } from "@money-shepherd/domain";
 export default function InboxScreen() {
   const state = useAppStore((s) => s.state);
 
+  const inboxItems = useMemo(() => {
+    if (!state) return [];
+    const txById = Object.fromEntries(
+      state.transactions.map((tx) => [tx.id, tx]),
+    );
+    return state.inbox.unassignedTransactionIds
+      .map((id) => txById[id])
+      .filter((tx): tx is Transaction => tx !== undefined && tx.amount.cents < 0);
+  }, [state]);
+
   if (!state) {
     return (
       <View style={styles.center}>
@@ -23,14 +33,6 @@ export default function InboxScreen() {
       </View>
     );
   }
-
-  const txById = Object.fromEntries(
-    state.transactions.map((tx) => [tx.id, tx]),
-  );
-
-  const inboxItems = state.inbox.unassignedTransactionIds
-    .map((id) => txById[id])
-    .filter((tx): tx is Transaction => tx !== undefined && tx.amount.cents < 0);
 
   const accounts = state.accounts;
 
