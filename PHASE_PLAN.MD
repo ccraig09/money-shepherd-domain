@@ -249,7 +249,7 @@
 - [x] MS-19.3 Export
 - [x] MS-19.4 Import
 - [x] MS-19.7 Release checklist
-- [ ] MS-19.10 Install plan
+- [x] MS-19.10 Install plan
 - [ ] MS-19.11 Security sanity
 - [ ] MS-19.9 Performance sanity
 - [ ] MS-19.12 Support bundle (optional)
