@@ -59,6 +59,9 @@ export interface PlaidAccountInfo {
   type: string;
   subtype: string | null;
   mask: string | null;
+  balanceCurrentCents: number | null;
+  balanceAvailableCents: number | null;
+  balanceLimitCents: number | null;
 }
 
 /**

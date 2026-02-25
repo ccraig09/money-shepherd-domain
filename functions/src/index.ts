@@ -129,6 +129,9 @@ interface PlaidAccountInfo {
   type: string;
   subtype: string | null;
   mask: string | null;
+  balanceCurrentCents: number | null;
+  balanceAvailableCents: number | null;
+  balanceLimitCents: number | null;
 }
 
 interface GetAccountsResponse {
@@ -169,6 +172,9 @@ export const getAccounts = onCall<
       type: a.type,
       subtype: a.subtype ?? null,
       mask: a.mask ?? null,
+      balanceCurrentCents: a.balances.current != null ? Math.round(a.balances.current * 100) : null,
+      balanceAvailableCents: a.balances.available != null ? Math.round(a.balances.available * 100) : null,
+      balanceLimitCents: a.balances.limit != null ? Math.round(a.balances.limit * 100) : null,
     }));
 
     return { accounts };

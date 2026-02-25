@@ -73,6 +73,11 @@ export type Engine = {
     newAccounts: Account[];
   }): Promise<RecomputeResult>;
 
+  /** Update Plaid account balances from fresh API data (Plaid balance is truth). */
+  updatePlaidBalances(args: {
+    updatedAccounts: Account[];
+  }): Promise<RecomputeResult>;
+
   importPlaidTransactions(args: {
     transactions: import("@money-shepherd/domain").Transaction[];
   }): Promise<RecomputeResult>;
@@ -365,12 +370,19 @@ export function createEngine(): Engine {
 
   async function recompute(state: AppStateV1): Promise<RecomputeResult> {
     // 1) Apply transactions to accounts (ledger balances)
+    //    Plaid accounts use "Plaid balance is truth" — their balances come
+    //    from the API, not from ledger computation. Only manual accounts
+    //    need transaction-based balance updates.
+    const plaidAccounts = state.accounts.filter((a) => a.id.startsWith("plaid-"));
+    const manualAccounts = state.accounts.filter((a) => !a.id.startsWith("plaid-"));
     const accountAppliedSet = new Set(state.appliedAccountTransactionIds);
     const accountsResult = applyTransactionsToAccounts(
-      state.accounts,
+      manualAccounts,
       state.transactions,
       accountAppliedSet,
     );
+    // Merge Plaid accounts back (unchanged — their balances are API-driven)
+    accountsResult.accounts = [...accountsResult.accounts, ...plaidAccounts];
 
     // 2) Inbox: derive unassigned based on tx + existing assignments
     const inbox = buildInbox(
@@ -467,6 +479,22 @@ export function createEngine(): Engine {
     return recompute(next);
   }
 
+  async function updatePlaidBalances(args: {
+    updatedAccounts: Account[];
+  }): Promise<RecomputeResult> {
+    const state = await getState();
+    const updatedById = new Map(args.updatedAccounts.map((a) => [a.id, a]));
+
+    const accounts = state.accounts.map((existing) => {
+      const fresh = updatedById.get(existing.id);
+      if (!fresh) return existing;
+      return { ...existing, balance: fresh.balance, accountType: fresh.accountType };
+    });
+
+    const next: AppStateV1 = { ...state, accounts };
+    return recompute(next);
+  }
+
   async function importPlaidTransactions(args: {
     transactions: import("@money-shepherd/domain").Transaction[];
   }): Promise<RecomputeResult> {
@@ -493,6 +521,7 @@ export function createEngine(): Engine {
     allocateToEnvelope: allocateToEnvelopeAction,
     seedBudgetFromBalances: seedBudget,
     importPlaidAccounts,
+    updatePlaidBalances,
     importPlaidTransactions,
     syncNow,
     onSyncResult: null,

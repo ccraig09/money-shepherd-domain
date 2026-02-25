@@ -7,8 +7,9 @@ import { clearSyncMeta, loadSyncMeta, saveSyncMeta } from "../infra/local/syncMe
 import { clearPin } from "../infra/local/pin";
 import { loadPlaidTokens, clearAllPlaidTokens } from "../infra/local/secureTokens";
 import { savePlaidRefreshAt, loadPlaidRefreshAt, clearPlaidRefreshAt } from "../infra/local/plaidMeta";
-import { syncTransactions } from "../infra/plaid/plaidClient";
+import { syncTransactions, fetchAccounts } from "../infra/plaid/plaidClient";
 import { mapPlaidTransactions } from "../infra/plaid/mapTransaction";
+import { mapPlaidAccounts } from "../infra/plaid/mapAccounts";
 import { classifyPlaidError, makePlaidError, type PlaidErrorInfo } from "../infra/plaid/errors";
 import { withTimeout } from "../lib/timeout";
 import { Features } from "../config/features";
@@ -486,8 +487,27 @@ export const useAppStore = create<AppStore>((set, get) => ({
       }
 
       const before = state.transactions.length;
-      const result = await engine.importPlaidTransactions({ transactions: allNewTransactions });
+      let result = await engine.importPlaidTransactions({ transactions: allNewTransactions });
       const imported = result.state.transactions.length - before;
+
+      // Refresh Plaid account balances from the API ("Plaid balance is truth").
+      // This updates balances for all connected Plaid accounts with fresh data.
+      for (const userId of USER_IDS) {
+        const tokens = await loadPlaidTokens(userId);
+        for (const token of tokens) {
+          try {
+            const plaidAccounts = await fetchAccounts(token.accessToken);
+            const { accounts: refreshed } = mapPlaidAccounts(
+              plaidAccounts,
+              userId,
+              result.state.accounts,
+            );
+            result = await engine.updatePlaidBalances({ updatedAccounts: refreshed });
+          } catch {
+            // Balance refresh is best-effort — transaction sync already succeeded
+          }
+        }
+      }
 
       const now = new Date().toISOString();
       await savePlaidRefreshAt(currentUserId, now);

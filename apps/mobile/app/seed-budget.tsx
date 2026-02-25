@@ -26,7 +26,11 @@ export default function SeedBudgetScreen() {
     );
   }
 
-  const accounts = state.accounts;
+  // Only depository/manual accounts contribute to Available to Assign.
+  // Credit/loan balances represent debt, not budgetable cash.
+  const accounts = state.accounts.filter(
+    (a) => !a.accountType || a.accountType === "depository",
+  );
   const totalCents = accounts.reduce((sum, a) => sum + a.balance.cents, 0);
   const availableCents = state.budget.availableToAssign.cents;
 
