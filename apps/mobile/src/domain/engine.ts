@@ -67,7 +67,7 @@ export type Engine = {
     envelopeId: string;
     amountCents: number;
   }): Promise<RecomputeResult>;
-  seedBudgetFromBalances(args: { totalCents: number }): Promise<RecomputeResult>;
+  seedBudgetFromBalances(args: { totalCents: number; accountIds?: string[] }): Promise<RecomputeResult>;
 
   importPlaidAccounts(args: {
     newAccounts: Account[];

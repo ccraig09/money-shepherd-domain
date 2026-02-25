@@ -241,7 +241,7 @@
 - [x] MS-19.14 Post-connect onboarding: seed budget from bank balances (UI prompt)
 - [x] MS-19.15 Accounts overview — display individual bank account balances
 - [x] MS-19.16a Fix Plaid account balances — account type, balance initialization, cash vs debt (#129)
-- [ ] MS-19.14.1 Re-seed Available when additional accounts are connected (after 19.16a)
+- [x] MS-19.14.1 Re-seed Available when additional accounts are connected (after 19.16a)
 - [ ] MS-19.16 Feedback & confirmation polish (enhanced toasts: assign, note save, user switch)
 - [ ] MS-19.17 Empty state & dead-end fixes (Inbox empty state, Allocate zero-balance)
 - [ ] MS-19.18 Overspend warnings & source indicators (Plaid badge, overspent badge, assign warning)

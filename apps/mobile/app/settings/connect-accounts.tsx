@@ -67,7 +67,18 @@ export default function ConnectAccountsScreen() {
             // Fetch Plaid accounts before storing token so we can record accountIdMap
             const plaidAccounts = await fetchAccounts(accessToken);
             const state = await engine.getState();
-            const { accounts: mergedAccounts, accountIdMap } = mapPlaidAccounts(plaidAccounts, userId, state.accounts);
+
+            // Backfill seededAccountIds for legacy users (budgetSeeded but no tracking).
+            // Do this BEFORE importing new accounts so they aren't included.
+            if (state.budgetSeeded && !state.seededAccountIds) {
+              const legacySeeded = state.accounts
+                .filter((a) => !a.accountType || a.accountType === "depository")
+                .map((a) => a.id);
+              await engine.recompute({ ...state, seededAccountIds: legacySeeded });
+            }
+
+            const currentState = await engine.getState();
+            const { accounts: mergedAccounts, accountIdMap } = mapPlaidAccounts(plaidAccounts, userId, currentState.accounts);
             await addPlaidToken(userId, { accessToken, itemId, institutionName, accountIdMap });
             await engine.importPlaidAccounts({ newAccounts: mergedAccounts });
 

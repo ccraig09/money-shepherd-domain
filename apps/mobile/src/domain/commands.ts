@@ -209,12 +209,17 @@ export function assignTransaction(
 /**
  * Seeds the budget's Available to Assign from the total of connected account balances.
  * Sets Available to the provided totalCents (caller computes any delta).
- * Idempotency is guarded by the `budgetSeeded` flag — not by a zero check.
+ * Tracks which accounts have been seeded via `seededAccountIds` to support re-seeding
+ * when additional accounts are connected.
  */
 export function seedBudgetFromBalances(
   state: AppStateV1,
-  args: { totalCents: number },
+  args: { totalCents: number; accountIds?: string[] },
 ): AppStateV1 {
+  const existing = state.seededAccountIds ?? [];
+  const incoming = args.accountIds ?? [];
+  const merged = [...new Set([...existing, ...incoming])];
+
   return {
     ...state,
     budget: {
@@ -222,6 +227,7 @@ export function seedBudgetFromBalances(
       availableToAssign: Money.fromCents(args.totalCents),
     },
     budgetSeeded: true,
+    seededAccountIds: merged,
     updatedAt: nowIso(),
   };
 }

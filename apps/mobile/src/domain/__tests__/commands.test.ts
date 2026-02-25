@@ -314,4 +314,47 @@ describe("seedBudgetFromBalances", () => {
     expect(next.budget.envelopes[1].name).toBe("Bills");
     expect(next.inbox.assignmentsByTransactionId["tx-1"].envelopeId).toBe("env-0");
   });
+
+  it("sets seededAccountIds when accountIds provided", () => {
+    const state = makeState();
+    const next = seedBudgetFromBalances(state, {
+      totalCents: 500000,
+      accountIds: ["plaid-acct-1", "plaid-acct-2"],
+    });
+    expect(next.seededAccountIds).toEqual(["plaid-acct-1", "plaid-acct-2"]);
+  });
+
+  it("merges new accountIds with existing seededAccountIds", () => {
+    const state = makeState();
+    state.seededAccountIds = ["plaid-acct-1"];
+    state.budgetSeeded = true;
+    const next = seedBudgetFromBalances(state, {
+      totalCents: 700000,
+      accountIds: ["plaid-acct-2", "plaid-acct-3"],
+    });
+    expect(next.seededAccountIds).toEqual(["plaid-acct-1", "plaid-acct-2", "plaid-acct-3"]);
+  });
+
+  it("deduplicates accountIds on merge", () => {
+    const state = makeState();
+    state.seededAccountIds = ["plaid-acct-1", "plaid-acct-2"];
+    const next = seedBudgetFromBalances(state, {
+      totalCents: 700000,
+      accountIds: ["plaid-acct-2", "plaid-acct-3"],
+    });
+    expect(next.seededAccountIds).toEqual(["plaid-acct-1", "plaid-acct-2", "plaid-acct-3"]);
+  });
+
+  it("defaults seededAccountIds to empty when accountIds omitted", () => {
+    const state = makeState();
+    const next = seedBudgetFromBalances(state, { totalCents: 500000 });
+    expect(next.seededAccountIds).toEqual([]);
+  });
+
+  it("preserves existing seededAccountIds when accountIds omitted", () => {
+    const state = makeState();
+    state.seededAccountIds = ["plaid-acct-1"];
+    const next = seedBudgetFromBalances(state, { totalCents: 500000 });
+    expect(next.seededAccountIds).toEqual(["plaid-acct-1"]);
+  });
 });

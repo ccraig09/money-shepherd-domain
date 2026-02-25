@@ -25,6 +25,9 @@ export type AppStateV1 = {
   // Set true after user seeds Available to Assign from bank balances (prevents re-prompting)
   budgetSeeded?: boolean;
 
+  // Account IDs that have been included in a seed (prevents re-counting on re-seed)
+  seededAccountIds?: string[];
+
   // Idempotency guards
   appliedAccountTransactionIds: string[];
   appliedBudgetTransactionIds: string[];

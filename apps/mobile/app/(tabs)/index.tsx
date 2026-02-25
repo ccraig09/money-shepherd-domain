@@ -85,17 +85,27 @@ export default function DashboardScreen() {
       {/* Daily scripture */}
       <ScriptureStrip />
 
-      {/* Seed budget nudge — show when accounts exist but budget not yet seeded */}
+      {/* Seed budget nudge — show when not yet seeded, or when new accounts need seeding */}
       {state.accounts.length > 0 &&
-        !state.budgetSeeded && (
+        (() => {
+          if (!state.budgetSeeded) return true;
+          const seeded = state.seededAccountIds;
+          if (!seeded) return false;
+          const seededSet = new Set(seeded);
+          return state.accounts
+            .filter((a) => !a.accountType || a.accountType === "depository")
+            .some((a) => !seededSet.has(a.id));
+        })() && (
           <Pressable
             style={styles.seedNudge}
             onPress={() => router.push("/seed-budget")}
-            accessibilityLabel="Seed your budget from bank balances"
+            accessibilityLabel={state.budgetSeeded ? "Add new account balances to budget" : "Seed your budget from bank balances"}
             accessibilityRole="button"
           >
             <Text style={styles.seedNudgeText}>
-              Seed your budget from bank balances
+              {state.budgetSeeded
+                ? "New accounts — add balances to budget"
+                : "Seed your budget from bank balances"}
             </Text>
             <Text style={styles.nudgeArrow}>→</Text>
           </Pressable>

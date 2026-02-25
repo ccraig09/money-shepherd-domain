@@ -61,7 +61,7 @@ type AppStore = {
     description: string;
     postedAt?: string;
   }) => Promise<void>;
-  seedBudgetFromBalances: (args: { totalCents: number }) => Promise<void>;
+  seedBudgetFromBalances: (args: { totalCents: number; accountIds?: string[] }) => Promise<void>;
   markBudgetSeeded: () => Promise<void>;
   refreshFromPlaid: (opts?: { force?: boolean }) => Promise<{ imported: number; shouldSeedBudget?: boolean }>;
   syncNow: () => Promise<void>;
@@ -513,8 +513,18 @@ export const useAppStore = create<AppStore>((set, get) => ({
       await savePlaidRefreshAt(currentUserId, now);
 
       // Determine if we should prompt the seed-budget screen:
-      // first sync that actually imported transactions AND budget not yet seeded.
-      const shouldSeedBudget = imported > 0 && !result.state.budgetSeeded;
+      // 1. First seed: imported transactions AND budget not yet seeded
+      // 2. Re-seed: budget already seeded but new depository accounts exist that haven't been seeded
+      let shouldSeedBudget = false;
+      if (!result.state.budgetSeeded) {
+        shouldSeedBudget = imported > 0;
+      } else if (result.state.seededAccountIds) {
+        const seeded = new Set(result.state.seededAccountIds);
+        const hasUnseeded = result.state.accounts
+          .filter((a) => !a.accountType || a.accountType === "depository")
+          .some((a) => !seeded.has(a.id));
+        shouldSeedBudget = hasUnseeded;
+      }
 
       set({
         state: result.state,

@@ -28,24 +28,41 @@ export default function SeedBudgetScreen() {
 
   // Only depository/manual accounts contribute to Available to Assign.
   // Credit/loan balances represent debt, not budgetable cash.
-  const accounts = state.accounts.filter(
+  const allDepository = state.accounts.filter(
     (a) => !a.accountType || a.accountType === "depository",
   );
-  const totalCents = accounts.reduce((sum, a) => sum + a.balance.cents, 0);
-  const availableCents = state.budget.availableToAssign.cents;
 
-  // If user already has funds allocated, show delta
-  const hasDelta = availableCents > 0;
-  const deltaCents = totalCents - availableCents;
+  // Re-seed mode: budget already seeded, show only new (unseeded) accounts
+  const seededIds = new Set(state.seededAccountIds ?? []);
+  const isReseed = state.budgetSeeded === true && seededIds.size > 0;
+
+  const accounts = isReseed
+    ? allDepository.filter((a) => !seededIds.has(a.id))
+    : allDepository;
+
+  const newAccountsCents = accounts.reduce((sum, a) => sum + a.balance.cents, 0);
+  const accountIds = accounts.map((a) => a.id);
+
+  // First seed: show delta if user already has manual income in Available
+  const availableCents = state.budget.availableToAssign.cents;
+  const hasDelta = !isReseed && availableCents > 0;
+  const deltaCents = newAccountsCents - availableCents;
 
   async function handleSeed() {
     setSeeding(true);
     try {
-      if (hasDelta && deltaCents > 0) {
-        // Already has some available — seed with the delta
-        await seedBudgetFromBalances({ totalCents: deltaCents });
+      if (isReseed) {
+        // Re-seed: add new accounts' balances on top of existing Available
+        await seedBudgetFromBalances({
+          totalCents: availableCents + newAccountsCents,
+          accountIds,
+        });
+      } else if (hasDelta && deltaCents > 0) {
+        // First seed with existing manual income — seed the delta
+        await seedBudgetFromBalances({ totalCents: deltaCents, accountIds });
       } else {
-        await seedBudgetFromBalances({ totalCents });
+        // First seed — set Available to total bank balances
+        await seedBudgetFromBalances({ totalCents: newAccountsCents, accountIds });
       }
       router.dismissAll();
     } catch {
@@ -60,17 +77,22 @@ export default function SeedBudgetScreen() {
     router.back();
   }
 
-  const seedAmount = hasDelta ? deltaCents : totalCents;
+  const seedAmount = isReseed
+    ? newAccountsCents
+    : hasDelta ? deltaCents : newAccountsCents;
   const canSeed = seedAmount > 0 && !seeding;
 
   return (
     <View style={styles.root}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.title}>Seed Your Budget</Text>
+        <Text style={styles.title}>
+          {isReseed ? "New Accounts Connected" : "Seed Your Budget"}
+        </Text>
         <Text style={styles.subtitle}>
-          Start budgeting with your real bank balances. This sets your Available
-          to Assign so you can allocate money to envelopes.
+          {isReseed
+            ? "Add your new account balances to Available to Assign."
+            : "Start budgeting with your real bank balances. This sets your Available to Assign so you can allocate money to envelopes."}
         </Text>
       </View>
 
@@ -80,7 +102,9 @@ export default function SeedBudgetScreen() {
         keyExtractor={(a) => a.id}
         contentContainerStyle={styles.list}
         ListHeaderComponent={
-          <Text style={styles.listLabel}>Connected Accounts</Text>
+          <Text style={styles.listLabel}>
+            {isReseed ? "New Accounts" : "Connected Accounts"}
+          </Text>
         }
         renderItem={({ item }) => {
           const isZero = item.balance.cents === 0;
@@ -117,8 +141,10 @@ export default function SeedBudgetScreen() {
       {/* Total + action */}
       <View style={styles.footer}>
         <View style={styles.totalRow}>
-          <Text style={styles.totalLabel}>Combined Balance</Text>
-          <Text style={styles.totalAmount}>${formatMoney(totalCents)}</Text>
+          <Text style={styles.totalLabel}>
+            {isReseed ? "New Account Balance" : "Combined Balance"}
+          </Text>
+          <Text style={styles.totalAmount}>${formatMoney(newAccountsCents)}</Text>
         </View>
 
         {hasDelta && (
@@ -143,7 +169,7 @@ export default function SeedBudgetScreen() {
           onPress={handleSeed}
           disabled={!canSeed}
           style={[styles.seedBtn, !canSeed && styles.seedBtnDisabled]}
-          accessibilityLabel={`Start with ${formatMoney(seedAmount)} dollars`}
+          accessibilityLabel={`${isReseed ? "Add" : "Start with"} ${formatMoney(seedAmount)} dollars`}
           accessibilityRole="button"
         >
           {seeding ? (
@@ -151,7 +177,9 @@ export default function SeedBudgetScreen() {
           ) : (
             <Text style={styles.seedBtnText}>
               {seedAmount > 0
-                ? `Start with $${formatMoney(seedAmount)}`
+                ? isReseed
+                  ? `Add $${formatMoney(seedAmount)} to Available`
+                  : `Start with $${formatMoney(seedAmount)}`
                 : "Nothing to seed"}
             </Text>
           )}
