@@ -15,6 +15,7 @@ import { GreetingCard } from "../../src/ui/components/GreetingCard";
 import { Card } from "../../src/ui/components/Card";
 import { ProgressBar } from "../../src/ui/components/ProgressBar";
 import { SectionHeader } from "../../src/ui/components/SectionHeader";
+import { AccountsCard } from "../../src/ui/components/AccountsCard";
 import { Spacing, Radius, FontSize, FontWeight, Color } from "../../src/ui/tokens";
 
 export default function DashboardScreen() {
@@ -143,6 +144,13 @@ export default function DashboardScreen() {
           <Text style={styles.ctaAllocateText}>$ Allocate</Text>
         </Pressable>
       </View>
+
+      {/* Accounts overview */}
+      {state.accounts.length > 0 && (
+        <View style={styles.accountsSection}>
+          <AccountsCard accounts={state.accounts} />
+        </View>
+      )}
 
       {/* Envelopes preview */}
       <SectionHeader
@@ -317,6 +325,9 @@ const styles = StyleSheet.create({
     backgroundColor: Color.primary,
   },
   ctaAllocateText: { color: Color.textOnColor, fontWeight: FontWeight.bold, fontSize: FontSize.body },
+
+  // Accounts
+  accountsSection: { marginBottom: Spacing.lg },
 
   // Envelopes
   emptyEnvelopes: {
