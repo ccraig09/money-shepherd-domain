@@ -5,18 +5,21 @@ import {
   Pressable,
   StyleSheet,
   Alert,
+  Share,
   ActivityIndicator,
   ScrollView,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { loadSyncMeta, type SyncMeta } from "../../src/infra/local/syncMeta";
 import { useAppStore } from "../../src/store/useAppStore";
+import { buildExportPayload } from "../../src/domain/exportData";
 import type { SyncStatus } from "../../src/domain/syncStatus";
 import { Spacing, Radius, FontSize, FontWeight, Color } from "../../src/ui/tokens";
 import { Features } from "../../src/config/features";
 
 export default function SettingsScreen() {
   const router = useRouter();
+  const state = useAppStore((s) => s.state);
   const resetAll = useAppStore((s) => s.resetAll);
   const switchUser = useAppStore((s) => s.switchUser);
   const lastSyncAt = useAppStore((s) => s.lastSyncAt);
@@ -89,6 +92,20 @@ export default function SettingsScreen() {
     );
   }
 
+  async function handleExport() {
+    if (!state) return;
+    const payload = buildExportPayload(state);
+    const json = JSON.stringify(payload, null, 2);
+    try {
+      await Share.share({
+        message: json,
+        title: "Money Shepherd Export",
+      });
+    } catch {
+      // User cancelled or share failed — no action needed
+    }
+  }
+
   const otherUser = meta?.userId === "user-los" ? "Jackia" : "Los";
 
   return (
@@ -129,6 +146,16 @@ export default function SettingsScreen() {
           />
         </View>
       )}
+
+      {/* Data */}
+      <View style={styles.card}>
+        <Text style={styles.cardTitle}>Data</Text>
+        <ActionButton
+          label="Export Data"
+          onPress={handleExport}
+          disabled={isBusy || !state}
+        />
+      </View>
 
       {/* Actions */}
       <View style={styles.card}>

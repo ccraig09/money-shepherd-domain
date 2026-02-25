@@ -246,7 +246,7 @@
 - [x] MS-19.17 Empty state & dead-end fixes (Inbox empty state, Allocate zero-balance)
 - [x] MS-19.18 Overspend warnings & source indicators (Plaid badge, overspent badge, assign warning)
 - [x] MS-19.6 Core tests
-- [ ] MS-19.3 Export
+- [x] MS-19.3 Export
 - [ ] MS-19.4 Import
 - [ ] MS-19.7 Release checklist
 - [ ] MS-19.10 Install plan
