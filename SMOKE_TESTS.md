@@ -260,6 +260,249 @@ Expected
 
 ---
 
+## Phase 19 Smoke Test: Release Readiness (ship checklist before Jackia installs)
+
+> Run this checklist end-to-end on a fresh device or after "Reset Local Storage".
+> Each step has an action and an expected result. If any step fails, note it below.
+
+### Pre-flight
+
+- [ ] App installs and opens without crash
+- [ ] Loading screen appears, then resolves to Setup screen (fresh device)
+
+---
+
+### A) Setup — Los device
+
+1. Open app (fresh install or after reset)
+2. Enter Household ID: **your-household-id**
+3. Select user: **Los**
+4. Tap **Start**
+
+**Expected**
+
+- [ ] Setup completes, app navigates to PIN setup screen
+- [ ] No errors during setup
+
+---
+
+### B) PIN setup + lock
+
+1. Choose a 4-digit PIN
+2. Confirm the PIN
+3. Force close the app
+4. Reopen the app
+
+**Expected**
+
+- [ ] PIN confirmation succeeds, app navigates to Dashboard
+- [ ] On reopen: PIN entry screen appears (not setup)
+- [ ] Entering correct PIN unlocks the app
+- [ ] Entering wrong PIN shows error, does not unlock
+
+---
+
+### C) Add income
+
+1. Dashboard → **+ Income** button
+2. Select account: **Los Checking**
+3. Enter amount: **500.00**
+4. Description: **Paycheck**
+5. Save
+
+**Expected**
+
+- [ ] Transaction appears in Transactions tab
+- [ ] Available to Assign shows **$500.00**
+- [ ] Los Checking balance shows **$500.00**
+- [ ] Toast confirms "Transaction saved"
+
+---
+
+### D) Create envelope + allocate
+
+1. Dashboard → **$ Allocate** button (or Envelopes tab → Create)
+2. Create envelope: **Groceries**
+3. Allocate **$200.00** to Groceries
+
+**Expected**
+
+- [ ] Groceries envelope exists with **$200.00** balance
+- [ ] Available to Assign decreases to **$300.00**
+- [ ] Dashboard shows Groceries in envelope preview with progress bar
+
+---
+
+### E) Add expense + assign
+
+1. Dashboard → **− Expense** button
+2. Select account: **Los Checking**
+3. Enter amount: **45.00**
+4. Description: **Walmart**
+5. Save
+6. Go to **Inbox** tab
+7. Tap the Walmart transaction
+8. Assign to **Groceries**
+
+**Expected**
+
+- [ ] Walmart appears in Inbox as unassigned
+- [ ] After assignment: Inbox is empty (or Walmart disappears from unassigned list)
+- [ ] Groceries balance becomes **$155.00** ($200 - $45)
+- [ ] Toast shows "-$45.00 Walmart → Groceries"
+- [ ] Overspend warning does NOT appear (balance is still positive)
+
+---
+
+### F) Verify balances (Dashboard sanity)
+
+1. Open Dashboard
+
+**Expected**
+
+- [ ] Available to Assign: **$300.00**
+- [ ] Total in envelopes: **$155.00**
+- [ ] Los Checking balance: **$455.00** ($500 - $45)
+- [ ] Groceries envelope shows **$155.00** with progress bar
+- [ ] No unassigned transactions nudge (or nudge shows 0)
+
+---
+
+### G) Envelope detail
+
+1. Tap Groceries on Dashboard (or Envelopes tab)
+
+**Expected**
+
+- [ ] Balance shows **$155.00**
+- [ ] Activity section shows Walmart assignment with "-$45.00"
+- [ ] Edit and Delete buttons are visible
+- [ ] Allocate CTA is visible
+
+---
+
+### H) Export data
+
+1. Settings → **Export Data**
+2. Share sheet opens
+
+**Expected**
+
+- [ ] JSON content is shared (can copy to Notes, email, etc.)
+- [ ] JSON contains `stateVersion`, `householdId`, `exportedAt`, and `data` fields
+- [ ] `data` contains budget, accounts, transactions, envelopes
+
+---
+
+### I) Import data (destructive — do on a test device or after export)
+
+1. Settings → **Import Data**
+2. Paste the JSON from step H
+3. Tap **Validate & Import**
+4. Confirm the destructive alert
+
+**Expected**
+
+- [ ] Validation succeeds (no error shown)
+- [ ] After import: Dashboard shows the same data as before export
+- [ ] Toast shows "Data imported successfully"
+- [ ] Balances, envelopes, and transactions match pre-export state
+
+---
+
+### J) Import validation (error cases)
+
+1. Settings → Import Data
+2. Paste `not valid json` → Validate & Import
+
+**Expected**
+
+- [ ] Error: "Invalid JSON" (does not crash)
+
+3. Clear and paste `{"stateVersion": 99, "householdId": "x", "data": {}}`
+
+**Expected**
+
+- [ ] Error: "Unsupported version" (does not crash)
+
+---
+
+### K) Plaid connect (if PLAID feature flag is on)
+
+1. Settings → **Connect Accounts**
+2. Complete Plaid Link flow with sandbox credentials
+3. Return to app
+
+**Expected**
+
+- [ ] Accounts appear in Dashboard accounts overview
+- [ ] Transactions sync from Plaid (with "Bank" badge in Transactions tab)
+- [ ] Seed budget nudge appears if budget not yet seeded from balances
+- [ ] No duplicate accounts or transactions on refresh
+
+---
+
+### L) Sync across devices (requires two devices)
+
+1. **Los device:** Ensure sync shows "Synced" in Settings
+2. **Jackia device:** Set up with same Household ID, select user Jackia
+3. **Jackia device:** Open Dashboard
+
+**Expected**
+
+- [ ] Jackia sees same transactions, envelopes, and balances as Los
+- [ ] Both devices show same Available to Assign
+- [ ] No duplicate data
+
+---
+
+### M) Offline + reconnect
+
+1. **Los device:** Turn on Airplane Mode
+2. Add Transaction → +50.00 → "Side gig"
+3. Check Settings → Pending changes should show "1"
+4. Turn off Airplane Mode
+5. Wait (or tap "Sync now")
+
+**Expected**
+
+- [ ] Transaction saves locally while offline (no crash)
+- [ ] After reconnect: sync completes, indicator shows "Synced"
+- [ ] Other device sees the new transaction after syncing
+
+---
+
+### N) Persistence after all operations
+
+1. Force close app
+2. Reopen app
+3. Enter PIN
+
+**Expected**
+
+- [ ] All data persists: balances, envelopes, transactions, assignments
+- [ ] No duplicates or missing data
+- [ ] App boots to Dashboard without errors
+
+---
+
+### O) Crash-safe persistence
+
+1. (Simulated) If app is killed during a save, reopen
+
+**Expected**
+
+- [ ] App recovers from tmp or backup key (no data loss)
+- [ ] Console may show "[storage] recovered from tmp/backup" — this is expected
+
+---
+
+### Notes / Bugs Found (Phase 19)
+
+- (Add bullets when you find issues)
+
+---
+
 ## Phase 23 Smoke Test: Daily Use Essentials (budget periods, tx editing, transfers, giving)
 
 > **Build order note:** Run this after Phase 19, before Phase 20.

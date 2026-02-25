@@ -248,7 +248,7 @@
 - [x] MS-19.6 Core tests
 - [x] MS-19.3 Export
 - [x] MS-19.4 Import
-- [ ] MS-19.7 Release checklist
+- [x] MS-19.7 Release checklist
 - [ ] MS-19.10 Install plan
 - [ ] MS-19.11 Security sanity
 - [ ] MS-19.9 Performance sanity
