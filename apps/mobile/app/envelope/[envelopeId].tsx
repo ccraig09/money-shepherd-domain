@@ -181,9 +181,16 @@ export default function EnvelopeDetailScreen() {
               return (
                 <View style={styles.row}>
                   <View style={styles.rowMain}>
-                    <Text style={styles.rowDescription} numberOfLines={1}>
-                      {desc}
-                    </Text>
+                    <View style={styles.descRow}>
+                      <Text style={styles.rowDescription} numberOfLines={1}>
+                        {desc}
+                      </Text>
+                      {item.id.startsWith("plaid-") && (
+                        <View style={styles.bankBadge} accessibilityLabel="Bank transaction">
+                          <Text style={styles.bankBadgeText}>Bank</Text>
+                        </View>
+                      )}
+                    </View>
                     <View style={styles.metaRow}>
                       <Text style={styles.rowAccountName} numberOfLines={1}>
                         {accountName(item.accountId)}
@@ -299,7 +306,17 @@ const styles = StyleSheet.create({
     borderColor: Color.borderLight,
   },
   rowMain: { flex: 1, gap: Spacing.xs, paddingRight: Spacing.sm },
-  rowDescription: { fontSize: FontSize.body, fontWeight: FontWeight.medium, color: Color.textDark },
+  descRow: { flexDirection: "row", alignItems: "center", gap: Spacing.xs },
+  rowDescription: { fontSize: FontSize.body, fontWeight: FontWeight.medium, color: Color.textDark, flexShrink: 1 },
+  bankBadge: {
+    paddingHorizontal: 5,
+    paddingVertical: 1,
+    borderRadius: Radius.sm,
+    backgroundColor: Color.surfaceLight,
+    borderWidth: 1,
+    borderColor: Color.borderLight,
+  },
+  bankBadgeText: { fontSize: 10, fontWeight: FontWeight.semibold, color: Color.textMuted },
   metaRow: { flexDirection: "row", alignItems: "center" },
   rowAccountName: { fontSize: FontSize.caption, color: Color.textMuted, flexShrink: 1 },
   rowAccountDate: { fontSize: FontSize.caption, color: Color.textMuted, flexShrink: 0 },

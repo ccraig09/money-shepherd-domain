@@ -200,9 +200,16 @@ export default function DashboardScreen() {
               >
                 <View style={styles.envelopeRowContent}>
                   <View style={styles.envelopeRowTop}>
-                    <Text style={styles.envelopeName} numberOfLines={1}>
-                      {env.name}
-                    </Text>
+                    <View style={styles.envelopeNameRow}>
+                      <Text style={styles.envelopeName} numberOfLines={1}>
+                        {env.name}
+                      </Text>
+                      {isNegative && (
+                        <View style={styles.overspentBadge} accessibilityLabel="Overspent">
+                          <Text style={styles.overspentBadgeText}>OVERSPENT</Text>
+                        </View>
+                      )}
+                    </View>
                     <Text
                       style={[
                         styles.envelopeBalance,
@@ -367,7 +374,15 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
   },
-  envelopeName: { fontSize: FontSize.body, fontWeight: FontWeight.medium, color: Color.textDark, flex: 1 },
+  envelopeNameRow: { flexDirection: "row", alignItems: "center", gap: Spacing.xs, flex: 1 },
+  envelopeName: { fontSize: FontSize.body, fontWeight: FontWeight.medium, color: Color.textDark, flexShrink: 1 },
+  overspentBadge: {
+    paddingHorizontal: 5,
+    paddingVertical: 1,
+    borderRadius: Radius.sm,
+    backgroundColor: Color.errorSurface,
+  },
+  overspentBadgeText: { fontSize: 9, fontWeight: FontWeight.bold, color: Color.error, letterSpacing: 0.5 },
   envelopeBalance: { fontSize: FontSize.body, fontWeight: FontWeight.semibold, color: Color.success, marginLeft: Spacing.md },
   envelopeBalanceNegative: { color: Color.error },
 });

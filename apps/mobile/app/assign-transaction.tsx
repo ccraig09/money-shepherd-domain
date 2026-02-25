@@ -113,21 +113,32 @@ export default function AssignTransactionScreen() {
           contentContainerStyle={styles.list}
           renderItem={({ item }) => {
             const isSelected = item.id === selectedEnvelopeId;
+            const resultingCents = item.balance.cents + tx.amount.cents;
+            const wouldOverspend = isSelected && isExpense && resultingCents < 0;
             return (
-              <Pressable
-                style={[styles.envelopeRow, isSelected && styles.envelopeRowSelected]}
-                onPress={() => setSelectedEnvelopeId(item.id)}
-                accessibilityLabel={`Select ${item.name}`}
-                accessibilityRole="button"
-                accessibilityState={{ selected: isSelected }}
-              >
-                <Text style={[styles.envelopeName, isSelected && styles.envelopeNameSelected]}>
-                  {item.name}
-                </Text>
-                <Text style={[styles.envelopeBalance, isSelected && styles.envelopeBalanceSelected]}>
-                  ${formatMoney(item.balance.cents)}
-                </Text>
-              </Pressable>
+              <View>
+                <Pressable
+                  style={[styles.envelopeRow, isSelected && styles.envelopeRowSelected]}
+                  onPress={() => setSelectedEnvelopeId(item.id)}
+                  accessibilityLabel={`Select ${item.name}`}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: isSelected }}
+                >
+                  <Text style={[styles.envelopeName, isSelected && styles.envelopeNameSelected]}>
+                    {item.name}
+                  </Text>
+                  <Text style={[styles.envelopeBalance, isSelected && styles.envelopeBalanceSelected]}>
+                    ${formatMoney(item.balance.cents)}
+                  </Text>
+                </Pressable>
+                {wouldOverspend && (
+                  <View style={styles.overspendWarning}>
+                    <Text style={styles.overspendText}>
+                      This will overspend {item.name} by ${formatMoney(Math.abs(resultingCents))}
+                    </Text>
+                  </View>
+                )}
+              </View>
             );
           }}
         />
@@ -230,4 +241,10 @@ const styles = StyleSheet.create({
   assignBtnText: { color: Color.textOnColor, fontSize: FontSize.subtitle, fontWeight: FontWeight.bold },
   cancelBtn: { alignItems: "center", paddingVertical: Spacing.sm },
   cancelText: { fontSize: FontSize.body, color: Color.textMuted },
+  overspendWarning: {
+    paddingHorizontal: Spacing.base,
+    paddingVertical: Spacing.xs,
+    backgroundColor: Color.warningSurface,
+  },
+  overspendText: { fontSize: FontSize.small, color: Color.warning, fontWeight: FontWeight.medium },
 });

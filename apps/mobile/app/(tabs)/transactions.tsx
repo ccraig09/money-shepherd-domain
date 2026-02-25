@@ -162,6 +162,11 @@ export default function TransactionsScreen() {
                     {hasNote && (
                       <View style={styles.noteDot} accessibilityLabel="Has note" />
                     )}
+                    {item.id.startsWith("plaid-") && (
+                      <View style={styles.bankBadge} accessibilityLabel="Bank transaction">
+                        <Text style={styles.bankBadgeText}>Bank</Text>
+                      </View>
+                    )}
                   </View>
                   <Text style={styles.rowAccountName} numberOfLines={1}>
                     {accountName(item.accountId)}
@@ -280,6 +285,15 @@ const styles = StyleSheet.create({
     flexShrink: 0,
   },
   rowAccountName: { fontSize: FontSize.caption, color: Color.textMuted },
+  bankBadge: {
+    paddingHorizontal: 5,
+    paddingVertical: 1,
+    borderRadius: Radius.sm,
+    backgroundColor: Color.surfaceLight,
+    borderWidth: 1,
+    borderColor: Color.borderLight,
+  },
+  bankBadgeText: { fontSize: 10, fontWeight: FontWeight.semibold, color: Color.textMuted },
   unassignedBadge: {
     alignSelf: "flex-start",
     paddingHorizontal: Spacing.xs,
