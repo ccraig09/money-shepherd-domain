@@ -216,6 +216,98 @@ export function assignTransaction(
 }
 
 /**
+ * Edits a transaction's description and/or amount.
+ * Plaid-synced transactions (id starts with "plaid-tx-") cannot have their amount changed.
+ * When amount changes:
+ *   - Account balance is adjusted by the difference
+ *   - If the tx is an assigned expense, envelope balance is adjusted by the difference
+ *   - If the tx is income (positive), availableToAssign is adjusted by the difference
+ */
+export function editTransaction(
+  state: AppStateV1,
+  args: {
+    transactionId: string;
+    description?: string;
+    amountCents?: number;
+  },
+): AppStateV1 {
+  const txIndex = state.transactions.findIndex(
+    (t) => t.id === args.transactionId,
+  );
+  if (txIndex === -1) {
+    throw new Error("Transaction not found.");
+  }
+
+  const oldTx = state.transactions[txIndex];
+
+  if (args.amountCents !== undefined && oldTx.id.startsWith("plaid-tx-")) {
+    throw new Error("Cannot edit amount on a Plaid-synced transaction.");
+  }
+
+  const newAmount =
+    args.amountCents !== undefined
+      ? Money.fromCents(args.amountCents)
+      : oldTx.amount;
+  const newDescription =
+    args.description !== undefined ? args.description : oldTx.description;
+
+  const updatedTx = {
+    ...oldTx,
+    description: newDescription,
+    amount: newAmount,
+  };
+
+  const nextTransactions = state.transactions.map((t, i) =>
+    i === txIndex ? updatedTx : t,
+  );
+
+  let nextAccounts = state.accounts;
+  let nextBudget = state.budget;
+
+  if (args.amountCents !== undefined && args.amountCents !== oldTx.amount.cents) {
+    const diffCents = args.amountCents - oldTx.amount.cents;
+    const diff = Money.fromCents(diffCents);
+
+    // Adjust account balance
+    nextAccounts = state.accounts.map((a) =>
+      a.id === oldTx.accountId
+        ? { ...a, balance: a.balance.add(diff) }
+        : a,
+    );
+
+    // Adjust budget: envelope (assigned expense) or availableToAssign (income)
+    const assignment =
+      state.inbox.assignmentsByTransactionId[args.transactionId];
+
+    if (assignment && oldTx.amount.cents < 0) {
+      // Assigned expense: adjust envelope balance by diff
+      nextBudget = {
+        ...nextBudget,
+        envelopes: nextBudget.envelopes.map((env) =>
+          env.id === assignment.envelopeId
+            ? { ...env, balance: env.balance.add(diff) }
+            : env,
+        ),
+      };
+    } else if (oldTx.amount.cents > 0) {
+      // Income: adjust availableToAssign by diff
+      nextBudget = {
+        ...nextBudget,
+        availableToAssign: nextBudget.availableToAssign.add(diff),
+      };
+    }
+  }
+
+  return {
+    ...state,
+    transactions: nextTransactions,
+    accounts: nextAccounts,
+    budget: nextBudget,
+    updatedAt: nowIso(),
+  };
+}
+
+/**
  * Removes an assignment from a transaction, returning it to the Inbox.
  * Restores the envelope balance and clears the tx from appliedBudgetTransactionIds
  * so it can be re-assigned to a different envelope later.

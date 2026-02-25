@@ -6,7 +6,7 @@ import {
 import { ensureAnonAuth } from "../infra/firebase/firebaseClient";
 import { HouseholdStateRepo } from "../infra/remote/householdStateRepo";
 import { loadSyncMeta, saveSyncMeta } from "../infra/local/syncMeta";
-import { createEnvelope, renameEnvelope, deleteEnvelope, setTransactionNote, assignTransaction, unassignTransaction, seedBudgetFromBalances } from "./commands";
+import { createEnvelope, renameEnvelope, deleteEnvelope, setTransactionNote, assignTransaction, unassignTransaction, editTransaction, seedBudgetFromBalances } from "./commands";
 import { allocateToEnvelope } from "./allocate";
 import type { AppStateV1 } from "./appState";
 import { APP_STATE_VERSION } from "./appState";
@@ -65,6 +65,11 @@ export type Engine = {
   }): Promise<RecomputeResult>;
   unassignTransaction(args: {
     transactionId: string;
+  }): Promise<RecomputeResult>;
+  editTransaction(args: {
+    transactionId: string;
+    description?: string;
+    amountCents?: number;
   }): Promise<RecomputeResult>;
   allocateToEnvelope(args: {
     envelopeId: string;
@@ -172,6 +177,16 @@ export function createEngine(): Engine {
   }): Promise<RecomputeResult> {
     const state = await getState();
     const next = unassignTransaction(state, args);
+    return recompute(next);
+  }
+
+  async function editTransactionAction(args: {
+    transactionId: string;
+    description?: string;
+    amountCents?: number;
+  }): Promise<RecomputeResult> {
+    const state = await getState();
+    const next = editTransaction(state, args);
     return recompute(next);
   }
 
@@ -537,6 +552,7 @@ export function createEngine(): Engine {
     setTransactionNote: setTransactionNoteAction,
     assignTransaction: assignTransactionAction,
     unassignTransaction: unassignTransactionAction,
+    editTransaction: editTransactionAction,
     allocateToEnvelope: allocateToEnvelopeAction,
     seedBudgetFromBalances: seedBudget,
     importPlaidAccounts,

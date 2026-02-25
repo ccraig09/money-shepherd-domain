@@ -273,7 +273,7 @@
 #### Tier 1 — Transaction Corrections (unblock daily use)
 
 - [x] MS-23.1 Unassign transaction (domain + engine + UI)
-- [ ] MS-23.2 Edit transaction description + amount (domain + engine + UI; Plaid txs: description only)
+- [x] MS-23.2 Edit transaction description + amount (domain + engine + UI; Plaid txs: description only)
 - [ ] MS-23.3 Delete transaction (domain + engine + UI; Plaid txs: not deletable)
 
 #### Tier 2 — Envelope Transfers
