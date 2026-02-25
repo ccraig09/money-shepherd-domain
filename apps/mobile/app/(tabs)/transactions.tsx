@@ -2,6 +2,7 @@ import React, { useMemo, useState } from "react";
 import {
   View,
   Text,
+  TextInput,
   SectionList,
   Pressable,
   StyleSheet,
@@ -24,6 +25,7 @@ export default function TransactionsScreen() {
   const plaidSyncError = useAppStore((s) => s.plaidSyncError);
   const clearPlaidSyncError = useAppStore((s) => s.clearPlaidSyncError);
   const [refreshing, setRefreshing] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
   // Re-render every 30s so "Xm ago" stays fresh
   const [, setTick] = useState(0);
@@ -41,13 +43,30 @@ export default function TransactionsScreen() {
     }
   }
 
+  const accounts = state?.accounts ?? [];
+  function accountName(accountId: string): string {
+    return accounts.find((a) => a.id === accountId)?.name ?? accountId;
+  }
+
   const sections = useMemo(() => {
     if (!state) return [];
-    const sorted = [...state.transactions].sort(
+    let txs = [...state.transactions];
+
+    if (searchQuery.trim()) {
+      const q = searchQuery.trim().toLowerCase();
+      txs = txs.filter((tx) => {
+        const desc = (tx.description || "").toLowerCase();
+        const acct = accountName(tx.accountId).toLowerCase();
+        return desc.includes(q) || acct.includes(q);
+      });
+    }
+
+    const sorted = txs.sort(
       (a, b) => b.postedAt.localeCompare(a.postedAt),
     );
     return groupByDate(sorted);
-  }, [state]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state, searchQuery]);
 
   const assignedTxIds = useMemo(
     () => {
@@ -65,12 +84,6 @@ export default function TransactionsScreen() {
         <Text>Loading…</Text>
       </View>
     );
-  }
-
-  const accounts = state.accounts;
-
-  function accountName(accountId: string): string {
-    return accounts.find((a) => a.id === accountId)?.name ?? accountId;
   }
 
   return (
@@ -125,6 +138,24 @@ export default function TransactionsScreen() {
         />
       )}
 
+      {/* Search bar */}
+      {state.transactions.length > 0 && (
+        <View style={styles.searchBar}>
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search transactions..."
+            placeholderTextColor={Color.textSubtle}
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            autoCorrect={false}
+            autoCapitalize="none"
+            clearButtonMode="while-editing"
+            returnKeyType="search"
+            accessibilityLabel="Search transactions"
+          />
+        </View>
+      )}
+
       {state.transactions.length === 0 ? (
         <Card style={styles.empty}>
           <Text style={styles.emptyText}>No transactions yet.</Text>
@@ -136,6 +167,10 @@ export default function TransactionsScreen() {
             <Text style={styles.emptyBtnText}>Add your first transaction</Text>
           </Pressable>
         </Card>
+      ) : sections.length === 0 && searchQuery.trim() ? (
+        <View style={styles.noResults}>
+          <Text style={styles.noResultsText}>No transactions match your search.</Text>
+        </View>
       ) : (
         <SectionList
           sections={sections}
@@ -256,6 +291,32 @@ const styles = StyleSheet.create({
     backgroundColor: Color.primary,
   },
   emptyBtnText: { color: Color.textOnColor, fontWeight: FontWeight.semibold, fontSize: FontSize.body },
+  // Search
+  searchBar: {
+    paddingHorizontal: Spacing.base,
+    paddingVertical: Spacing.sm,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderColor: Color.borderLight,
+  },
+  searchInput: {
+    backgroundColor: Color.surfaceLight,
+    borderRadius: Radius.lg,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    fontSize: FontSize.body,
+    color: Color.textDark,
+  },
+  noResults: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingTop: Spacing.xl,
+  },
+  noResultsText: {
+    fontSize: FontSize.body,
+    color: Color.textMuted,
+  },
+
   list: { paddingBottom: Spacing.bottomPad },
 
   // Section headers
