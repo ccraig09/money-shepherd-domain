@@ -155,6 +155,12 @@ export default function SettingsScreen() {
           onPress={handleExport}
           disabled={isBusy || !state}
         />
+        <Divider />
+        <ActionButton
+          label="Import Data"
+          onPress={() => router.push("/settings/import")}
+          disabled={isBusy}
+        />
       </View>
 
       {/* Actions */}

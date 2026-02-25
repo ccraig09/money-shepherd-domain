@@ -247,7 +247,7 @@
 - [x] MS-19.18 Overspend warnings & source indicators (Plaid badge, overspent badge, assign warning)
 - [x] MS-19.6 Core tests
 - [x] MS-19.3 Export
-- [ ] MS-19.4 Import
+- [x] MS-19.4 Import
 - [ ] MS-19.7 Release checklist
 - [ ] MS-19.10 Install plan
 - [ ] MS-19.11 Security sanity

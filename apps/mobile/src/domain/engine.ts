@@ -82,6 +82,9 @@ export type Engine = {
     transactions: import("@money-shepherd/domain").Transaction[];
   }): Promise<RecomputeResult>;
 
+  /** Import a validated state (from export), overwriting local, then recompute + sync. */
+  importState(state: AppStateV1): Promise<RecomputeResult>;
+
   /** Pull remote then push local state to remote (bypasses debounce). */
   syncNow(): Promise<SyncNowResult>;
 
@@ -348,6 +351,10 @@ export function createEngine(): Engine {
 
   const schedulePush = debouncedAsync(pushToRemote, SYNC_DEBOUNCE_MS);
 
+  async function importState(state: AppStateV1): Promise<RecomputeResult> {
+    return recompute(state);
+  }
+
   async function syncNow(): Promise<SyncNowResult> {
     const syncMeta = await loadSyncMeta();
     if (!syncMeta) return { pulledRemote: false };
@@ -523,6 +530,7 @@ export function createEngine(): Engine {
     importPlaidAccounts,
     updatePlaidBalances,
     importPlaidTransactions,
+    importState,
     syncNow,
     onSyncResult: null,
   };

@@ -65,6 +65,7 @@ type AppStore = {
   seedBudgetFromBalances: (args: { totalCents: number; accountIds?: string[] }) => Promise<void>;
   markBudgetSeeded: () => Promise<void>;
   refreshFromPlaid: (opts?: { force?: boolean }) => Promise<{ imported: number; shouldSeedBudget?: boolean }>;
+  importState: (state: AppStateV1) => Promise<void>;
   syncNow: () => Promise<void>;
 };
 
@@ -421,6 +422,26 @@ export const useAppStore = create<AppStore>((set, get) => ({
       });
     } catch {
       // State already set locally — sync will catch up
+    }
+  },
+
+  importState: async (imported: AppStateV1) => {
+    set({ status: "loading", errorMessage: null, syncState: syncTransition(get().syncState, { type: "sync-start" }) });
+    try {
+      const result = await engine.importState(imported);
+      set({
+        state: result.state,
+        status: "ready",
+        lastSyncAt: new Date().toISOString(),
+        syncState: applyOutcome(get().syncState, result.syncOutcome, result.syncError),
+        toast: { text: "Data imported successfully", variant: "success" },
+      });
+    } catch (err: any) {
+      set({
+        status: "error",
+        errorMessage: err?.message ?? "Failed to import data",
+        syncState: syncTransition(get().syncState, { type: "sync-error", error: err?.message ?? "Failed to import data" }),
+      });
     }
   },
 
