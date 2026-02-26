@@ -370,7 +370,7 @@
 - [x] MS-21.1 Envelope "target" field (budget amount / payoff goal)
 - [x] MS-21.2 Envelope "type" tag (spending / debt / savings)
 - [x] MS-21.3 Debt overview screen (list all debts, sorted by snowball order)
-- [ ] MS-21.4 Snowball calculator (payoff order, timeline, interest savings)
+- [x] MS-21.4 Snowball calculator (payoff order, timeline, interest savings)
 - [ ] MS-21.5 Debt payoff progress visualization (bar/ring per debt)
 - [ ] MS-21.6 BNPL transaction detection hint (badge on BNPL merchant transactions)
 
