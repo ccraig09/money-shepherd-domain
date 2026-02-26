@@ -13,6 +13,7 @@ import { useAppStore } from "../src/store/useAppStore";
 import { parseDollars } from "../src/lib/moneyInput";
 import { formatMoney } from "../src/lib/moneyFormat";
 import { MoneyInput } from "../src/ui/components/MoneyInput";
+import { HelpTooltip } from "../src/ui/components/HelpTooltip";
 import { Spacing, Radius, FontSize, FontWeight, Color } from "../src/ui/tokens";
 
 export default function AllocateScreen() {
@@ -73,7 +74,13 @@ export default function AllocateScreen() {
       <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
         {/* Available balance */}
         <View style={styles.availableCard}>
-          <Text style={styles.availableLabel}>Available to Assign</Text>
+          <View style={styles.availableLabelRow}>
+            <Text style={styles.availableLabel}>Available to Assign</Text>
+            <HelpTooltip
+              title="Allocate"
+              body="Move money from Available into an envelope for a specific purpose — like putting cash in a jar."
+            />
+          </View>
           <Text style={[styles.availableAmount, isZeroAvailable && styles.availableZero]}>
             ${formatMoney(available)}
           </Text>
@@ -191,6 +198,7 @@ const styles = StyleSheet.create({
     gap: Spacing.xs,
     marginBottom: Spacing.sm,
   },
+  availableLabelRow: { flexDirection: "row", alignItems: "center", gap: Spacing.xs },
   availableLabel: { fontSize: FontSize.small, color: Color.textMid, fontWeight: FontWeight.medium },
   availableAmount: { fontSize: FontSize.title, fontWeight: FontWeight.extrabold, color: Color.success },
   availableZero: { color: Color.textDisabled },

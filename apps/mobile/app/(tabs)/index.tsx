@@ -16,6 +16,7 @@ import { Card } from "../../src/ui/components/Card";
 import { ProgressBar } from "../../src/ui/components/ProgressBar";
 import { SectionHeader } from "../../src/ui/components/SectionHeader";
 import { AccountsCard } from "../../src/ui/components/AccountsCard";
+import { HelpTooltip } from "../../src/ui/components/HelpTooltip";
 import { Spacing, Radius, FontSize, FontWeight, Color } from "../../src/ui/tokens";
 import { getThisMonthSummary } from "../../src/lib/periodSummary";
 import { getCurrentPeriod, getFundingInPeriod, getSpendingInPeriod } from "@money-shepherd/domain";
@@ -104,7 +105,14 @@ export default function DashboardScreen() {
 
       {/* Available to Assign — hero card */}
       <View style={styles.heroCard}>
-        <Text style={styles.heroLabel}>Available to Assign</Text>
+        <View style={styles.heroLabelRow}>
+          <Text style={styles.heroLabel}>Available to Assign</Text>
+          <HelpTooltip
+            inverted
+            title="Available to Assign"
+            body="Money in your accounts that hasn't been given a job yet. Allocate it into envelopes to plan your spending."
+          />
+        </View>
         <Text
           style={[
             styles.heroAmount,
@@ -354,6 +362,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.lg,
     gap: Spacing.xs,
   },
+  heroLabelRow: { flexDirection: "row", alignItems: "center", gap: Spacing.xs },
   heroLabel: { fontSize: FontSize.small, color: "rgba(255,255,255,0.75)", fontWeight: FontWeight.semibold, textTransform: "uppercase" as const, letterSpacing: 0.5 },
   heroAmount: { fontSize: FontSize.hero, fontWeight: FontWeight.extrabold, color: Color.textOnColor, marginTop: Spacing.xs },
   heroAmountNegative: { color: Color.heroNegative },

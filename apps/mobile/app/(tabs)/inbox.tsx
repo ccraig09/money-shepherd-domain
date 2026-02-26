@@ -10,6 +10,7 @@ import { router } from "expo-router";
 import { useAppStore } from "../../src/store/useAppStore";
 import { formatMoney } from "../../src/lib/moneyFormat";
 import { Card } from "../../src/ui/components/Card";
+import { HelpTooltip } from "../../src/ui/components/HelpTooltip";
 import { Spacing, Radius, FontSize, FontWeight, Color } from "../../src/ui/tokens";
 import type { Transaction } from "@money-shepherd/domain";
 
@@ -55,6 +56,10 @@ export default function InboxScreen() {
     <View style={styles.root}>
       <View style={styles.header}>
         <Text style={styles.title}>Inbox</Text>
+        <HelpTooltip
+          title="Inbox"
+          body="Transactions that haven't been assigned to an envelope yet. Assign them so every dollar has a job."
+        />
         {inboxItems.length > 0 && (
           <View style={styles.badge}>
             <Text style={styles.badgeText}>{inboxItems.length}</Text>

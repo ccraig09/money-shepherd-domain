@@ -12,6 +12,7 @@ import { formatMoney } from "../../src/lib/moneyFormat";
 import { sortEnvelopesGivingFirst } from "@money-shepherd/domain";
 import { Card } from "../../src/ui/components/Card";
 import { ProgressBar } from "../../src/ui/components/ProgressBar";
+import { HelpTooltip } from "../../src/ui/components/HelpTooltip";
 import { Spacing, Radius, FontSize, FontWeight, Color } from "../../src/ui/tokens";
 
 type SortOrder = "alpha" | "balance" | "giving";
@@ -45,7 +46,13 @@ export default function EnvelopesScreen() {
   return (
     <View style={styles.root}>
       <View style={styles.header}>
-        <Text style={styles.title}>Envelopes</Text>
+        <View style={styles.titleRow}>
+          <Text style={styles.title}>Envelopes</Text>
+          <HelpTooltip
+            title="Envelopes"
+            body="A category in your budget — like a virtual jar for specific spending. Move money into envelopes to plan how you'll use it."
+          />
+        </View>
         <View style={styles.headerActions}>
           <Pressable
             onPress={() => router.push("/allocate")}
@@ -180,6 +187,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderColor: Color.border,
   },
+  titleRow: { flexDirection: "row", alignItems: "center", gap: Spacing.sm },
   title: { fontSize: FontSize.title, fontWeight: FontWeight.bold, color: Color.textDark },
   headerActions: { flexDirection: "row", gap: Spacing.sm },
   allocateBtn: {
