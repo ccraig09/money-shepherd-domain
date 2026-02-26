@@ -256,10 +256,10 @@
 
 ### Phase 19 Smoke Check
 
-- [ ] Export + import works
-- [ ] App recovers from corrupted local state
-- [ ] Feature flags can disable risky features cleanly
-- [ ] Install plan works for Jackia
+- [x] Export + import works
+- [x] App recovers from corrupted local state
+- [x] Feature flags can disable risky features cleanly
+- [x] Install plan works for Jackia
 
 ---
 
@@ -376,21 +376,20 @@
 
 ### Phase 21 Smoke Check
 
-- [ ] Create debt-tagged envelope with target amount
-- [ ] Debt overview shows all debts sorted by balance
-- [ ] Snowball calculator shows payoff timeline
-- [ ] Progress visualization updates as payments are made
-- [ ] BNPL badge appears on Affirm/Klarna/etc. transactions
+- [x] Create debt-tagged envelope with target amount
+- [x] Debt overview shows all debts sorted by balance
+- [x] Snowball calculator shows payoff timeline
+- [x] Progress visualization updates as payments are made
+- [x] BNPL badge appears on Affirm/Klarna/etc. transactions
 
 ---
 
 ## Phase 22: Insights & Visuals (charts, trends, advisor voice)
 
-<!--
 ### Recommended build order
-- [ ] MS-22.1 Charting library setup (victory-native or react-native-chart-kit)
+- [x] MS-22.1 Charting library setup (victory-native or react-native-svg custom)
 - [ ] MS-22.2 Spending by envelope pie/donut chart
-- [ ] MS-22.3 PeriodSummaryCard (income vs expense vs net — legacy wireframe §1)
+- [ ] MS-22.3 PeriodSummaryCard visual upgrade (mini chart enhancement for existing This Month card)
 - [ ] MS-22.4 Income vs Expense trend bar chart (3-6 months)
 - [ ] MS-22.5 Rule-based insights engine (pattern matching, no AI)
 - [ ] MS-22.6 InsightCard component + placement ("Money Shepherd says...")
@@ -401,6 +400,5 @@
 - [ ] Trend chart shows monthly trajectory
 - [ ] At least one insight appears on Dashboard
 - [ ] Insights are dismissable
--->
 
 ---
