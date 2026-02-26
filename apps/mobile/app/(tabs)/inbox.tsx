@@ -12,7 +12,7 @@ import { formatMoney } from "../../src/lib/moneyFormat";
 import { Card } from "../../src/ui/components/Card";
 import { HelpTooltip } from "../../src/ui/components/HelpTooltip";
 import { Spacing, Radius, FontSize, FontWeight, Color } from "../../src/ui/tokens";
-import { suggestEnvelope, type Transaction, type EnvelopeSuggestion } from "@money-shepherd/domain";
+import { suggestEnvelope, detectRecurring, normalizePayee, type Transaction, type EnvelopeSuggestion } from "@money-shepherd/domain";
 
 export default function InboxScreen() {
   const state = useAppStore((s) => s.state);
@@ -28,6 +28,27 @@ export default function InboxScreen() {
       .filter((tx): tx is Transaction => tx !== undefined && tx.amount.cents < 0);
   }, [state]);
 
+  const recurringPatterns = useMemo(() => {
+    if (!state) return [];
+    const assignments = state.inbox.assignmentsByTransactionId;
+    const txById = Object.fromEntries(
+      state.transactions.map((tx) => [tx.id, tx]),
+    );
+    const history = Object.entries(assignments)
+      .map(([txId, assignment]) => {
+        const tx = txById[txId];
+        if (!tx) return null;
+        return {
+          normalizedPayee: normalizePayee(tx.description),
+          envelopeId: assignment.envelopeId,
+          amountCents: tx.amount.cents,
+          postedAt: tx.postedAt,
+        };
+      })
+      .filter((e): e is NonNullable<typeof e> => e !== null && e.normalizedPayee !== "");
+    return detectRecurring(history);
+  }, [state]);
+
   const suggestions = useMemo(() => {
     if (!state) return new Map<string, EnvelopeSuggestion>();
     const payeeMappings = state.payeeMappings ?? {};
@@ -41,13 +62,14 @@ export default function InboxScreen() {
         description: tx.description,
         payeeMappings,
         rules,
+        recurringPatterns,
       });
       if (suggestion && Object.hasOwn(envelopeNames, suggestion.envelopeId)) {
         result.set(tx.id, suggestion);
       }
     }
     return result;
-  }, [state, inboxItems]);
+  }, [state, inboxItems, recurringPatterns]);
 
   if (!state) {
     return (

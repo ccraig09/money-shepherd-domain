@@ -1,4 +1,5 @@
 import { normalizePayee } from "./normalizePayee";
+import type { RecurringPattern } from "./detectRecurring";
 
 export type AssignmentRule = {
   id: string;
@@ -11,13 +12,14 @@ export type AssignmentRule = {
 export type EnvelopeSuggestion = {
   envelopeId: string;
   confidence: "high" | "medium";
-  source: "rule" | "payee";
+  source: "rule" | "payee" | "recurring";
 };
 
 type SuggestInput = {
   description: string;
   payeeMappings: Record<string, string>;
   rules: AssignmentRule[];
+  recurringPatterns?: RecurringPattern[];
 };
 
 export function suggestEnvelope(input: SuggestInput): EnvelopeSuggestion | null {
@@ -26,6 +28,9 @@ export function suggestEnvelope(input: SuggestInput): EnvelopeSuggestion | null 
 
   const ruleMatch = matchByRules(normalized, input.rules);
   if (ruleMatch) return ruleMatch;
+
+  const recurringMatch = matchByRecurring(normalized, input.recurringPatterns ?? []);
+  if (recurringMatch) return recurringMatch;
 
   return matchByPayee(normalized, input.payeeMappings);
 }
@@ -50,6 +55,16 @@ function ruleMatches(normalized: string, rule: AssignmentRule): boolean {
 
   if (rule.matchType === "exact") return normalized === pattern;
   return normalized.includes(pattern);
+}
+
+function matchByRecurring(
+  normalized: string,
+  patterns: RecurringPattern[],
+): EnvelopeSuggestion | null {
+  const match = patterns.find((p) => p.normalizedPayee === normalized);
+  if (!match) return null;
+
+  return { envelopeId: match.envelopeId, confidence: "high", source: "recurring" };
 }
 
 function matchByPayee(

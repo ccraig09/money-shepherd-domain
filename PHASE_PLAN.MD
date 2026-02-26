@@ -341,7 +341,7 @@
 
 #### Tier 3 — Power Features
 - [x] MS-20.7 "Confirm All Suggestions" bulk action (assign all suggested in one tap)
-- [ ] MS-20.8 Recurring transaction detection (same payee + similar amount + regular interval)
+- [x] MS-20.8 Recurring transaction detection (same payee + similar amount + regular interval)
 
 ### Architecture Notes
 - `suggestEnvelope()` is a pure function in `packages/domain` — no infra deps

@@ -1,5 +1,5 @@
 import { suggestEnvelope } from "../src";
-import type { AssignmentRule, EnvelopeSuggestion } from "../src";
+import type { AssignmentRule, EnvelopeSuggestion, RecurringPattern } from "../src";
 
 const payeeMappings: Record<string, string> = {
   walmart: "env-groceries",
@@ -152,6 +152,73 @@ describe("suggestEnvelope", () => {
       });
 
       expect(result?.envelopeId).toBe("env-dining");
+      expect(result?.source).toBe("payee");
+    });
+  });
+
+  describe("recurring patterns", () => {
+    const recurringNetflix: RecurringPattern = {
+      normalizedPayee: "netflix",
+      envelopeId: "env-subs",
+      interval: "monthly",
+    };
+
+    it("suggests from recurring pattern with high confidence", () => {
+      const result = suggestEnvelope({
+        description: "NETFLIX",
+        payeeMappings: {},
+        rules: [],
+        recurringPatterns: [recurringNetflix],
+      });
+
+      expect(result).toEqual({
+        envelopeId: "env-subs",
+        confidence: "high",
+        source: "recurring",
+      });
+    });
+
+    it("rules take priority over recurring patterns", () => {
+      const rule: AssignmentRule = {
+        id: "rule-1",
+        pattern: "netflix",
+        matchType: "contains",
+        envelopeId: "env-entertainment",
+        priority: 1,
+      };
+
+      const result = suggestEnvelope({
+        description: "NETFLIX",
+        payeeMappings: {},
+        rules: [rule],
+        recurringPatterns: [recurringNetflix],
+      });
+
+      expect(result?.envelopeId).toBe("env-entertainment");
+      expect(result?.source).toBe("rule");
+    });
+
+    it("recurring takes priority over payee memorization", () => {
+      const result = suggestEnvelope({
+        description: "NETFLIX",
+        payeeMappings: { netflix: "env-dining" },
+        rules: [],
+        recurringPatterns: [recurringNetflix],
+      });
+
+      expect(result?.envelopeId).toBe("env-subs");
+      expect(result?.source).toBe("recurring");
+    });
+
+    it("falls back to payee when no recurring match", () => {
+      const result = suggestEnvelope({
+        description: "WALMART #1234",
+        payeeMappings,
+        rules: [],
+        recurringPatterns: [recurringNetflix],
+      });
+
+      expect(result?.envelopeId).toBe("env-groceries");
       expect(result?.source).toBe("payee");
     });
   });
