@@ -340,7 +340,7 @@
 - [x] MS-20.6 Rules management screen (Settings → add/edit/delete/reorder rules)
 
 #### Tier 3 — Power Features
-- [ ] MS-20.7 "Confirm All Suggestions" bulk action (assign all suggested in one tap)
+- [x] MS-20.7 "Confirm All Suggestions" bulk action (assign all suggested in one tap)
 - [ ] MS-20.8 Recurring transaction detection (same payee + similar amount + regular interval)
 
 ### Architecture Notes

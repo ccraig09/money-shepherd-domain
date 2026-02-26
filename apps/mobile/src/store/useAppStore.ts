@@ -76,6 +76,7 @@ type AppStore = {
   addAssignmentRule: (args: { pattern: string; matchType: "contains" | "exact"; envelopeId: string; priority: number }) => Promise<void>;
   removeAssignmentRule: (ruleId: string) => Promise<void>;
   reorderAssignmentRules: (ruleIds: string[]) => Promise<void>;
+  confirmAllSuggestions: (assignments: { transactionId: string; envelopeId: string }[]) => Promise<void>;
   allocateToEnvelope: (args: {
     envelopeId: string;
     amountCents: number;
@@ -632,6 +633,40 @@ export const useAppStore = create<AppStore>((set, get) => ({
       });
     } catch (err: any) {
       set({ status: "error", errorMessage: err?.message ?? "Failed to reorder rules", syncState: syncTransition(get().syncState, { type: "sync-error", error: err?.message ?? "Failed to reorder rules" }) });
+    }
+  },
+
+  confirmAllSuggestions: async (assignments) => {
+    const current = get().state;
+    if (!current || assignments.length === 0) return;
+
+    const meta = await loadSyncMeta();
+    const userId = meta?.userId ?? "user-los";
+
+    set({ status: "loading", errorMessage: null, syncState: syncTransition(get().syncState, { type: "sync-start" }) });
+    try {
+      const result = await engine.confirmAllSuggestions({
+        assignments: assignments.map((a) => ({
+          ...a,
+          assignedByUserId: userId,
+        })),
+      });
+      set({
+        state: result.state,
+        status: "ready",
+        lastSyncAt: new Date().toISOString(),
+        syncState: applyOutcome(get().syncState, result.syncOutcome, result.syncError),
+        toast: {
+          text: `${assignments.length} transaction${assignments.length === 1 ? "" : "s"} assigned`,
+          variant: "success",
+        },
+      });
+    } catch (err: any) {
+      set({
+        status: "error",
+        errorMessage: err?.message ?? "Failed to confirm suggestions",
+        syncState: syncTransition(get().syncState, { type: "sync-error", error: err?.message ?? "Failed to confirm suggestions" }),
+      });
     }
   },
 

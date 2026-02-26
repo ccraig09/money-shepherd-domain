@@ -16,6 +16,7 @@ import { suggestEnvelope, type Transaction, type EnvelopeSuggestion } from "@mon
 
 export default function InboxScreen() {
   const state = useAppStore((s) => s.state);
+  const confirmAllSuggestions = useAppStore((s) => s.confirmAllSuggestions);
 
   const inboxItems = useMemo(() => {
     if (!state) return [];
@@ -87,6 +88,22 @@ export default function InboxScreen() {
           </View>
         )}
       </View>
+
+      {suggestions.size > 0 && (
+        <Pressable
+          style={styles.confirmAllBtn}
+          onPress={() => {
+            const assignments = Array.from(suggestions.entries()).map(
+              ([txId, s]) => ({ transactionId: txId, envelopeId: s.envelopeId }),
+            );
+            confirmAllSuggestions(assignments);
+          }}
+        >
+          <Text style={styles.confirmAllText}>
+            Confirm All ({suggestions.size})
+          </Text>
+        </Pressable>
+      )}
 
       {inboxItems.length === 0 ? (
         <Card style={styles.empty}>
@@ -314,4 +331,17 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   infoBtnText: { fontSize: FontSize.body, color: Color.textMuted },
+  confirmAllBtn: {
+    marginHorizontal: Spacing.base,
+    marginTop: Spacing.sm,
+    paddingVertical: Spacing.md,
+    borderRadius: Radius.lg,
+    backgroundColor: Color.success,
+    alignItems: "center",
+  },
+  confirmAllText: {
+    color: Color.textOnColor,
+    fontSize: FontSize.subtitle,
+    fontWeight: FontWeight.bold,
+  },
 });

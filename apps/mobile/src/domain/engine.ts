@@ -91,6 +91,9 @@ export type Engine = {
   addAssignmentRule(args: { pattern: string; matchType: "contains" | "exact"; envelopeId: string; priority: number }): Promise<RecomputeResult>;
   removeAssignmentRule(args: { ruleId: string }): Promise<RecomputeResult>;
   reorderAssignmentRules(args: { ruleIds: string[] }): Promise<RecomputeResult>;
+  confirmAllSuggestions(args: {
+    assignments: { transactionId: string; envelopeId: string; assignedByUserId: string }[];
+  }): Promise<RecomputeResult>;
 
   importPlaidAccounts(args: {
     newAccounts: Account[];
@@ -283,6 +286,16 @@ export function createEngine(): Engine {
     const state = await getState();
     const next = reorderAssignmentRules(state, args);
     return recompute(next);
+  }
+
+  async function confirmAllSuggestionsAction(args: {
+    assignments: { transactionId: string; envelopeId: string; assignedByUserId: string }[];
+  }): Promise<RecomputeResult> {
+    let state = await getState();
+    for (const assignment of args.assignments) {
+      state = assignTransaction(state, assignment);
+    }
+    return recompute(state);
   }
 
   async function seed(): Promise<AppStateV1> {
@@ -651,6 +664,7 @@ export function createEngine(): Engine {
     addAssignmentRule: addAssignmentRuleAction,
     removeAssignmentRule: removeAssignmentRuleAction,
     reorderAssignmentRules: reorderAssignmentRulesAction,
+    confirmAllSuggestions: confirmAllSuggestionsAction,
     importPlaidAccounts,
     updatePlaidBalances,
     importPlaidTransactions,
