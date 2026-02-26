@@ -83,6 +83,7 @@ type AppStore = {
     amountCents: number;
     description: string;
     postedAt?: string;
+    createdByUserId?: string;
   }) => Promise<void>;
   seedBudgetFromBalances: (args: { totalCents: number; accountIds?: string[] }) => Promise<void>;
   markBudgetSeeded: () => Promise<void>;

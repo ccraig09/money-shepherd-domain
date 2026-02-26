@@ -52,6 +52,7 @@ export type Engine = {
     amountCents: number; // positive income, negative expense
     description: string;
     postedAt?: string;
+    createdByUserId?: string;
   }): Promise<RecomputeResult>;
 
   createEnvelope(args: { name: string; type?: import("@money-shepherd/domain").EnvelopeType }): Promise<RecomputeResult>;
@@ -515,6 +516,7 @@ export function createEngine(): Engine {
     amountCents: number;
     description: string;
     postedAt?: string;
+    createdByUserId?: string;
   }): Promise<RecomputeResult> {
     if (args.amountCents === 0) {
       throw new Error("Amount must be nonzero.");
@@ -534,6 +536,7 @@ export function createEngine(): Engine {
       description: args.description,
       postedAt: args.postedAt ?? nowIso(),
       // envelopeId intentionally omitted (Inbox flow will assign)
+      ...(args.createdByUserId ? { createdByUserId: args.createdByUserId } : {}),
     };
 
     const next: AppStateV1 = {

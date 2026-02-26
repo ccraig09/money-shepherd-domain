@@ -191,6 +191,10 @@ export default function TransactionsScreen() {
             const assignedByName = assignment
               ? (state.users?.find((u) => u.id === assignment.assignedByUserId)?.displayName ?? null)
               : null;
+            const createdByName = !assignedByName && item.createdByUserId
+              ? (state.users?.find((u) => u.id === item.createdByUserId)?.displayName ?? null)
+              : null;
+            const attributionName = assignedByName ?? createdByName;
             return (
               <Pressable
                 style={styles.row}
@@ -220,9 +224,9 @@ export default function TransactionsScreen() {
                     <Text style={styles.rowAccountName} numberOfLines={1}>
                       {accountName(item.accountId)}
                     </Text>
-                    {assignedByName && (
+                    {attributionName && (
                       <Text style={styles.metaAttribution}>
-                        {" · by "}{assignedByName}
+                        {" · by "}{attributionName}
                       </Text>
                     )}
                   </View>

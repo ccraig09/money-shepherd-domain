@@ -31,10 +31,12 @@ export default function AddTransactionScreen() {
 
   const accounts = React.useMemo(() => state?.accounts ?? [], [state?.accounts]);
   const [tokens, setTokens] = React.useState<PlaidTokenData[]>([]);
+  const [currentUserId, setCurrentUserId] = React.useState<string | null>(null);
 
   React.useEffect(() => {
     loadSyncMeta().then((meta) => {
       if (meta?.userId) {
+        setCurrentUserId(meta.userId);
         loadPlaidTokens(meta.userId).then(setTokens);
       }
     });
@@ -85,6 +87,7 @@ export default function AddTransactionScreen() {
         accountId: selectedAccountId,
         amountCents,
         description: desc,
+        ...(currentUserId ? { createdByUserId: currentUserId } : {}),
       });
       router.back();
     } finally {

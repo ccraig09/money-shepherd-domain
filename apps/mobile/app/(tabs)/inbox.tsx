@@ -115,6 +115,16 @@ export default function InboxScreen() {
                     <Text style={styles.rowAccountDate}>
                       {" · "}{formatDate(item.postedAt)}
                     </Text>
+                    {(() => {
+                      const creatorName = item.createdByUserId
+                        ? (state.users?.find((u) => u.id === item.createdByUserId)?.displayName ?? null)
+                        : null;
+                      return creatorName ? (
+                        <Text style={styles.metaAttribution}>
+                          {" · by "}{creatorName}
+                        </Text>
+                      ) : null;
+                    })()}
                   </View>
                 </View>
                 <View style={styles.rowRight}>
@@ -217,6 +227,7 @@ const styles = StyleSheet.create({
   metaRow: { flexDirection: "row", alignItems: "center" },
   rowAccountName: { fontSize: FontSize.caption, color: Color.textMuted, flexShrink: 1 },
   rowAccountDate: { fontSize: FontSize.caption, color: Color.textMuted, flexShrink: 0 },
+  metaAttribution: { fontSize: FontSize.caption, color: Color.textMuted, flexShrink: 0 },
   rowRight: { alignItems: "flex-end", gap: Spacing.xs, marginLeft: Spacing.md, paddingTop: 2 },
   rowAmount: { fontSize: FontSize.subtitle, fontWeight: FontWeight.semibold },
   income: { color: Color.success },
