@@ -312,16 +312,16 @@
 
 ### Phase 23 Smoke Check
 
-- [ ] Unassign a transaction → returns to inbox, envelope balance restored
-- [ ] Edit a manual transaction description → updates everywhere
-- [ ] Delete a manual transaction → removed, budget recalculated
-- [ ] Plaid transaction: can edit description but cannot delete or change amount
-- [ ] Transfer $50 from Groceries to Entertainment → both balances update
-- [ ] Set $500 monthly goal on Groceries → progress bar shows funding %
-- [ ] Dashboard shows "This Month" income/spending/net
-- [ ] Fill envelopes from paycheck → guided by targets, one-tap fill
-- [ ] Create a Giving envelope → appears first in envelope list
-- [ ] Period summary shows monthly breakdown by envelope
+- [x] Unassign a transaction → returns to inbox, envelope balance restored
+- [x] Edit a manual transaction description → updates everywhere
+- [x] Delete a manual transaction → removed, budget recalculated
+- [x] Plaid transaction: can edit description but cannot delete or change amount
+- [x] Transfer $50 from Groceries to Entertainment → both balances update
+- [x] Set $500 monthly goal on Groceries → progress bar shows funding %
+- [x] Dashboard shows "This Month" income/spending/net
+- [x] Fill envelopes from paycheck → guided by targets, one-tap fill
+- [x] Create a Giving envelope → appears first in envelope list
+- [x] Period summary shows monthly breakdown by envelope
 
 ---
 
