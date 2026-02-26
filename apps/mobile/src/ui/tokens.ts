@@ -103,6 +103,10 @@ export const Color = {
   giving: "#8e6bbf",
   givingSurface: "#f3eef9",
 
+  // ── Debt ─────────────────────────────────────
+  debt: "#c0392b",
+  debtSurface: "#fdecea",
+
   // ── Nudge ──────────────────────────────────
   nudgeText: "#795548",
 } as const;

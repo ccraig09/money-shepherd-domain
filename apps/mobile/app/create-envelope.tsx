@@ -9,15 +9,23 @@ import {
   Platform,
 } from "react-native";
 import { router } from "expo-router";
+import type { EnvelopeType } from "@money-shepherd/domain";
 import { useAppStore } from "../src/store/useAppStore";
 import { Spacing, Radius, FontSize, FontWeight, Color } from "../src/ui/tokens";
+
+const TYPE_OPTIONS: { value: EnvelopeType; label: string; hint: string }[] = [
+  { value: "spending", label: "Spending", hint: "Day-to-day expenses" },
+  { value: "giving", label: "Giving", hint: "Set aside for generosity" },
+  { value: "debt", label: "Debt", hint: "Track payoff progress" },
+  { value: "savings", label: "Savings", hint: "Save toward a goal" },
+];
 
 export default function CreateEnvelopeScreen() {
   const state = useAppStore((s) => s.state);
   const createEnvelope = useAppStore((s) => s.createEnvelope);
 
   const [name, setName] = React.useState("");
-  const [isGiving, setIsGiving] = React.useState(false);
+  const [selectedType, setSelectedType] = React.useState<EnvelopeType>("spending");
   const [error, setError] = React.useState<string | null>(null);
   const [duplicateWarning, setDuplicateWarning] = React.useState<string | null>(null);
   const [saving, setSaving] = React.useState(false);
@@ -40,7 +48,7 @@ export default function CreateEnvelopeScreen() {
 
     setSaving(true);
     try {
-      await createEnvelope(normalized, isGiving ? "giving" : undefined);
+      await createEnvelope(normalized, selectedType === "spending" ? undefined : selectedType);
       router.back();
     } finally {
       setSaving(false);
@@ -77,24 +85,41 @@ export default function CreateEnvelopeScreen() {
         {error ? <Text style={styles.errorText}>{error}</Text> : null}
         {!error && duplicateWarning ? <Text style={styles.warningText}>{duplicateWarning}</Text> : null}
 
-        {/* Giving toggle */}
-        <Pressable
-          style={[styles.givingToggle, isGiving && styles.givingToggleActive]}
-          onPress={() => setIsGiving(!isGiving)}
-          accessibilityLabel="Mark as giving envelope"
-          accessibilityRole="switch"
-          accessibilityState={{ checked: isGiving }}
-        >
-          <View style={styles.givingToggleContent}>
-            <Text style={[styles.givingLabel, isGiving && styles.givingLabelActive]}>
-              Giving
-            </Text>
-            <Text style={[styles.givingHint, isGiving && styles.givingHintActive]}>
-              Set aside for generosity
-            </Text>
-          </View>
-          <View style={[styles.toggleDot, isGiving && styles.toggleDotActive]} />
-        </Pressable>
+        {/* Type picker */}
+        <Text style={styles.sectionLabel}>Type</Text>
+        <View style={styles.typeRow}>
+          {TYPE_OPTIONS.map((opt) => {
+            const active = selectedType === opt.value;
+            const accentColor = opt.value === "giving" ? Color.giving
+              : opt.value === "debt" ? Color.debt
+              : opt.value === "savings" ? Color.primary
+              : Color.textMid;
+            const surfaceColor = opt.value === "giving" ? Color.givingSurface
+              : opt.value === "debt" ? Color.debtSurface
+              : opt.value === "savings" ? Color.primarySurface
+              : Color.surface;
+            return (
+              <Pressable
+                key={opt.value}
+                style={[
+                  styles.typeChip,
+                  active && { borderColor: accentColor, backgroundColor: surfaceColor },
+                ]}
+                onPress={() => setSelectedType(opt.value)}
+                accessibilityLabel={`${opt.label} envelope type`}
+                accessibilityRole="radio"
+                accessibilityState={{ selected: active }}
+              >
+                <Text style={[styles.typeChipLabel, active && { color: accentColor }]}>
+                  {opt.label}
+                </Text>
+                <Text style={[styles.typeChipHint, active && { color: accentColor }]}>
+                  {opt.hint}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
 
         <Pressable
           onPress={handleSave}
@@ -145,46 +170,29 @@ const styles = StyleSheet.create({
   errorText: { fontSize: FontSize.small, color: Color.error, marginTop: Spacing.xs },
   warningText: { fontSize: FontSize.small, color: Color.warning, marginTop: Spacing.xs },
 
-  // Giving toggle
-  givingToggle: {
+  // Type picker
+  typeRow: {
     flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginTop: Spacing.md,
-    padding: Spacing.base,
+    flexWrap: "wrap",
+    gap: Spacing.sm,
+  },
+  typeChip: {
+    flexBasis: "47%",
+    padding: Spacing.md,
     borderRadius: Radius.lg,
     borderWidth: 1,
     borderColor: Color.border,
     backgroundColor: Color.surface,
   },
-  givingToggleActive: {
-    borderColor: Color.giving,
-    backgroundColor: Color.givingSurface,
-  },
-  givingToggleContent: { flex: 1 },
-  givingLabel: {
-    fontSize: FontSize.subtitle,
+  typeChipLabel: {
+    fontSize: FontSize.body,
     fontWeight: FontWeight.semibold,
     color: Color.textDark,
   },
-  givingLabelActive: { color: Color.giving },
-  givingHint: {
-    fontSize: FontSize.small,
+  typeChipHint: {
+    fontSize: FontSize.caption,
     color: Color.textMuted,
     marginTop: 2,
-  },
-  givingHintActive: { color: Color.giving },
-  toggleDot: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    borderWidth: 2,
-    borderColor: Color.border,
-    marginLeft: Spacing.md,
-  },
-  toggleDotActive: {
-    borderColor: Color.giving,
-    backgroundColor: Color.giving,
   },
 
   saveBtn: {

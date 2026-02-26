@@ -1,6 +1,6 @@
 import { Money } from "./Money";
 
-export type EnvelopeType = "spending" | "giving" | "savings";
+export type EnvelopeType = "spending" | "giving" | "debt" | "savings";
 
 export type Envelope = {
   id: string;

@@ -144,6 +144,8 @@ export default function EnvelopesScreen() {
                 const isNegative = item.balance.cents < 0;
                 const isZero = item.balance.cents === 0;
                 const isGiving = item.type === "giving";
+                const isDebt = item.type === "debt";
+                const isSavings = item.type === "savings";
                 return (
                   <Pressable
                     style={styles.row}
@@ -162,6 +164,16 @@ export default function EnvelopesScreen() {
                           {isGiving && (
                             <View style={styles.givingBadge} accessibilityLabel="Giving envelope">
                               <Text style={styles.givingBadgeText}>GIVING</Text>
+                            </View>
+                          )}
+                          {isDebt && (
+                            <View style={styles.debtBadge} accessibilityLabel="Debt envelope">
+                              <Text style={styles.debtBadgeText}>DEBT</Text>
+                            </View>
+                          )}
+                          {isSavings && (
+                            <View style={styles.savingsBadge} accessibilityLabel="Savings envelope">
+                              <Text style={styles.savingsBadgeText}>SAVINGS</Text>
                             </View>
                           )}
                         </View>
@@ -279,7 +291,7 @@ const styles = StyleSheet.create({
   rowBalanceNegative: { color: Color.error },
   rowBalanceZero: { color: Color.textDark },
 
-  // Giving badge
+  // Type badges
   givingBadge: {
     paddingHorizontal: 6,
     paddingVertical: 1,
@@ -290,6 +302,30 @@ const styles = StyleSheet.create({
     fontSize: 9,
     fontWeight: FontWeight.bold,
     color: Color.giving,
+    letterSpacing: 0.5,
+  },
+  debtBadge: {
+    paddingHorizontal: 6,
+    paddingVertical: 1,
+    borderRadius: Radius.sm,
+    backgroundColor: Color.debtSurface,
+  },
+  debtBadgeText: {
+    fontSize: 9,
+    fontWeight: FontWeight.bold,
+    color: Color.debt,
+    letterSpacing: 0.5,
+  },
+  savingsBadge: {
+    paddingHorizontal: 6,
+    paddingVertical: 1,
+    borderRadius: Radius.sm,
+    backgroundColor: Color.primarySurface,
+  },
+  savingsBadgeText: {
+    fontSize: 9,
+    fontWeight: FontWeight.bold,
+    color: Color.primary,
     letterSpacing: 0.5,
   },
 });

@@ -9,17 +9,27 @@ import {
   Platform,
 } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
+import type { EnvelopeType } from "@money-shepherd/domain";
 import { useAppStore } from "../src/store/useAppStore";
 import { Spacing, Radius, FontSize, FontWeight, Color } from "../src/ui/tokens";
+
+const TYPE_OPTIONS: { value: EnvelopeType; label: string; hint: string }[] = [
+  { value: "spending", label: "Spending", hint: "Day-to-day expenses" },
+  { value: "giving", label: "Giving", hint: "Set aside for generosity" },
+  { value: "debt", label: "Debt", hint: "Track payoff progress" },
+  { value: "savings", label: "Savings", hint: "Save toward a goal" },
+];
 
 export default function EditEnvelopeScreen() {
   const { envelopeId } = useLocalSearchParams<{ envelopeId: string }>();
   const state = useAppStore((s) => s.state);
   const renameEnvelope = useAppStore((s) => s.renameEnvelope);
+  const setEnvelopeType = useAppStore((s) => s.setEnvelopeType);
 
   const envelope = state?.budget.envelopes.find((e) => e.id === envelopeId);
 
   const [name, setName] = React.useState(envelope?.name ?? "");
+  const [selectedType, setSelectedType] = React.useState<EnvelopeType>(envelope?.type ?? "spending");
   const [error, setError] = React.useState<string | null>(null);
   const [duplicateWarning, setDuplicateWarning] = React.useState<string | null>(null);
   const [saving, setSaving] = React.useState(false);
@@ -43,12 +53,6 @@ export default function EditEnvelopeScreen() {
       return;
     }
 
-    // No-op if unchanged
-    if (normalized === envelope!.name) {
-      router.back();
-      return;
-    }
-
     const duplicate = state!.budget.envelopes.find(
       (e) =>
         e.id !== envelopeId &&
@@ -59,9 +63,20 @@ export default function EditEnvelopeScreen() {
       return;
     }
 
+    const nameChanged = normalized !== envelope!.name;
+    const currentType = envelope!.type ?? "spending";
+    const typeChanged = selectedType !== currentType;
+
+    // No-op if nothing changed
+    if (!nameChanged && !typeChanged) {
+      router.back();
+      return;
+    }
+
     setSaving(true);
     try {
-      await renameEnvelope(envelopeId!, normalized);
+      if (nameChanged) await renameEnvelope(envelopeId!, normalized);
+      if (typeChanged) await setEnvelopeType(envelopeId!, selectedType === "spending" ? "spending" : selectedType);
       router.back();
     } finally {
       setSaving(false);
@@ -100,11 +115,47 @@ export default function EditEnvelopeScreen() {
         {error ? <Text style={styles.errorText}>{error}</Text> : null}
         {!error && duplicateWarning ? <Text style={styles.warningText}>{duplicateWarning}</Text> : null}
 
+        {/* Type picker */}
+        <Text style={styles.sectionLabel}>Type</Text>
+        <View style={styles.typeRow}>
+          {TYPE_OPTIONS.map((opt) => {
+            const active = selectedType === opt.value;
+            const accentColor = opt.value === "giving" ? Color.giving
+              : opt.value === "debt" ? Color.debt
+              : opt.value === "savings" ? Color.primary
+              : Color.textMid;
+            const surfaceColor = opt.value === "giving" ? Color.givingSurface
+              : opt.value === "debt" ? Color.debtSurface
+              : opt.value === "savings" ? Color.primarySurface
+              : Color.surface;
+            return (
+              <Pressable
+                key={opt.value}
+                style={[
+                  styles.typeChip,
+                  active && { borderColor: accentColor, backgroundColor: surfaceColor },
+                ]}
+                onPress={() => setSelectedType(opt.value)}
+                accessibilityLabel={`${opt.label} envelope type`}
+                accessibilityRole="radio"
+                accessibilityState={{ selected: active }}
+              >
+                <Text style={[styles.typeChipLabel, active && { color: accentColor }]}>
+                  {opt.label}
+                </Text>
+                <Text style={[styles.typeChipHint, active && { color: accentColor }]}>
+                  {opt.hint}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
+
         <Pressable
           onPress={handleSave}
           disabled={saving}
           style={[styles.saveBtn, saving && styles.saveBtnDisabled]}
-          accessibilityLabel="Save envelope name"
+          accessibilityLabel="Save envelope"
         >
           <Text style={styles.saveBtnText}>
             {saving ? "Saving…" : "Save"}
@@ -164,6 +215,31 @@ const styles = StyleSheet.create({
     borderColor: Color.border,
   },
   backBtnText: { fontSize: FontSize.body, color: Color.textMid },
+  // Type picker
+  typeRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: Spacing.sm,
+  },
+  typeChip: {
+    flexBasis: "47%",
+    padding: Spacing.md,
+    borderRadius: Radius.lg,
+    borderWidth: 1,
+    borderColor: Color.border,
+    backgroundColor: Color.surface,
+  },
+  typeChipLabel: {
+    fontSize: FontSize.body,
+    fontWeight: FontWeight.semibold,
+    color: Color.textDark,
+  },
+  typeChipHint: {
+    fontSize: FontSize.caption,
+    color: Color.textMuted,
+    marginTop: 2,
+  },
+
   saveBtn: {
     marginTop: Spacing.lg,
     backgroundColor: Color.primary,
