@@ -17,6 +17,7 @@ import { InlineNotice } from "../../src/ui/components/InlineNotice";
 import { Card } from "../../src/ui/components/Card";
 import { Spacing, Radius, FontSize, FontWeight, Color } from "../../src/ui/tokens";
 import { Features } from "../../src/config/features";
+import { isBnplTransaction } from "@money-shepherd/domain";
 
 export default function TransactionsScreen() {
   const state = useAppStore((s) => s.state);
@@ -206,6 +207,7 @@ export default function TransactionsScreen() {
               ? (state.users?.find((u) => u.id === item.createdByUserId)?.displayName ?? null)
               : null;
             const attributionName = assignedByName ?? createdByName;
+            const isBnpl = isBnplTransaction(item.description ?? "");
             return (
               <Pressable
                 style={styles.row}
@@ -228,6 +230,11 @@ export default function TransactionsScreen() {
                     {item.id.startsWith("plaid-") && (
                       <View style={styles.bankBadge} accessibilityLabel="Bank transaction">
                         <Text style={styles.bankBadgeText}>Bank</Text>
+                      </View>
+                    )}
+                    {isBnpl && (
+                      <View style={styles.bnplBadge} accessibilityLabel="Buy now pay later">
+                        <Text style={styles.bnplBadgeText}>BNPL</Text>
                       </View>
                     )}
                   </View>
@@ -393,6 +400,15 @@ const styles = StyleSheet.create({
     borderColor: Color.borderLight,
   },
   bankBadgeText: { fontSize: 10, fontWeight: FontWeight.semibold, color: Color.textMuted },
+  bnplBadge: {
+    paddingHorizontal: 5,
+    paddingVertical: 1,
+    borderRadius: Radius.sm,
+    backgroundColor: Color.debtSurface,
+    borderWidth: 1,
+    borderColor: Color.debt,
+  },
+  bnplBadgeText: { fontSize: 10, fontWeight: FontWeight.semibold, color: Color.debt },
   unassignedBadge: {
     alignSelf: "flex-start",
     paddingHorizontal: Spacing.xs,

@@ -12,7 +12,7 @@ import { formatMoney } from "../../src/lib/moneyFormat";
 import { Card } from "../../src/ui/components/Card";
 import { HelpTooltip } from "../../src/ui/components/HelpTooltip";
 import { Spacing, Radius, FontSize, FontWeight, Color } from "../../src/ui/tokens";
-import { suggestEnvelope, detectRecurring, normalizePayee, type Transaction, type EnvelopeSuggestion } from "@money-shepherd/domain";
+import { suggestEnvelope, detectRecurring, normalizePayee, isBnplTransaction, type Transaction, type EnvelopeSuggestion } from "@money-shepherd/domain";
 
 export default function InboxScreen() {
   const state = useAppStore((s) => s.state);
@@ -154,6 +154,7 @@ export default function InboxScreen() {
             const suggestedEnvelopeName = suggestion
               ? state.budget.envelopes.find((e) => e.id === suggestion.envelopeId)?.name
               : undefined;
+            const isBnpl = isBnplTransaction(item.description ?? "");
             return (
               <Pressable
                 style={styles.row}
@@ -177,6 +178,11 @@ export default function InboxScreen() {
                     {item.id.startsWith("plaid-") && (
                       <View style={styles.bankBadge} accessibilityLabel="Bank transaction">
                         <Text style={styles.bankBadgeText}>Bank</Text>
+                      </View>
+                    )}
+                    {isBnpl && (
+                      <View style={styles.bnplBadge} accessibilityLabel="Buy now pay later">
+                        <Text style={styles.bnplBadgeText}>BNPL</Text>
                       </View>
                     )}
                   </View>
@@ -311,6 +317,15 @@ const styles = StyleSheet.create({
     borderColor: Color.borderLight,
   },
   bankBadgeText: { fontSize: 10, fontWeight: FontWeight.semibold, color: Color.textMuted },
+  bnplBadge: {
+    paddingHorizontal: 5,
+    paddingVertical: 1,
+    borderRadius: Radius.sm,
+    backgroundColor: Color.debtSurface,
+    borderWidth: 1,
+    borderColor: Color.debt,
+  },
+  bnplBadgeText: { fontSize: 10, fontWeight: FontWeight.semibold, color: Color.debt },
   suggestionBadge: {
     alignSelf: "flex-start",
     paddingHorizontal: 6,

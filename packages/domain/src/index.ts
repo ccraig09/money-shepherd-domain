@@ -23,3 +23,4 @@ export * from "./logic/normalizePayee";
 export * from "./logic/suggestEnvelope";
 export * from "./logic/detectRecurring";
 export * from "./logic/snowballCalculator";
+export * from "./logic/detectBnpl";
