@@ -20,3 +20,4 @@ export * from "./logic/periodHelpers";
 export * from "./logic/envelopeGoals";
 export * from "./logic/envelopeSorting";
 export * from "./logic/normalizePayee";
+export * from "./logic/suggestEnvelope";
