@@ -187,6 +187,10 @@ export default function TransactionsScreen() {
             const desc = item.description || "Manual transaction";
             const hasNote = !!state.transactionNotes?.[item.id];
             const isUnassigned = isExpense && !assignedTxIds.has(item.id);
+            const assignment = state.inbox.assignmentsByTransactionId[item.id];
+            const assignedByName = assignment
+              ? (state.users?.find((u) => u.id === assignment.assignedByUserId)?.displayName ?? null)
+              : null;
             return (
               <Pressable
                 style={styles.row}
@@ -212,9 +216,16 @@ export default function TransactionsScreen() {
                       </View>
                     )}
                   </View>
-                  <Text style={styles.rowAccountName} numberOfLines={1}>
-                    {accountName(item.accountId)}
-                  </Text>
+                  <View style={styles.metaRow}>
+                    <Text style={styles.rowAccountName} numberOfLines={1}>
+                      {accountName(item.accountId)}
+                    </Text>
+                    {assignedByName && (
+                      <Text style={styles.metaAttribution}>
+                        {" · by "}{assignedByName}
+                      </Text>
+                    )}
+                  </View>
                   {isUnassigned && (
                     <View style={styles.unassignedBadge} accessibilityLabel="Unassigned">
                       <Text style={styles.unassignedBadgeText}>Unassigned</Text>
@@ -354,7 +365,9 @@ const styles = StyleSheet.create({
     backgroundColor: Color.primary,
     flexShrink: 0,
   },
-  rowAccountName: { fontSize: FontSize.caption, color: Color.textMuted },
+  metaRow: { flexDirection: "row", alignItems: "center" },
+  rowAccountName: { fontSize: FontSize.caption, color: Color.textMuted, flexShrink: 1 },
+  metaAttribution: { fontSize: FontSize.caption, color: Color.textMuted, flexShrink: 0 },
   bankBadge: {
     paddingHorizontal: 5,
     paddingVertical: 1,
@@ -374,7 +387,7 @@ const styles = StyleSheet.create({
     borderColor: Color.borderWarning,
   },
   unassignedBadgeText: { fontSize: FontSize.caption, fontWeight: FontWeight.semibold, color: Color.warning },
-  rowAmount: { fontSize: FontSize.subtitle, fontWeight: FontWeight.semibold, minWidth: 80, textAlign: "right", paddingTop: 2 },
+  rowAmount: { fontSize: FontSize.subtitle, fontWeight: FontWeight.semibold, minWidth: 80, textAlign: "right", paddingTop: 2, flexShrink: 0 },
   income: { color: Color.success },
   expense: { color: Color.error },
 });
