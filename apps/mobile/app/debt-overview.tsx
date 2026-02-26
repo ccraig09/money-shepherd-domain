@@ -10,6 +10,7 @@ import { router } from "expo-router";
 import { useAppStore } from "../src/store/useAppStore";
 import { formatMoney } from "../src/lib/moneyFormat";
 import { Card } from "../src/ui/components/Card";
+import { DebtProgressBar } from "../src/ui/components/DebtProgressBar";
 import { Spacing, Radius, FontSize, FontWeight, Color } from "../src/ui/tokens";
 
 export default function DebtOverviewScreen() {
@@ -109,9 +110,6 @@ export default function DebtOverviewScreen() {
           renderItem={({ item, index }) => {
             const targetCents = item.target?.cents ?? 0;
             const balanceCents = item.balance.cents;
-            const progressPct = targetCents > 0
-              ? Math.min(100, Math.round((balanceCents / targetCents) * 100))
-              : 0;
 
             return (
               <Pressable
@@ -122,29 +120,31 @@ export default function DebtOverviewScreen() {
                 accessibilityLabel={`${item.name} debt envelope`}
                 accessibilityRole="button"
               >
-                <View style={styles.rowLeft}>
-                  <View style={styles.orderBadge}>
-                    <Text style={styles.orderText}>{index + 1}</Text>
-                  </View>
-                  <View style={styles.rowInfo}>
-                    <Text style={styles.rowName} numberOfLines={1}>{item.name}</Text>
-                    {targetCents > 0 && (
-                      <Text style={styles.rowTarget}>
-                        ${formatMoney(balanceCents)} of ${formatMoney(targetCents)}
-                      </Text>
-                    )}
-                    {targetCents === 0 && (
-                      <Text style={styles.rowTargetMissing}>No target set</Text>
-                    )}
+                <View style={styles.rowTop}>
+                  <View style={styles.rowLeft}>
+                    <View style={styles.orderBadge}>
+                      <Text style={styles.orderText}>{index + 1}</Text>
+                    </View>
+                    <View style={styles.rowInfo}>
+                      <Text style={styles.rowName} numberOfLines={1}>{item.name}</Text>
+                      {targetCents > 0 && (
+                        <Text style={styles.rowTarget}>
+                          ${formatMoney(balanceCents)} of ${formatMoney(targetCents)}
+                        </Text>
+                      )}
+                      {targetCents === 0 && (
+                        <Text style={styles.rowTargetMissing}>No target set</Text>
+                      )}
+                    </View>
                   </View>
                 </View>
-                <View style={styles.rowRight}>
-                  {targetCents > 0 ? (
-                    <Text style={styles.rowPct}>{progressPct}%</Text>
-                  ) : (
-                    <Text style={styles.rowBalance}>${formatMoney(balanceCents)}</Text>
-                  )}
-                </View>
+                {targetCents > 0 ? (
+                  <View style={styles.rowProgress}>
+                    <DebtProgressBar paidCents={balanceCents} targetCents={targetCents} />
+                  </View>
+                ) : (
+                  <Text style={styles.rowBalance}>${formatMoney(balanceCents)}</Text>
+                )}
               </Pressable>
             );
           }}
@@ -236,16 +236,20 @@ const styles = StyleSheet.create({
   // List
   listCard: { marginHorizontal: Spacing.base },
   row: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
     paddingHorizontal: Spacing.base,
     paddingVertical: Spacing.base,
     minHeight: 44,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderColor: Color.borderLight,
+    gap: Spacing.sm,
+  },
+  rowTop: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
   },
   rowLeft: { flexDirection: "row", alignItems: "center", flex: 1, gap: Spacing.md },
+  rowProgress: { marginLeft: 40 },
   orderBadge: {
     width: 28,
     height: 28,
@@ -259,7 +263,5 @@ const styles = StyleSheet.create({
   rowName: { fontSize: FontSize.body, fontWeight: FontWeight.medium, color: Color.textDark },
   rowTarget: { fontSize: FontSize.caption, color: Color.textMuted, marginTop: 2 },
   rowTargetMissing: { fontSize: FontSize.caption, color: Color.textSubtle, fontStyle: "italic", marginTop: 2 },
-  rowRight: { marginLeft: Spacing.md },
-  rowPct: { fontSize: FontSize.subtitle, fontWeight: FontWeight.bold, color: Color.debt },
-  rowBalance: { fontSize: FontSize.body, fontWeight: FontWeight.semibold, color: Color.textDark },
+  rowBalance: { fontSize: FontSize.body, fontWeight: FontWeight.semibold, color: Color.textDark, marginLeft: 40 },
 });
