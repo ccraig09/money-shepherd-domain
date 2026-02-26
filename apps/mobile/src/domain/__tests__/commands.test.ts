@@ -1,6 +1,6 @@
 import { Money } from "@money-shepherd/domain";
 import type { AppStateV1 } from "../appState";
-import { createEnvelope, renameEnvelope, deleteEnvelope, setTransactionNote, seedBudgetFromBalances, assignTransaction } from "../commands";
+import { createEnvelope, renameEnvelope, deleteEnvelope, setTransactionNote, seedBudgetFromBalances, assignTransaction, addAssignmentRule, removeAssignmentRule, reorderAssignmentRules } from "../commands";
 
 function makeState(envelopeNames: string[] = []): AppStateV1 {
   return {
@@ -427,5 +427,89 @@ describe("assignTransaction — payeeMappings", () => {
     });
     expect(next.payeeMappings).toBeDefined();
     expect(next.payeeMappings?.["starbucks"]).toBe("env-0");
+  });
+});
+
+describe("addAssignmentRule", () => {
+  it("adds a rule to an empty list", () => {
+    const state = makeState(["Groceries"]);
+    const next = addAssignmentRule(state, {
+      pattern: "walmart",
+      matchType: "contains",
+      envelopeId: "env-0",
+      priority: 1,
+    });
+    expect(next.assignmentRules).toHaveLength(1);
+    expect(next.assignmentRules![0].pattern).toBe("walmart");
+    expect(next.assignmentRules![0].matchType).toBe("contains");
+    expect(next.assignmentRules![0].envelopeId).toBe("env-0");
+    expect(next.assignmentRules![0].priority).toBe(1);
+    expect(next.assignmentRules![0].id).toBeDefined();
+  });
+
+  it("appends to existing rules", () => {
+    const state = makeState(["Groceries"]);
+    state.assignmentRules = [
+      { id: "rule-1", pattern: "target", matchType: "contains", envelopeId: "env-0", priority: 1 },
+    ];
+    const next = addAssignmentRule(state, {
+      pattern: "starbucks",
+      matchType: "exact",
+      envelopeId: "env-0",
+      priority: 2,
+    });
+    expect(next.assignmentRules).toHaveLength(2);
+    expect(next.assignmentRules![0].pattern).toBe("target");
+    expect(next.assignmentRules![1].pattern).toBe("starbucks");
+  });
+
+  it("throws when pattern is empty", () => {
+    const state = makeState(["Groceries"]);
+    expect(() =>
+      addAssignmentRule(state, {
+        pattern: "  ",
+        matchType: "contains",
+        envelopeId: "env-0",
+        priority: 1,
+      }),
+    ).toThrow("Pattern is required.");
+  });
+});
+
+describe("removeAssignmentRule", () => {
+  it("removes a rule by id", () => {
+    const state = makeState();
+    state.assignmentRules = [
+      { id: "rule-1", pattern: "walmart", matchType: "contains", envelopeId: "env-0", priority: 1 },
+      { id: "rule-2", pattern: "target", matchType: "contains", envelopeId: "env-0", priority: 2 },
+    ];
+    const next = removeAssignmentRule(state, { ruleId: "rule-1" });
+    expect(next.assignmentRules).toHaveLength(1);
+    expect(next.assignmentRules![0].id).toBe("rule-2");
+  });
+
+  it("throws when rule not found", () => {
+    const state = makeState();
+    state.assignmentRules = [];
+    expect(() =>
+      removeAssignmentRule(state, { ruleId: "rule-999" }),
+    ).toThrow("Rule not found.");
+  });
+});
+
+describe("reorderAssignmentRules", () => {
+  it("reassigns priorities based on new id order", () => {
+    const state = makeState();
+    state.assignmentRules = [
+      { id: "rule-a", pattern: "walmart", matchType: "contains", envelopeId: "env-0", priority: 1 },
+      { id: "rule-b", pattern: "target", matchType: "contains", envelopeId: "env-0", priority: 2 },
+      { id: "rule-c", pattern: "costco", matchType: "exact", envelopeId: "env-0", priority: 3 },
+    ];
+    const next = reorderAssignmentRules(state, {
+      ruleIds: ["rule-c", "rule-a", "rule-b"],
+    });
+    expect(next.assignmentRules![0]).toMatchObject({ id: "rule-c", priority: 1 });
+    expect(next.assignmentRules![1]).toMatchObject({ id: "rule-a", priority: 2 });
+    expect(next.assignmentRules![2]).toMatchObject({ id: "rule-b", priority: 3 });
   });
 });

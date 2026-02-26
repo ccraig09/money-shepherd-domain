@@ -1,5 +1,5 @@
 import { Money, normalizePayee, unassignTransaction as unassignTxDomain, setEnvelopeGoal as setGoalDomain, clearEnvelopeGoal as clearGoalDomain } from "@money-shepherd/domain";
-import type { EnvelopeType } from "@money-shepherd/domain";
+import type { EnvelopeType, AssignmentRule } from "@money-shepherd/domain";
 import { nowIso, makeId } from "../lib/id";
 import type { AppStateV1 } from "./appState";
 
@@ -585,6 +585,76 @@ export function setEnvelopeType(
         e.id === args.envelopeId ? { ...e, type: args.envelopeType } : e,
       ),
     },
+    updatedAt: nowIso(),
+  };
+}
+
+/**
+ * Adds a user-created assignment rule.
+ * Rules are evaluated before payee memorization in suggestEnvelope().
+ */
+export function addAssignmentRule(
+  state: AppStateV1,
+  args: { pattern: string; matchType: AssignmentRule["matchType"]; envelopeId: string; priority: number },
+): AppStateV1 {
+  const trimmed = args.pattern.trim();
+  if (!trimmed) {
+    throw new Error("Pattern is required.");
+  }
+
+  const rule: AssignmentRule = {
+    id: makeId("rule"),
+    pattern: trimmed.toLowerCase(),
+    matchType: args.matchType,
+    envelopeId: args.envelopeId,
+    priority: args.priority,
+  };
+
+  return {
+    ...state,
+    assignmentRules: [...(state.assignmentRules ?? []), rule],
+    updatedAt: nowIso(),
+  };
+}
+
+/**
+ * Removes an assignment rule by ID.
+ */
+export function removeAssignmentRule(
+  state: AppStateV1,
+  args: { ruleId: string },
+): AppStateV1 {
+  const existing = state.assignmentRules ?? [];
+  const index = existing.findIndex((r) => r.id === args.ruleId);
+  if (index === -1) {
+    throw new Error("Rule not found.");
+  }
+
+  return {
+    ...state,
+    assignmentRules: existing.filter((r) => r.id !== args.ruleId),
+    updatedAt: nowIso(),
+  };
+}
+
+/**
+ * Reorders assignment rules by reassigning priorities based on new ID order.
+ * First ID in the array gets priority 1, second gets 2, etc.
+ */
+export function reorderAssignmentRules(
+  state: AppStateV1,
+  args: { ruleIds: string[] },
+): AppStateV1 {
+  const existing = state.assignmentRules ?? [];
+  const byId = Object.fromEntries(existing.map((r) => [r.id, r]));
+
+  const reordered = args.ruleIds
+    .filter((id) => Object.hasOwn(byId, id))
+    .map((id, i) => ({ ...byId[id], priority: i + 1 }));
+
+  return {
+    ...state,
+    assignmentRules: reordered,
     updatedAt: nowIso(),
   };
 }

@@ -336,7 +336,7 @@
 - [x] MS-20.4 Suggestion badges in Inbox UI (show badge, tap to pre-select)
 
 #### Tier 2 — Enhancement
-- [ ] MS-20.5 Assignment rules data model (contains/exact match, priority order)
+- [x] MS-20.5 Assignment rules data model (contains/exact match, priority order)
 - [ ] MS-20.6 Rules management screen (Settings → add/edit/delete/reorder rules)
 
 #### Tier 3 — Power Features

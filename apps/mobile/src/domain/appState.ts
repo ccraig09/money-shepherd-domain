@@ -3,6 +3,7 @@ import type { Account } from "@money-shepherd/domain";
 import type { Transaction } from "@money-shepherd/domain";
 import type { TransactionInbox } from "@money-shepherd/domain";
 import type { Allocation } from "@money-shepherd/domain";
+import type { AssignmentRule } from "@money-shepherd/domain";
 
 // Keep this stable. It becomes your “single source of truth” snapshot.
 export type AppStateV1 = {
@@ -28,6 +29,9 @@ export type AppStateV1 = {
 
   // Payee memorization: normalizedPayee → envelopeId (auto-updated on assign)
   payeeMappings?: Record<string, string>;
+
+  // User-created assignment rules (evaluated before payee memorization)
+  assignmentRules?: AssignmentRule[];
 
   // Set true after user seeds Available to Assign from bank balances (prevents re-prompting)
   budgetSeeded?: boolean;

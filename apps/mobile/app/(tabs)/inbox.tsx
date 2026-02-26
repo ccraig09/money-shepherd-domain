@@ -30,6 +30,7 @@ export default function InboxScreen() {
   const suggestions = useMemo(() => {
     if (!state) return new Map<string, EnvelopeSuggestion>();
     const payeeMappings = state.payeeMappings ?? {};
+    const rules = state.assignmentRules ?? [];
     const envelopeNames = Object.fromEntries(
       state.budget.envelopes.map((e) => [e.id, e.name]),
     );
@@ -38,7 +39,7 @@ export default function InboxScreen() {
       const suggestion = suggestEnvelope({
         description: tx.description,
         payeeMappings,
-        rules: [],
+        rules,
       });
       if (suggestion && Object.hasOwn(envelopeNames, suggestion.envelopeId)) {
         result.set(tx.id, suggestion);
