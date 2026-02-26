@@ -327,11 +327,10 @@
 
 ## Phase 20: Smart Assignment (suggest-then-confirm system)
 
-<!--
 ### Recommended build order
 
 #### Tier 1 — Foundation
-- [ ] MS-20.1 Payee normalization utility (pure function + tests)
+- [x] MS-20.1 Payee normalization utility (pure function + tests)
 - [ ] MS-20.2 Payee-to-envelope mapping storage (AppStateV1 + auto-update on assign)
 - [ ] MS-20.3 suggestEnvelope() domain function (rules + payee fallback → suggestion or null)
 - [ ] MS-20.4 Suggestion badges in Inbox UI (show badge, tap to pre-select)
@@ -356,7 +355,6 @@
 - [ ] Tap suggestion → pre-selects envelope in assign flow
 - [ ] Create a rule → overrides payee memorization
 - [ ] "Confirm All" assigns multiple suggestions in one tap
--->
 
 ---
 
