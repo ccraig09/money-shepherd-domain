@@ -21,6 +21,7 @@ export default function EditEnvelopeScreen() {
 
   const [name, setName] = React.useState(envelope?.name ?? "");
   const [error, setError] = React.useState<string | null>(null);
+  const [duplicateWarning, setDuplicateWarning] = React.useState<string | null>(null);
   const [saving, setSaving] = React.useState(false);
 
   if (!state || !envelope) {
@@ -79,6 +80,15 @@ export default function EditEnvelopeScreen() {
           onChangeText={(v) => {
             setName(v);
             if (error) setError(null);
+            const normalized = v.trim().replace(/\s+/g, " ");
+            const dup = normalized
+              ? state!.budget.envelopes.find(
+                  (e) =>
+                    e.id !== envelopeId &&
+                    e.name.toLowerCase() === normalized.toLowerCase(),
+                )
+              : null;
+            setDuplicateWarning(dup ? `An envelope named "${dup.name}" already exists` : null);
           }}
           placeholder="e.g. Groceries, Bills, Gas"
           autoFocus
@@ -88,6 +98,7 @@ export default function EditEnvelopeScreen() {
           accessibilityLabel="Envelope name"
         />
         {error ? <Text style={styles.errorText}>{error}</Text> : null}
+        {!error && duplicateWarning ? <Text style={styles.warningText}>{duplicateWarning}</Text> : null}
 
         <Pressable
           onPress={handleSave}
@@ -144,6 +155,7 @@ const styles = StyleSheet.create({
   },
   inputError: { borderColor: Color.error },
   errorText: { fontSize: FontSize.small, color: Color.error, marginTop: Spacing.xs },
+  warningText: { fontSize: FontSize.small, color: Color.warning, marginTop: Spacing.xs },
   backBtn: {
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.sm,

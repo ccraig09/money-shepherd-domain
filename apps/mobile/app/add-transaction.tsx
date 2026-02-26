@@ -263,7 +263,8 @@ export default function AddTransactionScreen() {
           ref={descriptionRef}
           value={description}
           onChangeText={setDescription}
-          placeholder="e.g. Paycheck, Groceries"
+          placeholder="e.g. Paycheck, Walmart, Gas"
+          placeholderTextColor={Color.textMuted}
           style={styles.input}
           accessibilityLabel="Transaction description"
           returnKeyType="done"

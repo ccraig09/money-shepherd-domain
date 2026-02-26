@@ -97,7 +97,10 @@ export function getFundingInPeriod(
     if (alloc.envelopeId !== envelopeId) continue;
     if (!isWithinPeriod(alloc.allocatedAt, period)) continue;
 
-    totalCents += alloc.amount.cents;
+    const cents = alloc.amount?.cents;
+    if (typeof cents === "number" && !Number.isNaN(cents)) {
+      totalCents += cents;
+    }
   }
 
   return Money.fromCents(totalCents);

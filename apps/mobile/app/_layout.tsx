@@ -143,7 +143,7 @@ export default function RootLayout() {
         {isReady && (status === "loading" || status === "idle") && (
           <View style={[StyleSheet.absoluteFillObject, styles.overlay]}>
             <ActivityIndicator size="large" color={Color.primary} />
-            <Text style={styles.loadingText}>Loading…</Text>
+            <Text style={styles.loadingText}>Syncing household budget…</Text>
           </View>
         )}
 

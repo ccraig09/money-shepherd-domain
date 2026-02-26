@@ -110,7 +110,7 @@ export default function EnvelopeDetailScreen() {
             accessibilityLabel="Edit envelope name"
             hitSlop={8}
           >
-            <Text style={styles.editBtnText}>Edit</Text>
+            <Text style={styles.editBtnText}>✎ Edit</Text>
           </Pressable>
         </View>
 
@@ -369,12 +369,12 @@ const styles = StyleSheet.create({
   },
   envelopeName: { fontSize: FontSize.subtitle, fontWeight: FontWeight.bold, color: Color.textDark, flexShrink: 1 },
   editBtn: {
-    paddingHorizontal: Spacing.sm,
+    paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.xs,
-    borderRadius: Radius.sm,
+    borderRadius: Radius.pill,
     borderWidth: 1,
-    borderColor: Color.border,
-    backgroundColor: Color.surface,
+    borderColor: Color.primary,
+    backgroundColor: Color.primarySurface,
   },
   editBtnText: { fontSize: FontSize.small, fontWeight: FontWeight.semibold, color: Color.primary },
   balanceLabel: { fontSize: FontSize.small, color: Color.textMuted, marginTop: Spacing.xs },

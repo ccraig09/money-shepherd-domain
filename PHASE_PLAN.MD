@@ -298,7 +298,7 @@
 - [x] MS-23.12 Transaction search & filter in Transactions tab
 - [x] MS-23.13 Transaction attribution — show who assigned/created each transaction
 - [x] MS-23.14 In-app help tooltips for budgeting concepts
-- [ ] MS-23.15 UI micro-polish batch (real-time validation, placeholders, edit button, sort persistence, zero-balance styling, loading message)
+- [x] MS-23.15 UI micro-polish batch (real-time validation, placeholders, edit button, sort persistence, zero-balance styling, loading message)
 - [ ] MS-23.16 Sync UX improvements (prominent error indicator, Plaid timeout feedback)
 
 ### Architecture Notes

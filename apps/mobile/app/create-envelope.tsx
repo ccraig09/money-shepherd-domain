@@ -19,6 +19,7 @@ export default function CreateEnvelopeScreen() {
   const [name, setName] = React.useState("");
   const [isGiving, setIsGiving] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
+  const [duplicateWarning, setDuplicateWarning] = React.useState<string | null>(null);
   const [saving, setSaving] = React.useState(false);
 
   async function handleSave() {
@@ -58,6 +59,13 @@ export default function CreateEnvelopeScreen() {
           onChangeText={(v) => {
             setName(v);
             if (error) setError(null);
+            const normalized = v.trim().replace(/\s+/g, " ");
+            const dup = normalized
+              ? state?.budget.envelopes.find(
+                  (e) => e.name.toLowerCase() === normalized.toLowerCase(),
+                )
+              : null;
+            setDuplicateWarning(dup ? `An envelope named "${dup.name}" already exists` : null);
           }}
           placeholder="e.g. Groceries, Bills, Gas"
           autoFocus
@@ -67,6 +75,7 @@ export default function CreateEnvelopeScreen() {
           accessibilityLabel="Envelope name"
         />
         {error ? <Text style={styles.errorText}>{error}</Text> : null}
+        {!error && duplicateWarning ? <Text style={styles.warningText}>{duplicateWarning}</Text> : null}
 
         {/* Giving toggle */}
         <Pressable
@@ -134,6 +143,7 @@ const styles = StyleSheet.create({
   },
   inputError: { borderColor: Color.error },
   errorText: { fontSize: FontSize.small, color: Color.error, marginTop: Spacing.xs },
+  warningText: { fontSize: FontSize.small, color: Color.warning, marginTop: Spacing.xs },
 
   // Giving toggle
   givingToggle: {

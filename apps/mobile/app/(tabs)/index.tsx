@@ -59,7 +59,7 @@ export default function DashboardScreen() {
     const period = getCurrentPeriod(new Date().toISOString());
     return state.budget.envelopes.some((env) => {
       if (!env.goal || env.goal.cents <= 0) return false;
-      const funded = getFundingInPeriod(state.allocations ?? [], env.id, period).cents;
+      const funded = getFundingInPeriod(state.allocations ?? [], env.id, period).cents || 0;
       return funded < env.goal.cents;
     });
   }, [state]);

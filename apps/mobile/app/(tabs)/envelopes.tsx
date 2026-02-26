@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   View,
   Text,
@@ -6,6 +6,7 @@ import {
   Pressable,
   StyleSheet,
 } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router } from "expo-router";
 import { useAppStore } from "../../src/store/useAppStore";
 import { formatMoney } from "../../src/lib/moneyFormat";
@@ -17,9 +18,22 @@ import { Spacing, Radius, FontSize, FontWeight, Color } from "../../src/ui/token
 
 type SortOrder = "alpha" | "balance" | "giving";
 
+const SORT_KEY = "ms_envelope_sort";
+
 export default function EnvelopesScreen() {
   const state = useAppStore((s) => s.state);
   const [sortOrder, setSortOrder] = useState<SortOrder>("giving");
+
+  useEffect(() => {
+    AsyncStorage.getItem(SORT_KEY).then((v) => {
+      if (v === "alpha" || v === "balance" || v === "giving") setSortOrder(v);
+    });
+  }, []);
+
+  function updateSort(order: SortOrder) {
+    setSortOrder(order);
+    AsyncStorage.setItem(SORT_KEY, order);
+  }
 
   const sortedEnvelopes = useMemo(() => {
     if (!state) return [];
@@ -88,7 +102,7 @@ export default function EnvelopesScreen() {
           <View style={styles.sortRow}>
             <Pressable
               style={[styles.sortChip, sortOrder === "giving" && styles.sortChipActive]}
-              onPress={() => setSortOrder("giving")}
+              onPress={() => updateSort("giving")}
               accessibilityLabel="Sort giving first"
               accessibilityRole="button"
               accessibilityState={{ selected: sortOrder === "giving" }}
@@ -99,7 +113,7 @@ export default function EnvelopesScreen() {
             </Pressable>
             <Pressable
               style={[styles.sortChip, sortOrder === "alpha" && styles.sortChipActive]}
-              onPress={() => setSortOrder("alpha")}
+              onPress={() => updateSort("alpha")}
               accessibilityLabel="Sort alphabetically"
               accessibilityRole="button"
               accessibilityState={{ selected: sortOrder === "alpha" }}
@@ -110,7 +124,7 @@ export default function EnvelopesScreen() {
             </Pressable>
             <Pressable
               style={[styles.sortChip, sortOrder === "balance" && styles.sortChipActive]}
-              onPress={() => setSortOrder("balance")}
+              onPress={() => updateSort("balance")}
               accessibilityLabel="Sort by highest balance"
               accessibilityRole="button"
               accessibilityState={{ selected: sortOrder === "balance" }}
@@ -263,7 +277,7 @@ const styles = StyleSheet.create({
   rowName: { fontSize: FontSize.subtitle, fontWeight: FontWeight.medium, color: Color.textDark, flexShrink: 1 },
   rowBalance: { fontSize: FontSize.subtitle, fontWeight: FontWeight.semibold, color: Color.textDark, marginLeft: Spacing.md },
   rowBalanceNegative: { color: Color.error },
-  rowBalanceZero: { color: Color.textMuted },
+  rowBalanceZero: { color: Color.textDark },
 
   // Giving badge
   givingBadge: {
