@@ -330,39 +330,44 @@
 ### Recommended build order
 
 #### Tier 1 — Foundation
+
 - [x] MS-20.1 Payee normalization utility (pure function + tests)
 - [x] MS-20.2 Payee-to-envelope mapping storage (AppStateV1 + auto-update on assign)
 - [x] MS-20.3 suggestEnvelope() domain function (rules + payee fallback → suggestion or null)
 - [x] MS-20.4 Suggestion badges in Inbox UI (show badge, tap to pre-select)
 
 #### Tier 2 — Enhancement
+
 - [x] MS-20.5 Assignment rules data model (contains/exact match, priority order)
 - [x] MS-20.6 Rules management screen (Settings → add/edit/delete/reorder rules)
 
 #### Tier 3 — Power Features
+
 - [x] MS-20.7 "Confirm All Suggestions" bulk action (assign all suggested in one tap)
 - [x] MS-20.8 Recurring transaction detection (same payee + similar amount + regular interval)
 
 ### Architecture Notes
+
 - `suggestEnvelope()` is a pure function in `packages/domain` — no infra deps
 - Rules evaluate in priority order: explicit rules first, then payee memorization fallback
 - Nothing auto-assigns — all suggestions require user confirmation
 - `assignedByUserId` audit trail preserved (system suggestions still show who confirmed)
 
 ### Phase 20 Smoke Check
-- [ ] Assign a transaction → payee remembered for next time
-- [ ] New transaction from same payee → suggestion badge appears in Inbox
-- [ ] Tap suggestion → pre-selects envelope in assign flow
-- [ ] Create a rule → overrides payee memorization
-- [ ] "Confirm All" assigns multiple suggestions in one tap
+
+- [x] Assign a transaction → payee remembered for next time
+- [x] New transaction from same payee → suggestion badge appears in Inbox
+- [x] Tap suggestion → pre-selects envelope in assign flow
+- [x] Create a rule → overrides payee memorization
+- [x] "Confirm All" assigns multiple suggestions in one tap
 
 ---
 
 ## Phase 21: Debt Freedom Tools (BNPL tracking + snowball method)
 
-<!--
 ### Recommended build order
-- [ ] MS-21.1 Envelope "target" field (budget amount / payoff goal)
+
+- [x] MS-21.1 Envelope "target" field (budget amount / payoff goal)
 - [ ] MS-21.2 Envelope "type" tag (spending / debt / savings)
 - [ ] MS-21.3 Debt overview screen (list all debts, sorted by snowball order)
 - [ ] MS-21.4 Snowball calculator (payoff order, timeline, interest savings)
@@ -370,12 +375,12 @@
 - [ ] MS-21.6 BNPL transaction detection hint (badge on BNPL merchant transactions)
 
 ### Phase 21 Smoke Check
+
 - [ ] Create debt-tagged envelope with target amount
 - [ ] Debt overview shows all debts sorted by balance
 - [ ] Snowball calculator shows payoff timeline
 - [ ] Progress visualization updates as payments are made
 - [ ] BNPL badge appears on Affirm/Klarna/etc. transactions
--->
 
 ---
 

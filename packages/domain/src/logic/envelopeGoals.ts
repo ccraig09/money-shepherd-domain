@@ -43,3 +43,40 @@ export function clearEnvelopeGoal(
     ),
   };
 }
+
+/**
+ * Sets a total payoff/budget target on an envelope.
+ * Target must be a positive Money value.
+ */
+export function setEnvelopeTarget(
+  budget: Budget,
+  envelopeId: string,
+  target: Money,
+): Budget {
+  if (target.cents <= 0) throw new Error("Target must be a positive amount.");
+  findEnvelope(budget, envelopeId);
+
+  return {
+    ...budget,
+    envelopes: budget.envelopes.map((e) =>
+      e.id === envelopeId ? { ...e, target } : e,
+    ),
+  };
+}
+
+/**
+ * Removes the payoff/budget target from an envelope.
+ */
+export function clearEnvelopeTarget(
+  budget: Budget,
+  envelopeId: string,
+): Budget {
+  findEnvelope(budget, envelopeId);
+
+  return {
+    ...budget,
+    envelopes: budget.envelopes.map((e) =>
+      e.id === envelopeId ? { ...e, target: undefined } : e,
+    ),
+  };
+}

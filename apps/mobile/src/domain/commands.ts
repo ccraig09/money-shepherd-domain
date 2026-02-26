@@ -1,4 +1,4 @@
-import { Money, normalizePayee, unassignTransaction as unassignTxDomain, setEnvelopeGoal as setGoalDomain, clearEnvelopeGoal as clearGoalDomain } from "@money-shepherd/domain";
+import { Money, normalizePayee, unassignTransaction as unassignTxDomain, setEnvelopeGoal as setGoalDomain, clearEnvelopeGoal as clearGoalDomain, setEnvelopeTarget as setTargetDomain, clearEnvelopeTarget as clearTargetDomain } from "@money-shepherd/domain";
 import type { EnvelopeType, AssignmentRule } from "@money-shepherd/domain";
 import { nowIso, makeId } from "../lib/id";
 import type { AppStateV1 } from "./appState";
@@ -560,6 +560,30 @@ export function clearEnvelopeGoal(
   args: { envelopeId: string },
 ): AppStateV1 {
   const budget = clearGoalDomain(state.budget, args.envelopeId);
+  return { ...state, budget, updatedAt: nowIso() };
+}
+
+/**
+ * Sets a total payoff/budget target on an envelope.
+ * Delegates validation to the domain function.
+ */
+export function setEnvelopeTarget(
+  state: AppStateV1,
+  args: { envelopeId: string; targetCents: number },
+): AppStateV1 {
+  const target = Money.fromCents(args.targetCents);
+  const budget = setTargetDomain(state.budget, args.envelopeId, target);
+  return { ...state, budget, updatedAt: nowIso() };
+}
+
+/**
+ * Removes the payoff/budget target from an envelope.
+ */
+export function clearEnvelopeTarget(
+  state: AppStateV1,
+  args: { envelopeId: string },
+): AppStateV1 {
+  const budget = clearTargetDomain(state.budget, args.envelopeId);
   return { ...state, budget, updatedAt: nowIso() };
 }
 

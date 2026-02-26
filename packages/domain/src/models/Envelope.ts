@@ -7,5 +7,6 @@ export type Envelope = {
   name: string;
   balance: Money;
   goal?: Money;
+  target?: Money;
   type?: EnvelopeType;
 };

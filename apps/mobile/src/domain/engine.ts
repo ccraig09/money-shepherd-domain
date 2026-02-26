@@ -6,7 +6,7 @@ import {
 import { ensureAnonAuth } from "../infra/firebase/firebaseClient";
 import { HouseholdStateRepo } from "../infra/remote/householdStateRepo";
 import { loadSyncMeta, saveSyncMeta } from "../infra/local/syncMeta";
-import { createEnvelope, renameEnvelope, deleteEnvelope, setTransactionNote, assignTransaction, unassignTransaction, editTransaction, deleteTransaction, transferBetweenEnvelopes, seedBudgetFromBalances, setEnvelopeGoal, clearEnvelopeGoal, setEnvelopeType, addAssignmentRule, removeAssignmentRule, reorderAssignmentRules } from "./commands";
+import { createEnvelope, renameEnvelope, deleteEnvelope, setTransactionNote, assignTransaction, unassignTransaction, editTransaction, deleteTransaction, transferBetweenEnvelopes, seedBudgetFromBalances, setEnvelopeGoal, clearEnvelopeGoal, setEnvelopeTarget, clearEnvelopeTarget, setEnvelopeType, addAssignmentRule, removeAssignmentRule, reorderAssignmentRules } from "./commands";
 import { allocateToEnvelope } from "./allocate";
 import type { AppStateV1 } from "./appState";
 import { APP_STATE_VERSION } from "./appState";
@@ -82,6 +82,8 @@ export type Engine = {
   }): Promise<RecomputeResult>;
   setEnvelopeGoal(args: { envelopeId: string; goalCents: number }): Promise<RecomputeResult>;
   clearEnvelopeGoal(args: { envelopeId: string }): Promise<RecomputeResult>;
+  setEnvelopeTarget(args: { envelopeId: string; targetCents: number }): Promise<RecomputeResult>;
+  clearEnvelopeTarget(args: { envelopeId: string }): Promise<RecomputeResult>;
   setEnvelopeType(args: { envelopeId: string; envelopeType: import("@money-shepherd/domain").EnvelopeType }): Promise<RecomputeResult>;
   allocateToEnvelope(args: {
     envelopeId: string;
@@ -240,6 +242,23 @@ export function createEngine(): Engine {
   }): Promise<RecomputeResult> {
     const state = await getState();
     const next = clearEnvelopeGoal(state, args);
+    return recompute(next);
+  }
+
+  async function setEnvelopeTargetAction(args: {
+    envelopeId: string;
+    targetCents: number;
+  }): Promise<RecomputeResult> {
+    const state = await getState();
+    const next = setEnvelopeTarget(state, args);
+    return recompute(next);
+  }
+
+  async function clearEnvelopeTargetAction(args: {
+    envelopeId: string;
+  }): Promise<RecomputeResult> {
+    const state = await getState();
+    const next = clearEnvelopeTarget(state, args);
     return recompute(next);
   }
 
@@ -658,6 +677,8 @@ export function createEngine(): Engine {
     transferBetweenEnvelopes: transferBetweenEnvelopesAction,
     setEnvelopeGoal: setEnvelopeGoalAction,
     clearEnvelopeGoal: clearEnvelopeGoalAction,
+    setEnvelopeTarget: setEnvelopeTargetAction,
+    clearEnvelopeTarget: clearEnvelopeTargetAction,
     setEnvelopeType: setEnvelopeTypeAction,
     allocateToEnvelope: allocateToEnvelopeAction,
     seedBudgetFromBalances: seedBudget,
