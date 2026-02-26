@@ -24,6 +24,7 @@ export default function TransactionsScreen() {
   const lastPlaidRefreshAt = useAppStore((s) => s.lastPlaidRefreshAt);
   const plaidSyncError = useAppStore((s) => s.plaidSyncError);
   const clearPlaidSyncError = useAppStore((s) => s.clearPlaidSyncError);
+  const showToast = useAppStore((s) => s.showToast);
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -36,10 +37,17 @@ export default function TransactionsScreen() {
 
   async function handleRefresh() {
     setRefreshing(true);
-    const result = await refreshFromPlaid();
-    setRefreshing(false);
-    if (result.shouldSeedBudget) {
-      setTimeout(() => router.push("/seed-budget"), 300);
+    const slowTimer = setTimeout(() => {
+      showToast("Plaid sync is taking longer than usual. Try again later.", "info");
+    }, 15_000);
+    try {
+      const result = await refreshFromPlaid();
+      if (result.shouldSeedBudget) {
+        setTimeout(() => router.push("/seed-budget"), 300);
+      }
+    } finally {
+      clearTimeout(slowTimer);
+      setRefreshing(false);
     }
   }
 
@@ -106,7 +114,10 @@ export default function TransactionsScreen() {
               disabled={refreshing}
             >
               {refreshing ? (
-                <ActivityIndicator size="small" color={Color.primary} />
+                <>
+                  <ActivityIndicator size="small" color={Color.primary} />
+                  <Text style={styles.refreshBtnSyncing}>Syncing…</Text>
+                </>
               ) : (
                 <Text style={styles.refreshBtnText}>↻ Sync</Text>
               )}
@@ -285,6 +296,7 @@ const styles = StyleSheet.create({
   },
   refreshBtnDisabled: { opacity: 0.5 },
   refreshBtnText: { color: Color.primary, fontWeight: FontWeight.semibold, fontSize: FontSize.body },
+  refreshBtnSyncing: { color: Color.primary, fontSize: FontSize.caption, marginTop: 2 },
   addBtn: {
     paddingHorizontal: Spacing.base,
     paddingVertical: Spacing.sm,

@@ -31,9 +31,9 @@ export function SyncIndicator() {
   // Pending changes waiting to sync (idle or error state with local saves queued)
   if (pending > 0 && (status === "idle" || (status === "success" && !showSuccess))) {
     return (
-      <View style={[styles.pill, { backgroundColor: Color.warningSurface }]}>
+      <View style={[styles.pill, styles.pillProminent, { backgroundColor: Color.warningSurface, borderColor: Color.warning }]}>
         <View style={[styles.dot, { backgroundColor: Color.warning }]} />
-        <Text style={[styles.label, { color: Color.pendingText }]}>
+        <Text style={[styles.labelProminent, { color: Color.warning }]}>
           {pending} pending
         </Text>
       </View>
@@ -49,14 +49,16 @@ export function SyncIndicator() {
         ? conflictMsg
         : config.text;
 
+  const isError = status === "error";
+
   return (
-    <View style={[styles.pill, { backgroundColor: config.bg }]}>
+    <View style={[styles.pill, isError && styles.pillProminent, { backgroundColor: config.bg }, isError && { borderColor: config.color }]}>
       {status === "syncing" ? (
         <ActivityIndicator size={10} color={config.color} />
       ) : (
         <View style={[styles.dot, { backgroundColor: config.color }]} />
       )}
-      <Text style={[styles.label, { color: config.color }]}>{label}</Text>
+      <Text style={[isError ? styles.labelProminent : styles.label, { color: config.color }]}>{label}</Text>
     </View>
   );
 }
@@ -81,6 +83,12 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.xs,
     borderRadius: Radius.lg,
   },
+  pillProminent: {
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    borderWidth: 1,
+    borderRadius: Radius.pill,
+  },
   dot: {
     width: 6,
     height: 6,
@@ -89,5 +97,9 @@ const styles = StyleSheet.create({
   label: {
     fontSize: FontSize.caption,
     fontWeight: FontWeight.semibold,
+  },
+  labelProminent: {
+    fontSize: FontSize.small,
+    fontWeight: FontWeight.bold,
   },
 });
