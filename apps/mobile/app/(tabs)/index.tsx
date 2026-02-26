@@ -64,6 +64,15 @@ export default function DashboardScreen() {
     });
   }, [state]);
 
+  const debtSummary = useMemo(() => {
+    if (!state) return null;
+    const debts = state.budget.envelopes.filter((e) => e.type === "debt");
+    if (debts.length === 0) return null;
+    const totalDebt = debts.reduce((sum, e) => sum + (e.target?.cents ?? 0), 0);
+    const totalSetAside = debts.reduce((sum, e) => sum + e.balance.cents, 0);
+    return { count: debts.length, totalDebt, totalSetAside };
+  }, [state]);
+
   const givingThisMonthCents = useMemo(() => {
     if (!state) return 0;
     const givingEnvelopes = state.budget.envelopes.filter((e) => e.type === "giving");
@@ -167,6 +176,29 @@ export default function DashboardScreen() {
               <Text style={styles.givingRowValue}>${formatMoney(givingThisMonthCents)}</Text>
             </View>
           )}
+        </Card>
+      )}
+
+      {/* Debt Freedom card */}
+      {debtSummary && (
+        <Card style={styles.debtCard} onPress={() => router.push("/debt-overview")} accessibilityLabel="View debt overview">
+          <Text style={styles.debtCardTitle}>Debt Freedom</Text>
+          <View style={styles.debtCardRow}>
+            <View style={styles.debtCardStat}>
+              <Text style={styles.debtCardStatLabel}>Total debt</Text>
+              <Text style={styles.debtCardStatValue}>${formatMoney(debtSummary.totalDebt)}</Text>
+            </View>
+            <View style={styles.debtCardStat}>
+              <Text style={styles.debtCardStatLabel}>Set aside</Text>
+              <Text style={[styles.debtCardStatValue, styles.debtCardSetAside]}>
+                ${formatMoney(debtSummary.totalSetAside)}
+              </Text>
+            </View>
+            <View style={styles.debtCardStat}>
+              <Text style={styles.debtCardStatLabel}>Debts</Text>
+              <Text style={styles.debtCardStatValue}>{debtSummary.count}</Text>
+            </View>
+          </View>
         </Card>
       )}
 
@@ -413,6 +445,29 @@ const styles = StyleSheet.create({
   },
   givingRowLabel: { fontSize: FontSize.small, color: Color.giving, fontWeight: FontWeight.semibold },
   givingRowValue: { fontSize: FontSize.body, fontWeight: FontWeight.bold, color: Color.giving },
+
+  // Debt Freedom card
+  debtCard: {
+    marginHorizontal: Spacing.base,
+    marginBottom: Spacing.base,
+    padding: Spacing.base,
+    borderWidth: 1,
+    borderColor: Color.debt,
+    backgroundColor: Color.debtSurface,
+  },
+  debtCardTitle: {
+    fontSize: FontSize.small,
+    fontWeight: FontWeight.semibold,
+    color: Color.debt,
+    textTransform: "uppercase" as const,
+    letterSpacing: 0.5,
+    marginBottom: Spacing.md,
+  },
+  debtCardRow: { flexDirection: "row", justifyContent: "space-between" },
+  debtCardStat: { alignItems: "center", flex: 1 },
+  debtCardStatLabel: { fontSize: FontSize.caption, color: Color.textMuted, marginBottom: Spacing.xs },
+  debtCardStatValue: { fontSize: FontSize.body, fontWeight: FontWeight.bold, color: Color.debt },
+  debtCardSetAside: { color: Color.success },
 
   // Seed nudge
   seedNudge: {
