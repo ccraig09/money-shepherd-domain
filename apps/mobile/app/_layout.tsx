@@ -138,6 +138,10 @@ export default function RootLayout() {
             name="settings/connect-accounts"
             options={{ title: "Connect Accounts", headerBackTitle: "Settings" }}
           />
+          <Stack.Screen
+            name="settings/assignment-rules"
+            options={{ title: "Assignment Rules", headerBackTitle: "Settings" }}
+          />
         </Stack>
 
         {isReady && (status === "loading" || status === "idle") && (

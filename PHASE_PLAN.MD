@@ -337,7 +337,7 @@
 
 #### Tier 2 — Enhancement
 - [x] MS-20.5 Assignment rules data model (contains/exact match, priority order)
-- [ ] MS-20.6 Rules management screen (Settings → add/edit/delete/reorder rules)
+- [x] MS-20.6 Rules management screen (Settings → add/edit/delete/reorder rules)
 
 #### Tier 3 — Power Features
 - [ ] MS-20.7 "Confirm All Suggestions" bulk action (assign all suggested in one tap)

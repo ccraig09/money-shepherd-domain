@@ -6,7 +6,7 @@ import {
 import { ensureAnonAuth } from "../infra/firebase/firebaseClient";
 import { HouseholdStateRepo } from "../infra/remote/householdStateRepo";
 import { loadSyncMeta, saveSyncMeta } from "../infra/local/syncMeta";
-import { createEnvelope, renameEnvelope, deleteEnvelope, setTransactionNote, assignTransaction, unassignTransaction, editTransaction, deleteTransaction, transferBetweenEnvelopes, seedBudgetFromBalances, setEnvelopeGoal, clearEnvelopeGoal, setEnvelopeType } from "./commands";
+import { createEnvelope, renameEnvelope, deleteEnvelope, setTransactionNote, assignTransaction, unassignTransaction, editTransaction, deleteTransaction, transferBetweenEnvelopes, seedBudgetFromBalances, setEnvelopeGoal, clearEnvelopeGoal, setEnvelopeType, addAssignmentRule, removeAssignmentRule, reorderAssignmentRules } from "./commands";
 import { allocateToEnvelope } from "./allocate";
 import type { AppStateV1 } from "./appState";
 import { APP_STATE_VERSION } from "./appState";
@@ -88,6 +88,9 @@ export type Engine = {
     amountCents: number;
   }): Promise<RecomputeResult>;
   seedBudgetFromBalances(args: { totalCents: number; accountIds?: string[] }): Promise<RecomputeResult>;
+  addAssignmentRule(args: { pattern: string; matchType: "contains" | "exact"; envelopeId: string; priority: number }): Promise<RecomputeResult>;
+  removeAssignmentRule(args: { ruleId: string }): Promise<RecomputeResult>;
+  reorderAssignmentRules(args: { ruleIds: string[] }): Promise<RecomputeResult>;
 
   importPlaidAccounts(args: {
     newAccounts: Account[];
@@ -252,6 +255,33 @@ export function createEngine(): Engine {
   }): Promise<RecomputeResult> {
     const state = await getState();
     const next = allocateToEnvelope(state, args);
+    return recompute(next);
+  }
+
+  async function addAssignmentRuleAction(args: {
+    pattern: string;
+    matchType: "contains" | "exact";
+    envelopeId: string;
+    priority: number;
+  }): Promise<RecomputeResult> {
+    const state = await getState();
+    const next = addAssignmentRule(state, args);
+    return recompute(next);
+  }
+
+  async function removeAssignmentRuleAction(args: {
+    ruleId: string;
+  }): Promise<RecomputeResult> {
+    const state = await getState();
+    const next = removeAssignmentRule(state, args);
+    return recompute(next);
+  }
+
+  async function reorderAssignmentRulesAction(args: {
+    ruleIds: string[];
+  }): Promise<RecomputeResult> {
+    const state = await getState();
+    const next = reorderAssignmentRules(state, args);
     return recompute(next);
   }
 
@@ -618,6 +648,9 @@ export function createEngine(): Engine {
     setEnvelopeType: setEnvelopeTypeAction,
     allocateToEnvelope: allocateToEnvelopeAction,
     seedBudgetFromBalances: seedBudget,
+    addAssignmentRule: addAssignmentRuleAction,
+    removeAssignmentRule: removeAssignmentRuleAction,
+    reorderAssignmentRules: reorderAssignmentRulesAction,
     importPlaidAccounts,
     updatePlaidBalances,
     importPlaidTransactions,

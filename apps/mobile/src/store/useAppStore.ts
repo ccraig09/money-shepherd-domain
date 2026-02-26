@@ -73,6 +73,9 @@ type AppStore = {
   setEnvelopeGoal: (envelopeId: string, goalCents: number) => Promise<void>;
   clearEnvelopeGoal: (envelopeId: string) => Promise<void>;
   setEnvelopeType: (envelopeId: string, envelopeType: import("@money-shepherd/domain").EnvelopeType) => Promise<void>;
+  addAssignmentRule: (args: { pattern: string; matchType: "contains" | "exact"; envelopeId: string; priority: number }) => Promise<void>;
+  removeAssignmentRule: (ruleId: string) => Promise<void>;
+  reorderAssignmentRules: (ruleIds: string[]) => Promise<void>;
   allocateToEnvelope: (args: {
     envelopeId: string;
     amountCents: number;
@@ -578,6 +581,57 @@ export const useAppStore = create<AppStore>((set, get) => ({
         errorMessage: err?.message ?? "Failed to set envelope type",
         syncState: syncTransition(get().syncState, { type: "sync-error", error: err?.message ?? "Failed to set envelope type" }),
       });
+    }
+  },
+
+  addAssignmentRule: async (args) => {
+    const current = get().state;
+    if (!current) return;
+    set({ status: "loading", errorMessage: null, syncState: syncTransition(get().syncState, { type: "sync-start" }) });
+    try {
+      const result = await engine.addAssignmentRule(args);
+      set({
+        state: result.state,
+        status: "ready",
+        lastSyncAt: new Date().toISOString(),
+        syncState: applyOutcome(get().syncState, result.syncOutcome, result.syncError),
+      });
+    } catch (err: any) {
+      set({ status: "error", errorMessage: err?.message ?? "Failed to add rule", syncState: syncTransition(get().syncState, { type: "sync-error", error: err?.message ?? "Failed to add rule" }) });
+    }
+  },
+
+  removeAssignmentRule: async (ruleId) => {
+    const current = get().state;
+    if (!current) return;
+    set({ status: "loading", errorMessage: null, syncState: syncTransition(get().syncState, { type: "sync-start" }) });
+    try {
+      const result = await engine.removeAssignmentRule({ ruleId });
+      set({
+        state: result.state,
+        status: "ready",
+        lastSyncAt: new Date().toISOString(),
+        syncState: applyOutcome(get().syncState, result.syncOutcome, result.syncError),
+      });
+    } catch (err: any) {
+      set({ status: "error", errorMessage: err?.message ?? "Failed to remove rule", syncState: syncTransition(get().syncState, { type: "sync-error", error: err?.message ?? "Failed to remove rule" }) });
+    }
+  },
+
+  reorderAssignmentRules: async (ruleIds) => {
+    const current = get().state;
+    if (!current) return;
+    set({ status: "loading", errorMessage: null, syncState: syncTransition(get().syncState, { type: "sync-start" }) });
+    try {
+      const result = await engine.reorderAssignmentRules({ ruleIds });
+      set({
+        state: result.state,
+        status: "ready",
+        lastSyncAt: new Date().toISOString(),
+        syncState: applyOutcome(get().syncState, result.syncOutcome, result.syncError),
+      });
+    } catch (err: any) {
+      set({ status: "error", errorMessage: err?.message ?? "Failed to reorder rules", syncState: syncTransition(get().syncState, { type: "sync-error", error: err?.message ?? "Failed to reorder rules" }) });
     }
   },
 

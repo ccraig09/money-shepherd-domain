@@ -194,6 +194,16 @@ export default function SettingsScreen() {
         </View>
       )}
 
+      {/* Smart Assignment */}
+      <View style={styles.card}>
+        <Text style={styles.cardTitle}>Smart Assignment</Text>
+        <ActionButton
+          label="Assignment Rules"
+          onPress={() => router.push("/settings/assignment-rules")}
+          disabled={isBusy}
+        />
+      </View>
+
       {/* Data */}
       <View style={styles.card}>
         <Text style={styles.cardTitle}>Data</Text>
