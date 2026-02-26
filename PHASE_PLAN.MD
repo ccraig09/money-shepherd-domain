@@ -333,7 +333,7 @@
 - [x] MS-20.1 Payee normalization utility (pure function + tests)
 - [x] MS-20.2 Payee-to-envelope mapping storage (AppStateV1 + auto-update on assign)
 - [x] MS-20.3 suggestEnvelope() domain function (rules + payee fallback → suggestion or null)
-- [ ] MS-20.4 Suggestion badges in Inbox UI (show badge, tap to pre-select)
+- [x] MS-20.4 Suggestion badges in Inbox UI (show badge, tap to pre-select)
 
 #### Tier 2 — Enhancement
 - [ ] MS-20.5 Assignment rules data model (contains/exact match, priority order)

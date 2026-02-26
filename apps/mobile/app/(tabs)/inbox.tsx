@@ -12,7 +12,7 @@ import { formatMoney } from "../../src/lib/moneyFormat";
 import { Card } from "../../src/ui/components/Card";
 import { HelpTooltip } from "../../src/ui/components/HelpTooltip";
 import { Spacing, Radius, FontSize, FontWeight, Color } from "../../src/ui/tokens";
-import type { Transaction } from "@money-shepherd/domain";
+import { suggestEnvelope, type Transaction, type EnvelopeSuggestion } from "@money-shepherd/domain";
 
 export default function InboxScreen() {
   const state = useAppStore((s) => s.state);
@@ -26,6 +26,26 @@ export default function InboxScreen() {
       .map((id) => txById[id])
       .filter((tx): tx is Transaction => tx !== undefined && tx.amount.cents < 0);
   }, [state]);
+
+  const suggestions = useMemo(() => {
+    if (!state) return new Map<string, EnvelopeSuggestion>();
+    const payeeMappings = state.payeeMappings ?? {};
+    const envelopeNames = Object.fromEntries(
+      state.budget.envelopes.map((e) => [e.id, e.name]),
+    );
+    const result = new Map<string, EnvelopeSuggestion>();
+    for (const tx of inboxItems) {
+      const suggestion = suggestEnvelope({
+        description: tx.description,
+        payeeMappings,
+        rules: [],
+      });
+      if (suggestion && Object.hasOwn(envelopeNames, suggestion.envelopeId)) {
+        result.set(tx.id, suggestion);
+      }
+    }
+    return result;
+  }, [state, inboxItems]);
 
   if (!state) {
     return (
@@ -90,16 +110,23 @@ export default function InboxScreen() {
           renderItem={({ item }) => {
             const isExpense = item.amount.cents < 0;
             const desc = item.description || "Manual transaction";
+            const suggestion = suggestions.get(item.id);
+            const suggestedEnvelopeName = suggestion
+              ? state.budget.envelopes.find((e) => e.id === suggestion.envelopeId)?.name
+              : undefined;
             return (
               <Pressable
                 style={styles.row}
                 onPress={() => {
                   router.push({
                     pathname: "/assign-transaction",
-                    params: { transactionId: item.id },
+                    params: {
+                      transactionId: item.id,
+                      ...(suggestion && { suggestedEnvelopeId: suggestion.envelopeId }),
+                    },
                   });
                 }}
-                accessibilityLabel={`Assign ${desc}`}
+                accessibilityLabel={`Assign ${desc}${suggestedEnvelopeName ? `, suggested: ${suggestedEnvelopeName}` : ""}`}
                 accessibilityRole="button"
               >
                 <View style={styles.rowMain}>
@@ -113,6 +140,21 @@ export default function InboxScreen() {
                       </View>
                     )}
                   </View>
+                  {suggestion && suggestedEnvelopeName && (
+                    <View
+                      style={[
+                        styles.suggestionBadge,
+                        suggestion.confidence === "high"
+                          ? styles.suggestionBadgeHigh
+                          : styles.suggestionBadgeMedium,
+                      ]}
+                      accessibilityLabel={`Suggested: ${suggestedEnvelopeName}`}
+                    >
+                      <Text style={styles.suggestionBadgeText}>
+                        → {suggestedEnvelopeName}
+                      </Text>
+                    </View>
+                  )}
                   <View style={styles.metaRow}>
                     <Text style={styles.rowAccountName} numberOfLines={1}>
                       {accountName(item.accountId)}
@@ -229,6 +271,28 @@ const styles = StyleSheet.create({
     borderColor: Color.borderLight,
   },
   bankBadgeText: { fontSize: 10, fontWeight: FontWeight.semibold, color: Color.textMuted },
+  suggestionBadge: {
+    alignSelf: "flex-start",
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: Radius.sm,
+    marginTop: 2,
+  },
+  suggestionBadgeHigh: {
+    backgroundColor: Color.successSurface,
+    borderWidth: 1,
+    borderColor: Color.success,
+  },
+  suggestionBadgeMedium: {
+    backgroundColor: Color.primarySurface,
+    borderWidth: 1,
+    borderColor: Color.primary,
+  },
+  suggestionBadgeText: {
+    fontSize: 11,
+    fontWeight: FontWeight.semibold,
+    color: Color.primary,
+  },
   metaRow: { flexDirection: "row", alignItems: "center" },
   rowAccountName: { fontSize: FontSize.caption, color: Color.textMuted, flexShrink: 1 },
   rowAccountDate: { fontSize: FontSize.caption, color: Color.textMuted, flexShrink: 0 },

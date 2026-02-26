@@ -16,12 +16,17 @@ import { SectionHeader } from "../src/ui/components/SectionHeader";
 import { Spacing, Radius, FontSize, FontWeight, Color } from "../src/ui/tokens";
 
 export default function AssignTransactionScreen() {
-  const { transactionId } = useLocalSearchParams<{ transactionId: string }>();
+  const { transactionId, suggestedEnvelopeId } = useLocalSearchParams<{
+    transactionId: string;
+    suggestedEnvelopeId?: string;
+  }>();
   const state = useAppStore((s) => s.state);
   const assignTransaction = useAppStore((s) => s.assignTransaction);
 
   const [userId, setUserId] = React.useState<string>("user-los");
-  const [selectedEnvelopeId, setSelectedEnvelopeId] = React.useState<string | null>(null);
+  const [selectedEnvelopeId, setSelectedEnvelopeId] = React.useState<string | null>(
+    suggestedEnvelopeId ?? null,
+  );
   const [saving, setSaving] = React.useState(false);
 
   React.useEffect(() => {
