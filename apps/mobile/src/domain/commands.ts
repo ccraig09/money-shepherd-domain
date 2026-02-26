@@ -1,4 +1,4 @@
-import { Money, unassignTransaction as unassignTxDomain, setEnvelopeGoal as setGoalDomain, clearEnvelopeGoal as clearGoalDomain } from "@money-shepherd/domain";
+import { Money, normalizePayee, unassignTransaction as unassignTxDomain, setEnvelopeGoal as setGoalDomain, clearEnvelopeGoal as clearGoalDomain } from "@money-shepherd/domain";
 import type { EnvelopeType } from "@money-shepherd/domain";
 import { nowIso, makeId } from "../lib/id";
 import type { AppStateV1 } from "./appState";
@@ -207,12 +207,20 @@ export function assignTransaction(
     [args.transactionId]: assignment,
   };
 
+  // Memorize payee → envelope for future suggestions
+  const tx = state.transactions.find((t) => t.id === args.transactionId);
+  const normalized = tx ? normalizePayee(tx.description) : "";
+  const nextPayeeMappings = normalized
+    ? { ...(state.payeeMappings ?? {}), [normalized]: args.envelopeId }
+    : { ...(state.payeeMappings ?? {}) };
+
   return {
     ...state,
     inbox: {
       ...state.inbox,
       assignmentsByTransactionId: nextAssignments,
     },
+    payeeMappings: nextPayeeMappings,
     updatedAt: nowIso(),
   };
 }

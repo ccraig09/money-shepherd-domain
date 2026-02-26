@@ -26,6 +26,9 @@ export type AppStateV1 = {
   // Allocation log — records every paycheck fill for period-aware funding
   allocations?: Allocation[];
 
+  // Payee memorization: normalizedPayee → envelopeId (auto-updated on assign)
+  payeeMappings?: Record<string, string>;
+
   // Set true after user seeds Available to Assign from bank balances (prevents re-prompting)
   budgetSeeded?: boolean;
 

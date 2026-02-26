@@ -1,6 +1,6 @@
 import { Money } from "@money-shepherd/domain";
 import type { AppStateV1 } from "../appState";
-import { createEnvelope, renameEnvelope, deleteEnvelope, setTransactionNote, seedBudgetFromBalances } from "../commands";
+import { createEnvelope, renameEnvelope, deleteEnvelope, setTransactionNote, seedBudgetFromBalances, assignTransaction } from "../commands";
 
 function makeState(envelopeNames: string[] = []): AppStateV1 {
   return {
@@ -356,5 +356,76 @@ describe("seedBudgetFromBalances", () => {
     state.seededAccountIds = ["plaid-acct-1"];
     const next = seedBudgetFromBalances(state, { totalCents: 500000 });
     expect(next.seededAccountIds).toEqual(["plaid-acct-1"]);
+  });
+});
+
+describe("assignTransaction — payeeMappings", () => {
+  function makeStateWithEnvelopeAndTx(description: string): AppStateV1 {
+    const state = makeState(["Groceries"]);
+    state.transactions = [
+      {
+        id: "tx-1",
+        accountId: "acc-1",
+        amount: Money.fromCents(-2500),
+        description,
+        postedAt: "2024-01-15T10:00:00.000Z",
+      },
+    ];
+    return state;
+  }
+
+  it("records normalized payee → envelopeId on assignment", () => {
+    const state = makeStateWithEnvelopeAndTx("WALMART #1234");
+    const next = assignTransaction(state, {
+      transactionId: "tx-1",
+      envelopeId: "env-0",
+      assignedByUserId: "user-los",
+    });
+    expect(next.payeeMappings?.["walmart"]).toBe("env-0");
+  });
+
+  it("overwrites previous mapping for the same payee", () => {
+    const state = makeStateWithEnvelopeAndTx("WALMART #5678");
+    state.payeeMappings = { walmart: "env-old" };
+    const next = assignTransaction(state, {
+      transactionId: "tx-1",
+      envelopeId: "env-0",
+      assignedByUserId: "user-los",
+    });
+    expect(next.payeeMappings?.["walmart"]).toBe("env-0");
+  });
+
+  it("preserves existing mappings for other payees", () => {
+    const state = makeStateWithEnvelopeAndTx("TARGET");
+    state.payeeMappings = { walmart: "env-0" };
+    const next = assignTransaction(state, {
+      transactionId: "tx-1",
+      envelopeId: "env-0",
+      assignedByUserId: "user-los",
+    });
+    expect(next.payeeMappings?.["walmart"]).toBe("env-0");
+    expect(next.payeeMappings?.["target"]).toBe("env-0");
+  });
+
+  it("does not write mapping when transaction description is empty", () => {
+    const state = makeStateWithEnvelopeAndTx("");
+    const next = assignTransaction(state, {
+      transactionId: "tx-1",
+      envelopeId: "env-0",
+      assignedByUserId: "user-los",
+    });
+    expect(next.payeeMappings).toEqual({});
+  });
+
+  it("initializes payeeMappings when undefined", () => {
+    const state = makeStateWithEnvelopeAndTx("STARBUCKS");
+    expect(state.payeeMappings).toBeUndefined();
+    const next = assignTransaction(state, {
+      transactionId: "tx-1",
+      envelopeId: "env-0",
+      assignedByUserId: "user-los",
+    });
+    expect(next.payeeMappings).toBeDefined();
+    expect(next.payeeMappings?.["starbucks"]).toBe("env-0");
   });
 });
