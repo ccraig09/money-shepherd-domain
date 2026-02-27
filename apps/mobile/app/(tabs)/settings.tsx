@@ -3,6 +3,7 @@ import {
   View,
   Text,
   Pressable,
+  Switch,
   StyleSheet,
   Alert,
   Share,
@@ -17,6 +18,14 @@ import { buildExportPayload } from "../../src/domain/exportData";
 import type { SyncStatus } from "../../src/domain/syncStatus";
 import { Spacing, Radius, FontSize, FontWeight, Color } from "../../src/ui/tokens";
 import { Features } from "../../src/config/features";
+import {
+  hasBiometricHardware,
+  isBiometricEnrolled,
+  loadBiometricPreference,
+  saveBiometricPreference,
+  authenticateWithBiometric,
+  getBiometricTypeLabel,
+} from "../../src/infra/local/biometric";
 
 export default function SettingsScreen() {
   const router = useRouter();
@@ -30,6 +39,12 @@ export default function SettingsScreen() {
   const [meta, setMeta] = React.useState<SyncMeta | null>(null);
   const [isBusy, setIsBusy] = React.useState(false);
 
+  // Biometric state
+  const [biometricSupported, setBiometricSupported] = React.useState(false);
+  const [biometricEnrolled, setBiometricEnrolled] = React.useState(false);
+  const [biometricEnabled, setBiometricEnabled] = React.useState(false);
+  const [biometricLabel, setBiometricLabel] = React.useState("Biometric");
+
   async function refreshMeta() {
     const current = await loadSyncMeta();
     setMeta(current);
@@ -37,7 +52,35 @@ export default function SettingsScreen() {
 
   React.useEffect(() => {
     refreshMeta();
+
+    async function initBiometric() {
+      const [hasHw, enrolled, prefOn] = await Promise.all([
+        hasBiometricHardware(),
+        isBiometricEnrolled(),
+        loadBiometricPreference(),
+      ]);
+      setBiometricSupported(hasHw);
+      setBiometricEnrolled(enrolled);
+      setBiometricEnabled(prefOn);
+      if (hasHw) {
+        const label = await getBiometricTypeLabel();
+        setBiometricLabel(label);
+      }
+    }
+    initBiometric();
   }, []);
+
+  async function handleBiometricToggle(newValue: boolean) {
+    if (newValue) {
+      const result = await authenticateWithBiometric();
+      if (!result.success) return; // verification failed — keep toggle off
+      await saveBiometricPreference(true);
+      setBiometricEnabled(true);
+    } else {
+      await saveBiometricPreference(false);
+      setBiometricEnabled(false);
+    }
+  }
 
   async function handleSwitchUser() {
     setIsBusy(true);
@@ -181,6 +224,27 @@ export default function SettingsScreen() {
           disabled={isBusy}
         />
       </View>
+
+      {/* Security — biometric toggle */}
+      {biometricSupported && (
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Security</Text>
+          {biometricEnrolled ? (
+            <View style={styles.toggleRow}>
+              <Text style={styles.toggleLabel}>{biometricLabel}</Text>
+              <Switch
+                value={biometricEnabled}
+                onValueChange={handleBiometricToggle}
+                trackColor={{ false: Color.borderLight, true: Color.primary }}
+              />
+            </View>
+          ) : (
+            <Text style={styles.hintText}>
+              {biometricLabel} is not set up. Enable it in your device Settings.
+            </Text>
+          )}
+        </View>
+      )}
 
       {/* Plaid */}
       {Features.PLAID && (
@@ -381,4 +445,12 @@ const styles = StyleSheet.create({
   actionBtnText: { fontSize: FontSize.subtitle, color: Color.primary, fontWeight: FontWeight.semibold },
   actionBtnTextDestructive: { color: Color.error },
   spinner: { alignSelf: "center", marginTop: Spacing.sm },
+  toggleRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingVertical: Spacing.xs,
+  },
+  toggleLabel: { fontSize: FontSize.subtitle, color: Color.textDark, fontWeight: FontWeight.semibold },
+  hintText: { fontSize: FontSize.body, color: Color.textMuted, lineHeight: 20 },
 });
