@@ -16,6 +16,14 @@ export type MonthSummary = {
   spentByEnvelope: Record<string, number>;
 };
 
+export type MonthTrendPoint = {
+  /** Short month label, e.g. "Feb" */
+  label: string;
+  incomeCents: number;
+  spendingCents: number;
+  netCents: number;
+};
+
 /**
  * Computes income, spending, net, and per-envelope spending for the current month.
  * Uses the domain period helpers under the hood.
@@ -61,4 +69,48 @@ export function getThisMonthSummary(
     netCents: incomeCents - spendingCents,
     spentByEnvelope,
   };
+}
+
+/**
+ * Returns income/spending/net for the last N months (oldest first).
+ * Months with zero activity are included so the chart has consistent spacing.
+ */
+export function getMonthlyTrend(
+  transactions: Transaction[],
+  now: string,
+  months: number = 6,
+): MonthTrendPoint[] {
+  const SHORT_MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  const results: MonthTrendPoint[] = [];
+
+  let year = parseInt(now.slice(0, 4), 10);
+  let month = parseInt(now.slice(5, 7), 10) - 1; // 0-based
+
+  for (let i = 0; i < months; i++) {
+    const pad = (n: number) => n.toString().padStart(2, "0");
+    const dateStr = `${year}-${pad(month + 1)}-15`;
+    const period = getCurrentPeriod(dateStr);
+
+    let incomeCents = 0;
+    let spendingCents = 0;
+
+    for (const tx of transactions) {
+      const date = tx.postedAt.slice(0, 10);
+      if (date < period.startDate || date > period.endDate) continue;
+      if (tx.amount.cents > 0) incomeCents += tx.amount.cents;
+      else spendingCents += Math.abs(tx.amount.cents);
+    }
+
+    results.unshift({
+      label: SHORT_MONTHS[month],
+      incomeCents,
+      spendingCents,
+      netCents: incomeCents - spendingCents,
+    });
+
+    month--;
+    if (month < 0) { month = 11; year--; }
+  }
+
+  return results;
 }

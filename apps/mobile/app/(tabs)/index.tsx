@@ -17,9 +17,9 @@ import { ProgressBar } from "../../src/ui/components/ProgressBar";
 import { SectionHeader } from "../../src/ui/components/SectionHeader";
 import { AccountsCard } from "../../src/ui/components/AccountsCard";
 import { HelpTooltip } from "../../src/ui/components/HelpTooltip";
-import { SpendingDonutCard } from "../../src/ui/components/charts";
+import { SpendingDonutCard, MonthlyTrendCard } from "../../src/ui/components/charts";
 import { Spacing, Radius, FontSize, FontWeight, Color } from "../../src/ui/tokens";
-import { getThisMonthSummary } from "../../src/lib/periodSummary";
+import { getThisMonthSummary, getMonthlyTrend } from "../../src/lib/periodSummary";
 import { getCurrentPeriod, getFundingInPeriod, getSpendingInPeriod } from "@money-shepherd/domain";
 
 export default function DashboardScreen() {
@@ -83,6 +83,12 @@ export default function DashboardScreen() {
     return givingEnvelopes.reduce((sum, env) => {
       return sum + getSpendingInPeriod(state.transactions, assignments, env.id, period).cents;
     }, 0);
+  }, [state]);
+
+  const monthlyTrend = useMemo(() => {
+    if (!state) return [];
+    const now = new Date().toISOString().slice(0, 10);
+    return getMonthlyTrend(state.transactions, now, 6);
   }, [state]);
 
   if (!state) {
@@ -205,6 +211,9 @@ export default function DashboardScreen() {
           spentByEnvelope={monthSummary.spentByEnvelope}
         />
       )}
+
+      {/* Monthly income vs expense trend */}
+      <MonthlyTrendCard trend={monthlyTrend} />
 
       {/* Debt Freedom card */}
       {debtSummary && (() => {
