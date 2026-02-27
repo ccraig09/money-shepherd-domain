@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import {
   View,
   Text,
@@ -17,10 +17,14 @@ import { ProgressBar } from "../../src/ui/components/ProgressBar";
 import { SectionHeader } from "../../src/ui/components/SectionHeader";
 import { AccountsCard } from "../../src/ui/components/AccountsCard";
 import { HelpTooltip } from "../../src/ui/components/HelpTooltip";
+import { InsightCard } from "../../src/ui/components/InsightCard";
 import { SpendingDonutCard, MonthlyTrendCard } from "../../src/ui/components/charts";
 import { Spacing, Radius, FontSize, FontWeight, Color } from "../../src/ui/tokens";
 import { getThisMonthSummary, getMonthlyTrend } from "../../src/lib/periodSummary";
-import { getCurrentPeriod, getFundingInPeriod, getSpendingInPeriod } from "@money-shepherd/domain";
+import { getCurrentPeriod, getFundingInPeriod, getSpendingInPeriod, generateInsights } from "@money-shepherd/domain";
+import type { InsightType } from "@money-shepherd/domain";
+
+const SEVERITY_PRIORITY: Record<string, number> = { warning: 0, info: 1, success: 2 };
 
 export default function DashboardScreen() {
   const state = useAppStore((s) => s.state);
@@ -91,6 +95,32 @@ export default function DashboardScreen() {
     return getMonthlyTrend(state.transactions, now, 6);
   }, [state]);
 
+  // Insights engine
+  const [dismissedTypes, setDismissedTypes] = useState<Set<InsightType>>(new Set());
+
+  const topInsight = useMemo(() => {
+    if (!state) return null;
+    const assignedTxIds = new Set(
+      Object.values(state.inbox.assignmentsByTransactionId).map((a) => a.transactionId),
+    );
+    const now = new Date().toISOString().slice(0, 10);
+    const all = generateInsights({
+      envelopes: state.budget.envelopes,
+      transactions: state.transactions,
+      assignedTransactionIds: assignedTxIds,
+      availableToAssignCents: state.budget.availableToAssign.cents,
+      now,
+    });
+    const visible = all.filter((i) => !dismissedTypes.has(i.type));
+    visible.sort((a, b) => (SEVERITY_PRIORITY[a.severity] ?? 9) - (SEVERITY_PRIORITY[b.severity] ?? 9));
+    return visible[0] ?? null;
+  }, [state, dismissedTypes]);
+
+  const dismissInsight = useCallback(() => {
+    if (!topInsight) return;
+    setDismissedTypes((prev) => new Set(prev).add(topInsight.type));
+  }, [topInsight]);
+
   if (!state) {
     return (
       <View style={styles.center}>
@@ -147,6 +177,11 @@ export default function DashboardScreen() {
 
       {/* Daily scripture */}
       <ScriptureStrip />
+
+      {/* Insight card — Money Shepherd says... */}
+      {topInsight && (
+        <InsightCard insight={topInsight} onDismiss={dismissInsight} />
+      )}
 
       {/* This Month summary */}
       {monthSummary && (monthSummary.incomeCents > 0 || monthSummary.spendingCents > 0) && (
