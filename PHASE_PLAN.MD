@@ -389,14 +389,14 @@
 ### Recommended build order
 - [x] MS-22.1 Charting library setup (victory-native or react-native-svg custom)
 - [x] MS-22.2 Spending by envelope pie/donut chart
-- [ ] MS-22.3 PeriodSummaryCard visual upgrade (mini chart enhancement for existing This Month card)
+- [x] MS-22.3 PeriodSummaryCard visual upgrade (mini chart enhancement for existing This Month card)
 - [ ] MS-22.4 Income vs Expense trend bar chart (3-6 months)
 - [ ] MS-22.5 Rule-based insights engine (pattern matching, no AI)
 - [ ] MS-22.6 InsightCard component + placement ("Money Shepherd says...")
 
 ### Phase 22 Smoke Check
 - [x] Pie chart shows spending breakdown by envelope
-- [ ] Period summary card shows income/expense/net
+- [x] Period summary card shows income/expense/net
 - [ ] Trend chart shows monthly trajectory
 - [ ] At least one insight appears on Dashboard
 - [ ] Insights are dismissable

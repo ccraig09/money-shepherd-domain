@@ -171,6 +171,24 @@ export default function DashboardScreen() {
               </Text>
             </View>
           </View>
+          {/* Income vs Spending ratio bar */}
+          {(() => {
+            const total = monthSummary.incomeCents + monthSummary.spendingCents;
+            if (total <= 0) return null;
+            const incomePct = Math.round((monthSummary.incomeCents / total) * 100);
+            return (
+              <View style={styles.ratioBarSection}>
+                <View style={styles.ratioBarTrack}>
+                  <View style={[styles.ratioBarIncome, { flex: incomePct }]} />
+                  <View style={[styles.ratioBarSpending, { flex: 100 - incomePct }]} />
+                </View>
+                <View style={styles.ratioBarLabels}>
+                  <Text style={styles.ratioBarLabelIncome}>Income {incomePct}%</Text>
+                  <Text style={styles.ratioBarLabelSpending}>Spending {100 - incomePct}%</Text>
+                </View>
+              </View>
+            );
+          })()}
           {givingThisMonthCents > 0 && (
             <View style={styles.givingRow}>
               <Text style={styles.givingRowLabel}>Giving this month</Text>
@@ -439,6 +457,42 @@ const styles = StyleSheet.create({
   monthStatValue: { fontSize: FontSize.body, fontWeight: FontWeight.bold },
   monthIncome: { color: Color.success },
   monthSpending: { color: Color.error },
+
+  // Income vs Spending ratio bar
+  ratioBarSection: {
+    marginTop: Spacing.md,
+    gap: Spacing.xs,
+  },
+  ratioBarTrack: {
+    flexDirection: "row",
+    height: 8,
+    borderRadius: 4,
+    overflow: "hidden",
+  },
+  ratioBarIncome: {
+    backgroundColor: Color.success,
+    borderTopLeftRadius: 4,
+    borderBottomLeftRadius: 4,
+  },
+  ratioBarSpending: {
+    backgroundColor: Color.error,
+    borderTopRightRadius: 4,
+    borderBottomRightRadius: 4,
+  },
+  ratioBarLabels: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+  ratioBarLabelIncome: {
+    fontSize: FontSize.caption,
+    fontWeight: FontWeight.semibold,
+    color: Color.success,
+  },
+  ratioBarLabelSpending: {
+    fontSize: FontSize.caption,
+    fontWeight: FontWeight.semibold,
+    color: Color.error,
+  },
 
   // Giving row in This Month card
   givingRow: {
