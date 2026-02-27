@@ -6,7 +6,7 @@ import {
 import { ensureAnonAuth } from "../infra/firebase/firebaseClient";
 import { HouseholdStateRepo } from "../infra/remote/householdStateRepo";
 import { loadSyncMeta, saveSyncMeta } from "../infra/local/syncMeta";
-import { createEnvelope, renameEnvelope, deleteEnvelope, setTransactionNote, assignTransaction, unassignTransaction, editTransaction, deleteTransaction, transferBetweenEnvelopes, seedBudgetFromBalances, setEnvelopeGoal, clearEnvelopeGoal, setEnvelopeTarget, clearEnvelopeTarget, setEnvelopeType, addAssignmentRule, removeAssignmentRule, reorderAssignmentRules } from "./commands";
+import { createEnvelope, renameEnvelope, deleteEnvelope, setTransactionNote, assignTransaction, unassignTransaction, editTransaction, deleteTransaction, transferBetweenEnvelopes, seedBudgetFromBalances, setEnvelopeGoal, clearEnvelopeGoal, setEnvelopeTarget, clearEnvelopeTarget, setEnvelopeType, addAssignmentRule, removeAssignmentRule, reorderAssignmentRules, createEnvelopeGroup, renameEnvelopeGroup, deleteEnvelopeGroup, reorderEnvelopeGroups, moveEnvelopeToGroup } from "./commands";
 import { allocateToEnvelope } from "./allocate";
 import type { AppStateV1 } from "./appState";
 import { APP_STATE_VERSION } from "./appState";
@@ -55,7 +55,7 @@ export type Engine = {
     createdByUserId?: string;
   }): Promise<RecomputeResult>;
 
-  createEnvelope(args: { name: string; type?: import("@money-shepherd/domain").EnvelopeType }): Promise<RecomputeResult>;
+  createEnvelope(args: { name: string; type?: import("@money-shepherd/domain").EnvelopeType; groupId?: string }): Promise<RecomputeResult>;
   renameEnvelope(args: { envelopeId: string; name: string }): Promise<RecomputeResult>;
   deleteEnvelope(args: { envelopeId: string }): Promise<RecomputeResult>;
   setTransactionNote(args: { transactionId: string; note: string }): Promise<RecomputeResult>;
@@ -93,6 +93,11 @@ export type Engine = {
   addAssignmentRule(args: { pattern: string; matchType: "contains" | "exact"; envelopeId: string; priority: number }): Promise<RecomputeResult>;
   removeAssignmentRule(args: { ruleId: string }): Promise<RecomputeResult>;
   reorderAssignmentRules(args: { ruleIds: string[] }): Promise<RecomputeResult>;
+  createEnvelopeGroup(args: { name: string }): Promise<RecomputeResult>;
+  renameEnvelopeGroup(args: { groupId: string; name: string }): Promise<RecomputeResult>;
+  deleteEnvelopeGroup(args: { groupId: string }): Promise<RecomputeResult>;
+  reorderEnvelopeGroups(args: { orderedIds: string[] }): Promise<RecomputeResult>;
+  moveEnvelopeToGroup(args: { envelopeId: string; groupId: string | null }): Promise<RecomputeResult>;
   confirmAllSuggestions(args: {
     assignments: { transactionId: string; envelopeId: string; assignedByUserId: string }[];
   }): Promise<RecomputeResult>;
@@ -304,6 +309,48 @@ export function createEngine(): Engine {
   }): Promise<RecomputeResult> {
     const state = await getState();
     const next = reorderAssignmentRules(state, args);
+    return recompute(next);
+  }
+
+  async function createEnvelopeGroupAction(args: {
+    name: string;
+  }): Promise<RecomputeResult> {
+    const state = await getState();
+    const next = createEnvelopeGroup(state, args);
+    return recompute(next);
+  }
+
+  async function renameEnvelopeGroupAction(args: {
+    groupId: string;
+    name: string;
+  }): Promise<RecomputeResult> {
+    const state = await getState();
+    const next = renameEnvelopeGroup(state, args);
+    return recompute(next);
+  }
+
+  async function deleteEnvelopeGroupAction(args: {
+    groupId: string;
+  }): Promise<RecomputeResult> {
+    const state = await getState();
+    const next = deleteEnvelopeGroup(state, args);
+    return recompute(next);
+  }
+
+  async function reorderEnvelopeGroupsAction(args: {
+    orderedIds: string[];
+  }): Promise<RecomputeResult> {
+    const state = await getState();
+    const next = reorderEnvelopeGroups(state, args);
+    return recompute(next);
+  }
+
+  async function moveEnvelopeToGroupAction(args: {
+    envelopeId: string;
+    groupId: string | null;
+  }): Promise<RecomputeResult> {
+    const state = await getState();
+    const next = moveEnvelopeToGroup(state, args);
     return recompute(next);
   }
 
@@ -685,6 +732,11 @@ export function createEngine(): Engine {
     addAssignmentRule: addAssignmentRuleAction,
     removeAssignmentRule: removeAssignmentRuleAction,
     reorderAssignmentRules: reorderAssignmentRulesAction,
+    createEnvelopeGroup: createEnvelopeGroupAction,
+    renameEnvelopeGroup: renameEnvelopeGroupAction,
+    deleteEnvelopeGroup: deleteEnvelopeGroupAction,
+    reorderEnvelopeGroups: reorderEnvelopeGroupsAction,
+    moveEnvelopeToGroup: moveEnvelopeToGroupAction,
     confirmAllSuggestions: confirmAllSuggestionsAction,
     importPlaidAccounts,
     updatePlaidBalances,

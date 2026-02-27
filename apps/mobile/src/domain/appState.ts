@@ -4,6 +4,7 @@ import type { Transaction } from "@money-shepherd/domain";
 import type { TransactionInbox } from "@money-shepherd/domain";
 import type { Allocation } from "@money-shepherd/domain";
 import type { AssignmentRule } from "@money-shepherd/domain";
+import type { EnvelopeGroup } from "@money-shepherd/domain";
 
 // Keep this stable. It becomes your “single source of truth” snapshot.
 export type AppStateV1 = {
@@ -32,6 +33,9 @@ export type AppStateV1 = {
 
   // User-created assignment rules (evaluated before payee memorization)
   assignmentRules?: AssignmentRule[];
+
+  // Envelope groups for organizing envelopes
+  envelopeGroups?: EnvelopeGroup[];
 
   // Set true after user seeds Available to Assign from bank balances (prevents re-prompting)
   budgetSeeded?: boolean;

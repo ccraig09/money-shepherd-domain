@@ -1,5 +1,5 @@
-import { Money, normalizePayee, unassignTransaction as unassignTxDomain, setEnvelopeGoal as setGoalDomain, clearEnvelopeGoal as clearGoalDomain, setEnvelopeTarget as setTargetDomain, clearEnvelopeTarget as clearTargetDomain } from "@money-shepherd/domain";
-import type { EnvelopeType, AssignmentRule } from "@money-shepherd/domain";
+import { Money, normalizePayee, reorderGroups, unassignTransaction as unassignTxDomain, setEnvelopeGoal as setGoalDomain, clearEnvelopeGoal as clearGoalDomain, setEnvelopeTarget as setTargetDomain, clearEnvelopeTarget as clearTargetDomain } from "@money-shepherd/domain";
+import type { EnvelopeType, EnvelopeGroup, AssignmentRule } from "@money-shepherd/domain";
 import { nowIso, makeId } from "../lib/id";
 import type { AppStateV1 } from "./appState";
 
@@ -11,7 +11,7 @@ import type { AppStateV1 } from "./appState";
  */
 export function createEnvelope(
   state: AppStateV1,
-  args: { name: string; type?: EnvelopeType },
+  args: { name: string; type?: EnvelopeType; groupId?: string },
 ): AppStateV1 {
   const normalizedName = args.name.trim().replace(/\s+/g, " ");
 
@@ -31,6 +31,7 @@ export function createEnvelope(
     name: normalizedName,
     balance: Money.zero(),
     ...(args.type && { type: args.type }),
+    ...(args.groupId && { groupId: args.groupId }),
   };
 
   return {
@@ -679,6 +680,168 @@ export function reorderAssignmentRules(
   return {
     ...state,
     assignmentRules: reordered,
+    updatedAt: nowIso(),
+  };
+}
+
+// ─── Envelope Group Commands ──────────────────────────────────
+
+/**
+ * Creates an envelope group.
+ * Name is normalized (trim + collapse spaces) and must be unique (case-insensitive).
+ */
+export function createEnvelopeGroup(
+  state: AppStateV1,
+  args: { name: string },
+): AppStateV1 {
+  const normalizedName = args.name.trim().replace(/\s+/g, " ");
+
+  if (!normalizedName) {
+    throw new Error("Group name is required.");
+  }
+
+  const existing = state.envelopeGroups ?? [];
+  const duplicate = existing.find(
+    (g) => g.name.toLowerCase() === normalizedName.toLowerCase(),
+  );
+  if (duplicate) {
+    throw new Error(`A group named "${duplicate.name}" already exists.`);
+  }
+
+  const maxSort = existing.length > 0
+    ? Math.max(...existing.map((g) => g.sortOrder))
+    : -1;
+
+  const group: EnvelopeGroup = {
+    id: makeId("grp"),
+    name: normalizedName,
+    sortOrder: maxSort + 1,
+  };
+
+  return {
+    ...state,
+    envelopeGroups: [...existing, group],
+    updatedAt: nowIso(),
+  };
+}
+
+/**
+ * Renames an envelope group.
+ * Name is normalized and must be unique among other groups.
+ * Returns same state reference when name is unchanged (no-op).
+ */
+export function renameEnvelopeGroup(
+  state: AppStateV1,
+  args: { groupId: string; name: string },
+): AppStateV1 {
+  const normalizedName = args.name.trim().replace(/\s+/g, " ");
+
+  if (!normalizedName) {
+    throw new Error("Group name is required.");
+  }
+
+  const groups = state.envelopeGroups ?? [];
+  const group = groups.find((g) => g.id === args.groupId);
+  if (!group) {
+    throw new Error("Group not found.");
+  }
+
+  if (group.name === normalizedName) {
+    return state;
+  }
+
+  const duplicate = groups.find(
+    (g) => g.id !== args.groupId && g.name.toLowerCase() === normalizedName.toLowerCase(),
+  );
+  if (duplicate) {
+    throw new Error(`A group named "${duplicate.name}" already exists.`);
+  }
+
+  return {
+    ...state,
+    envelopeGroups: groups.map((g) =>
+      g.id === args.groupId ? { ...g, name: normalizedName } : g,
+    ),
+    updatedAt: nowIso(),
+  };
+}
+
+/**
+ * Deletes an envelope group.
+ * Envelopes that belonged to this group have their groupId cleared (become ungrouped).
+ */
+export function deleteEnvelopeGroup(
+  state: AppStateV1,
+  args: { groupId: string },
+): AppStateV1 {
+  const groups = state.envelopeGroups ?? [];
+  const group = groups.find((g) => g.id === args.groupId);
+  if (!group) {
+    throw new Error("Group not found.");
+  }
+
+  return {
+    ...state,
+    envelopeGroups: groups.filter((g) => g.id !== args.groupId),
+    budget: {
+      ...state.budget,
+      envelopes: state.budget.envelopes.map((e) =>
+        e.groupId === args.groupId ? { ...e, groupId: undefined } : e,
+      ),
+    },
+    updatedAt: nowIso(),
+  };
+}
+
+/**
+ * Reorders envelope groups by the given ID array.
+ * Delegates to the domain's reorderGroups function.
+ */
+export function reorderEnvelopeGroups(
+  state: AppStateV1,
+  args: { orderedIds: string[] },
+): AppStateV1 {
+  const groups = state.envelopeGroups ?? [];
+  const reordered = reorderGroups(groups, args.orderedIds);
+
+  return {
+    ...state,
+    envelopeGroups: reordered,
+    updatedAt: nowIso(),
+  };
+}
+
+/**
+ * Moves an envelope into a group, or removes it from its group (ungroup).
+ * Pass groupId: null to ungroup.
+ */
+export function moveEnvelopeToGroup(
+  state: AppStateV1,
+  args: { envelopeId: string; groupId: string | null },
+): AppStateV1 {
+  const envelope = state.budget.envelopes.find((e) => e.id === args.envelopeId);
+  if (!envelope) {
+    throw new Error("Envelope not found.");
+  }
+
+  if (args.groupId !== null) {
+    const groups = state.envelopeGroups ?? [];
+    const group = groups.find((g) => g.id === args.groupId);
+    if (!group) {
+      throw new Error("Group not found.");
+    }
+  }
+
+  return {
+    ...state,
+    budget: {
+      ...state.budget,
+      envelopes: state.budget.envelopes.map((e) =>
+        e.id === args.envelopeId
+          ? { ...e, groupId: args.groupId === null ? undefined : args.groupId }
+          : e,
+      ),
+    },
     updatedAt: nowIso(),
   };
 }

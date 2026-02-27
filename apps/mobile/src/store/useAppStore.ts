@@ -48,7 +48,7 @@ type AppStore = {
   resetAll: () => Promise<void>;
   switchUser: () => Promise<void>;
   resetAndSeed: () => Promise<void>;
-  createEnvelope: (name: string, type?: import("@money-shepherd/domain").EnvelopeType) => Promise<void>;
+  createEnvelope: (name: string, type?: import("@money-shepherd/domain").EnvelopeType, groupId?: string) => Promise<void>;
   renameEnvelope: (envelopeId: string, name: string) => Promise<void>;
   deleteEnvelope: (envelopeId: string) => Promise<void>;
   undoDelete: () => Promise<void>;
@@ -78,6 +78,11 @@ type AppStore = {
   addAssignmentRule: (args: { pattern: string; matchType: "contains" | "exact"; envelopeId: string; priority: number }) => Promise<void>;
   removeAssignmentRule: (ruleId: string) => Promise<void>;
   reorderAssignmentRules: (ruleIds: string[]) => Promise<void>;
+  createEnvelopeGroup: (name: string) => Promise<void>;
+  renameEnvelopeGroup: (groupId: string, name: string) => Promise<void>;
+  deleteEnvelopeGroup: (groupId: string) => Promise<void>;
+  reorderEnvelopeGroups: (orderedIds: string[]) => Promise<void>;
+  moveEnvelopeToGroup: (envelopeId: string, groupId: string | null) => Promise<void>;
   confirmAllSuggestions: (assignments: { transactionId: string; envelopeId: string }[]) => Promise<void>;
   allocateToEnvelope: (args: {
     envelopeId: string;
@@ -246,13 +251,13 @@ export const useAppStore = create<AppStore>((set, get) => ({
     }
   },
 
-  createEnvelope: async (name, type) => {
+  createEnvelope: async (name, type, groupId) => {
     const current = get().state;
     if (!current) return;
 
     set({ status: "loading", errorMessage: null, syncState: syncTransition(get().syncState, { type: "sync-start" }) });
     try {
-      const result = await engine.createEnvelope({ name, type });
+      const result = await engine.createEnvelope({ name, type, groupId });
       set({
         state: result.state,
         status: "ready",
@@ -681,6 +686,93 @@ export const useAppStore = create<AppStore>((set, get) => ({
       });
     } catch (err: any) {
       set({ status: "error", errorMessage: err?.message ?? "Failed to reorder rules", syncState: syncTransition(get().syncState, { type: "sync-error", error: err?.message ?? "Failed to reorder rules" }) });
+    }
+  },
+
+  createEnvelopeGroup: async (name) => {
+    const current = get().state;
+    if (!current) return;
+    set({ status: "loading", errorMessage: null, syncState: syncTransition(get().syncState, { type: "sync-start" }) });
+    try {
+      const result = await engine.createEnvelopeGroup({ name });
+      set({
+        state: result.state,
+        status: "ready",
+        lastSyncAt: new Date().toISOString(),
+        syncState: applyOutcome(get().syncState, result.syncOutcome, result.syncError),
+        toast: { text: "Group created", variant: "success" },
+      });
+    } catch (err: any) {
+      set({ status: "error", errorMessage: err?.message ?? "Failed to create group", syncState: syncTransition(get().syncState, { type: "sync-error", error: err?.message ?? "Failed to create group" }) });
+    }
+  },
+
+  renameEnvelopeGroup: async (groupId, name) => {
+    const current = get().state;
+    if (!current) return;
+    set({ status: "loading", errorMessage: null, syncState: syncTransition(get().syncState, { type: "sync-start" }) });
+    try {
+      const result = await engine.renameEnvelopeGroup({ groupId, name });
+      set({
+        state: result.state,
+        status: "ready",
+        lastSyncAt: new Date().toISOString(),
+        syncState: applyOutcome(get().syncState, result.syncOutcome, result.syncError),
+      });
+    } catch (err: any) {
+      set({ status: "error", errorMessage: err?.message ?? "Failed to rename group", syncState: syncTransition(get().syncState, { type: "sync-error", error: err?.message ?? "Failed to rename group" }) });
+    }
+  },
+
+  deleteEnvelopeGroup: async (groupId) => {
+    const current = get().state;
+    if (!current) return;
+    set({ status: "loading", errorMessage: null, syncState: syncTransition(get().syncState, { type: "sync-start" }) });
+    try {
+      const result = await engine.deleteEnvelopeGroup({ groupId });
+      set({
+        state: result.state,
+        status: "ready",
+        lastSyncAt: new Date().toISOString(),
+        syncState: applyOutcome(get().syncState, result.syncOutcome, result.syncError),
+        toast: { text: "Group deleted", variant: "info" },
+      });
+    } catch (err: any) {
+      set({ status: "error", errorMessage: err?.message ?? "Failed to delete group", syncState: syncTransition(get().syncState, { type: "sync-error", error: err?.message ?? "Failed to delete group" }) });
+    }
+  },
+
+  reorderEnvelopeGroups: async (orderedIds) => {
+    const current = get().state;
+    if (!current) return;
+    set({ status: "loading", errorMessage: null, syncState: syncTransition(get().syncState, { type: "sync-start" }) });
+    try {
+      const result = await engine.reorderEnvelopeGroups({ orderedIds });
+      set({
+        state: result.state,
+        status: "ready",
+        lastSyncAt: new Date().toISOString(),
+        syncState: applyOutcome(get().syncState, result.syncOutcome, result.syncError),
+      });
+    } catch (err: any) {
+      set({ status: "error", errorMessage: err?.message ?? "Failed to reorder groups", syncState: syncTransition(get().syncState, { type: "sync-error", error: err?.message ?? "Failed to reorder groups" }) });
+    }
+  },
+
+  moveEnvelopeToGroup: async (envelopeId, groupId) => {
+    const current = get().state;
+    if (!current) return;
+    set({ status: "loading", errorMessage: null, syncState: syncTransition(get().syncState, { type: "sync-start" }) });
+    try {
+      const result = await engine.moveEnvelopeToGroup({ envelopeId, groupId });
+      set({
+        state: result.state,
+        status: "ready",
+        lastSyncAt: new Date().toISOString(),
+        syncState: applyOutcome(get().syncState, result.syncOutcome, result.syncError),
+      });
+    } catch (err: any) {
+      set({ status: "error", errorMessage: err?.message ?? "Failed to move envelope", syncState: syncTransition(get().syncState, { type: "sync-error", error: err?.message ?? "Failed to move envelope" }) });
     }
   },
 
