@@ -9,4 +9,5 @@ export type Envelope = {
   goal?: Money;
   target?: Money;
   type?: EnvelopeType;
+  groupId?: string;
 };

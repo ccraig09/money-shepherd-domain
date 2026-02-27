@@ -26,3 +26,5 @@ export * from "./logic/snowballCalculator";
 export * from "./logic/detectBnpl";
 export * from "./logic/generateInsights";
 export * from "./models/Insight";
+export * from "./models/EnvelopeGroup";
+export * from "./logic/envelopeGrouping";
