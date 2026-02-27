@@ -11,7 +11,7 @@ import { router } from "expo-router";
 import { useAppStore } from "../src/store/useAppStore";
 import { formatMoney } from "../src/lib/moneyFormat";
 import { Card } from "../src/ui/components/Card";
-import { Spacing, Radius, FontSize, FontWeight, Shadow, type ColorTokens } from "../src/ui/tokens";
+import { Spacing, Radius, FontSize, FontWeight, type ColorTokens } from "../src/ui/tokens";
 import { useThemedStyles, useTheme } from "@/src/ui/ThemeProvider";
 
 export default function SeedBudgetScreen() {
@@ -328,7 +328,11 @@ const createStyles = (c: ColorTokens) => StyleSheet.create({
     paddingVertical: Spacing.md,
     alignItems: "center",
     marginTop: Spacing.sm,
-    ...Shadow.sm,
+    shadowColor: c.shadowColor,
+    shadowOpacity: 0.06,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 1 },
+    elevation: 2,
   },
   seedBtnDisabled: { opacity: 0.4 },
   seedBtnText: {

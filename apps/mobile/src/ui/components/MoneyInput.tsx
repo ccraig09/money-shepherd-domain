@@ -40,7 +40,7 @@ export const MoneyInput = React.forwardRef<TextInput, Props>(function MoneyInput
   ref,
 ) {
   const styles = useThemedStyles(createStyles);
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
 
   function handleChange(v: string) {
     if (error) onErrorClear();
@@ -65,6 +65,7 @@ export const MoneyInput = React.forwardRef<TextInput, Props>(function MoneyInput
           placeholder={placeholder}
           placeholderTextColor={colors.textSubtle}
           keyboardType="decimal-pad"
+          keyboardAppearance={isDark ? "dark" : "light"}
           autoCorrect={false}
           returnKeyType={returnKeyType}
           onSubmitEditing={onSubmitEditing}

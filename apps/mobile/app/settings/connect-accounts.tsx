@@ -21,7 +21,7 @@ import { mapPlaidAccounts } from "../../src/infra/plaid/mapAccounts";
 import { classifyPlaidError } from "../../src/infra/plaid/errors";
 import { createEngine } from "../../src/domain/engine";
 import { useAppStore } from "../../src/store/useAppStore";
-import { Spacing, Radius, FontSize, FontWeight, Shadow, type ColorTokens } from "../../src/ui/tokens";
+import { Spacing, Radius, FontSize, FontWeight, type ColorTokens } from "../../src/ui/tokens";
 import { useThemedStyles, useTheme } from "@/src/ui/ThemeProvider";
 
 type UserEntry = {
@@ -287,7 +287,11 @@ const createStyles = (c: ColorTokens) => StyleSheet.create({
     backgroundColor: c.surface,
     borderRadius: Radius.hero,
     padding: Spacing.base,
-    ...Shadow.sm,
+    shadowColor: c.shadowColor,
+    shadowOpacity: 0.06,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 1 },
+    elevation: 2,
     borderWidth: 2,
     borderColor: "transparent",
   },

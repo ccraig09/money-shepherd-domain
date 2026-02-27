@@ -1,7 +1,7 @@
 import React from "react";
 import { Animated, Pressable, StyleSheet, Text, View } from "react-native";
 import { useAppStore } from "../../store/useAppStore";
-import { Spacing, Radius, FontSize, FontWeight, Shadow, type ColorTokens } from "../tokens";
+import { Spacing, Radius, FontSize, FontWeight, type ColorTokens } from "../tokens";
 import { useThemedStyles } from "../ThemeProvider";
 
 const DEFAULT_VISIBLE_MS = 2500;
@@ -108,7 +108,11 @@ const createStyles = (c: ColorTokens) => StyleSheet.create({
     zIndex: 9999,
     borderRadius: Radius.lg,
     borderLeftWidth: 4,
-    ...Shadow.lg,
+    shadowColor: c.shadowColor,
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 6,
   },
   inner: {
     paddingHorizontal: Spacing.base,

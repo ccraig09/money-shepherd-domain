@@ -77,7 +77,14 @@ function RootLayoutInner() {
   return (
     <NavThemeProvider value={isDark ? DarkTheme : DefaultTheme}>
       <View style={styles.root}>
-        <Stack>
+        <Stack
+          screenOptions={{
+            headerStyle: { backgroundColor: colors.surface },
+            headerTintColor: colors.primary,
+            headerTitleStyle: { color: colors.textDark },
+            contentStyle: { backgroundColor: colors.surface },
+          }}
+        >
           <Stack.Protected guard={isReady}>
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           </Stack.Protected>

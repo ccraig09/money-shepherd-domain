@@ -109,6 +109,9 @@ export const lightColors = {
 
   // ── Nudge ──────────────────────────────────
   nudgeText: "#795548",
+
+  // ── Shadow ────────────────────────────────
+  shadowColor: "#2c2416",
 } as const;
 
 /** Color token shape — used by ThemeProvider. Keys match lightColors, values are hex strings. */
@@ -167,6 +170,9 @@ export const darkColors: ColorTokens = {
 
   // ── Nudge ──────────────────────────────────
   nudgeText: "#c8bfb2",
+
+  // ── Shadow ────────────────────────────────
+  shadowColor: "#000000",
 } as const;
 
 /**
