@@ -12,6 +12,12 @@ import {
 import { savePinHash } from "../../src/infra/local/pin";
 import { useAppStore } from "../../src/store/useAppStore";
 import { Spacing, Radius, FontSize, FontWeight, Color } from "../../src/ui/tokens";
+import {
+  hasBiometricHardware,
+  isBiometricEnrolled,
+  getBiometricTypeLabel,
+  saveBiometricPreference,
+} from "../../src/infra/local/biometric";
 
 export default function PinSetupScreen() {
   const bootstrap = useAppStore((s) => s.bootstrap);
@@ -22,7 +28,24 @@ export default function PinSetupScreen() {
   const [isSaving, setIsSaving] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
 
+  // Biometric opt-in step
+  const [showBiometricOptIn, setShowBiometricOptIn] = React.useState(false);
+  const [biometricLabel, setBiometricLabel] = React.useState("Biometric");
+  const [isFinishing, setIsFinishing] = React.useState(false);
+
   const confirmRef = React.useRef<TextInput>(null);
+
+  async function finishSetup() {
+    setIsFinishing(true);
+    try {
+      await bootstrap();
+      setGuardReady();
+    } catch (err: any) {
+      console.error("[PinSetup] finishSetup error:", err);
+    } finally {
+      setIsFinishing(false);
+    }
+  }
 
   async function onSave() {
     if (!/^\d{4}$/.test(pin)) {
@@ -39,6 +62,22 @@ export default function PinSetupScreen() {
     setIsSaving(true);
     try {
       await savePinHash(pin);
+
+      // Check biometric availability before finishing
+      const [hasHw, enrolled] = await Promise.all([
+        hasBiometricHardware(),
+        isBiometricEnrolled(),
+      ]);
+
+      if (hasHw && enrolled) {
+        const label = await getBiometricTypeLabel();
+        setBiometricLabel(label);
+        setIsSaving(false);
+        setShowBiometricOptIn(true);
+        return;
+      }
+
+      // No biometric — finish immediately
       await bootstrap();
       setGuardReady();
     } catch (err: any) {
@@ -47,6 +86,57 @@ export default function PinSetupScreen() {
     } finally {
       setIsSaving(false);
     }
+  }
+
+  async function onEnableBiometric() {
+    await saveBiometricPreference(true);
+    await finishSetup();
+  }
+
+  async function onSkipBiometric() {
+    await finishSetup();
+  }
+
+  if (showBiometricOptIn) {
+    return (
+      <View style={styles.flex}>
+        <View style={styles.container}>
+          <View style={styles.biometricIcon}>
+            <Text style={styles.biometricIconText}>
+              {biometricLabel.includes("Face") ? "\u{1F9D1}" : "\u{1F91A}"}
+            </Text>
+          </View>
+
+          <View style={styles.header}>
+            <Text style={styles.title}>Enable {biometricLabel}?</Text>
+            <Text style={styles.subtitle}>
+              Unlock Money Shepherd faster with {biometricLabel}. You can always
+              use your PIN instead.
+            </Text>
+          </View>
+
+          <Pressable
+            onPress={onEnableBiometric}
+            disabled={isFinishing}
+            style={[styles.saveBtn, isFinishing && styles.saveBtnDisabled]}
+          >
+            {isFinishing ? (
+              <ActivityIndicator color={Color.textOnColor} />
+            ) : (
+              <Text style={styles.saveBtnText}>Enable {biometricLabel}</Text>
+            )}
+          </Pressable>
+
+          <Pressable
+            onPress={onSkipBiometric}
+            disabled={isFinishing}
+            style={styles.skipBtn}
+          >
+            <Text style={styles.skipBtnText}>Skip for now</Text>
+          </Pressable>
+        </View>
+      </View>
+    );
   }
 
   return (
@@ -153,4 +243,19 @@ const styles = StyleSheet.create({
   },
   saveBtnDisabled: { opacity: 0.6 },
   saveBtnText: { color: Color.textOnColor, fontSize: FontSize.subtitle, fontWeight: FontWeight.bold },
+  biometricIcon: {
+    alignItems: "center",
+  },
+  biometricIconText: {
+    fontSize: 48,
+  },
+  skipBtn: {
+    alignItems: "center",
+    paddingVertical: Spacing.sm,
+  },
+  skipBtnText: {
+    color: Color.textMid,
+    fontSize: FontSize.body,
+    fontWeight: FontWeight.semibold,
+  },
 });
