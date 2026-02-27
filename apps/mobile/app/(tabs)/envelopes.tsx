@@ -2,15 +2,19 @@ import React, { useEffect, useMemo, useState } from "react";
 import {
   View,
   Text,
-  FlatList,
+  SectionList,
   Pressable,
   StyleSheet,
+  Alert,
+  Modal,
+  TextInput,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router } from "expo-router";
 import { useAppStore } from "../../src/store/useAppStore";
 import { formatMoney } from "../../src/lib/moneyFormat";
-import { sortEnvelopesGivingFirst } from "@money-shepherd/domain";
+import { groupEnvelopes, sortEnvelopesGivingFirst } from "@money-shepherd/domain";
+import type { Envelope, EnvelopeGroup } from "@money-shepherd/domain";
 import { Card } from "../../src/ui/components/Card";
 import { ProgressBar } from "../../src/ui/components/ProgressBar";
 import { HelpTooltip } from "../../src/ui/components/HelpTooltip";
@@ -20,9 +24,26 @@ type SortOrder = "alpha" | "balance" | "giving";
 
 const SORT_KEY = "ms_envelope_sort";
 
+function sortWithinGroup(envelopes: Envelope[], sortOrder: SortOrder): Envelope[] {
+  const copy = [...envelopes];
+  if (sortOrder === "giving") return sortEnvelopesGivingFirst(copy);
+  if (sortOrder === "alpha") return copy.sort((a, b) => a.name.localeCompare(b.name));
+  return copy.sort((a, b) => b.balance.cents - a.balance.cents);
+}
+
 export default function EnvelopesScreen() {
   const state = useAppStore((s) => s.state);
+  const createGroup = useAppStore((s) => s.createEnvelopeGroup);
+  const renameGroup = useAppStore((s) => s.renameEnvelopeGroup);
+  const deleteGroup = useAppStore((s) => s.deleteEnvelopeGroup);
+
   const [sortOrder, setSortOrder] = useState<SortOrder>("giving");
+  const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
+
+  // Group name modal state
+  const [groupModalVisible, setGroupModalVisible] = useState(false);
+  const [groupModalInput, setGroupModalInput] = useState("");
+  const [groupModalTarget, setGroupModalTarget] = useState<EnvelopeGroup | null>(null);
 
   useEffect(() => {
     AsyncStorage.getItem(SORT_KEY).then((v) => {
@@ -35,16 +56,73 @@ export default function EnvelopesScreen() {
     AsyncStorage.setItem(SORT_KEY, order);
   }
 
-  const sortedEnvelopes = useMemo(() => {
+  function toggleCollapse(groupId: string) {
+    setCollapsed((prev) => {
+      const next = new Set(prev);
+      if (next.has(groupId)) next.delete(groupId);
+      else next.add(groupId);
+      return next;
+    });
+  }
+
+  function openCreateGroupModal() {
+    setGroupModalTarget(null);
+    setGroupModalInput("");
+    setGroupModalVisible(true);
+  }
+
+  function openRenameGroupModal(group: EnvelopeGroup) {
+    setGroupModalTarget(group);
+    setGroupModalInput(group.name);
+    setGroupModalVisible(true);
+  }
+
+  function handleGroupModalSave() {
+    const name = groupModalInput.trim();
+    if (!name) return;
+    if (groupModalTarget) {
+      renameGroup(groupModalTarget.id, name);
+    } else {
+      createGroup(name);
+    }
+    setGroupModalVisible(false);
+  }
+
+  function handleGroupLongPress(group: EnvelopeGroup) {
+    if (group.id === "__ungrouped__") return;
+    Alert.alert(group.name, undefined, [
+      { text: "Rename", onPress: () => openRenameGroupModal(group) },
+      {
+        text: "Delete Group",
+        style: "destructive",
+        onPress: () => {
+          Alert.alert(
+            "Delete Group",
+            `Delete "${group.name}"? Envelopes in this group will become ungrouped.`,
+            [
+              { text: "Cancel", style: "cancel" },
+              {
+                text: "Delete",
+                style: "destructive",
+                onPress: () => deleteGroup(group.id),
+              },
+            ],
+          );
+        },
+      },
+      { text: "Cancel", style: "cancel" },
+    ]);
+  }
+
+  const sections = useMemo(() => {
     if (!state) return [];
-    const envelopes = [...state.budget.envelopes];
-    if (sortOrder === "giving") {
-      return sortEnvelopesGivingFirst(envelopes);
-    }
-    if (sortOrder === "alpha") {
-      return envelopes.sort((a, b) => a.name.localeCompare(b.name));
-    }
-    return envelopes.sort((a, b) => b.balance.cents - a.balance.cents);
+    const groups = state.envelopeGroups ?? [];
+    const grouped = groupEnvelopes(state.budget.envelopes, groups);
+    return grouped.map((g) => ({
+      group: g.group,
+      data: sortWithinGroup(g.envelopes, sortOrder),
+      totalCents: g.envelopes.reduce((sum, e) => sum + e.balance.cents, 0),
+    }));
   }, [state, sortOrder]);
 
   if (!state) {
@@ -74,6 +152,13 @@ export default function EnvelopesScreen() {
             accessibilityLabel="Allocate funds"
           >
             <Text style={styles.allocateBtnText}>$ Allocate</Text>
+          </Pressable>
+          <Pressable
+            onPress={openCreateGroupModal}
+            style={styles.groupBtn}
+            accessibilityLabel="Create group"
+          >
+            <Text style={styles.groupBtnText}>+ Group</Text>
           </Pressable>
           <Pressable
             onPress={() => router.push("/create-envelope")}
@@ -136,11 +221,40 @@ export default function EnvelopesScreen() {
           </View>
 
           <Card style={styles.listCard}>
-            <FlatList
-              data={sortedEnvelopes}
+            <SectionList
+              sections={sections}
               keyExtractor={(e) => e.id}
               scrollEnabled={false}
-              renderItem={({ item }) => {
+              renderSectionHeader={({ section }) => {
+                const isCollapsed = collapsed.has(section.group.id);
+                const isUngrouped = section.group.id === "__ungrouped__";
+                return (
+                  <Pressable
+                    style={styles.sectionHeader}
+                    onPress={() => toggleCollapse(section.group.id)}
+                    onLongPress={() => handleGroupLongPress(section.group)}
+                    accessibilityLabel={`${section.group.name} group, ${isCollapsed ? "collapsed" : "expanded"}`}
+                    accessibilityRole="button"
+                  >
+                    <View style={styles.sectionHeaderLeft}>
+                      <Text style={styles.chevron}>
+                        {isCollapsed ? "\u25B8" : "\u25BE"}
+                      </Text>
+                      <Text style={[styles.sectionHeaderName, isUngrouped && styles.sectionHeaderNameMuted]}>
+                        {section.group.name}
+                      </Text>
+                      <Text style={styles.sectionCount}>
+                        {section.data.length}
+                      </Text>
+                    </View>
+                    <Text style={styles.sectionTotal}>
+                      ${formatMoney(section.totalCents)}
+                    </Text>
+                  </Pressable>
+                );
+              }}
+              renderItem={({ item, section }) => {
+                if (collapsed.has(section.group.id)) return null;
                 const isNegative = item.balance.cents < 0;
                 const isZero = item.balance.cents === 0;
                 const isGiving = item.type === "giving";
@@ -196,6 +310,49 @@ export default function EnvelopesScreen() {
           </Card>
         </>
       )}
+
+      {/* Create / Rename Group Modal */}
+      <Modal
+        visible={groupModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setGroupModalVisible(false)}
+      >
+        <Pressable
+          style={styles.modalOverlay}
+          onPress={() => setGroupModalVisible(false)}
+        >
+          <Pressable style={styles.modalContent} onPress={() => {}}>
+            <Text style={styles.modalTitle}>
+              {groupModalTarget ? "Rename Group" : "New Group"}
+            </Text>
+            <TextInput
+              style={styles.modalInput}
+              value={groupModalInput}
+              onChangeText={setGroupModalInput}
+              placeholder="Group name"
+              placeholderTextColor={Color.textSubtle}
+              autoFocus
+              returnKeyType="done"
+              onSubmitEditing={handleGroupModalSave}
+            />
+            <Pressable
+              onPress={handleGroupModalSave}
+              style={styles.modalSaveBtn}
+            >
+              <Text style={styles.modalSaveBtnText}>
+                {groupModalTarget ? "Rename" : "Create"}
+              </Text>
+            </Pressable>
+            <Pressable
+              onPress={() => setGroupModalVisible(false)}
+              style={styles.modalCancelBtn}
+            >
+              <Text style={styles.modalCancelBtnText}>Cancel</Text>
+            </Pressable>
+          </Pressable>
+        </Pressable>
+      </Modal>
     </View>
   );
 }
@@ -224,6 +381,14 @@ const styles = StyleSheet.create({
     borderColor: Color.primary,
   },
   allocateBtnText: { color: Color.primary, fontWeight: FontWeight.semibold, fontSize: FontSize.body },
+  groupBtn: {
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    borderRadius: Radius.pill,
+    borderWidth: 1,
+    borderColor: Color.border,
+  },
+  groupBtnText: { color: Color.textMid, fontWeight: FontWeight.semibold, fontSize: FontSize.body },
   addBtn: {
     paddingHorizontal: Spacing.base,
     paddingVertical: Spacing.sm,
@@ -269,6 +434,32 @@ const styles = StyleSheet.create({
     backgroundColor: Color.primary,
   },
   emptyBtnText: { color: Color.textOnColor, fontWeight: FontWeight.semibold, fontSize: FontSize.body },
+
+  // Section headers
+  sectionHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: Spacing.base,
+    paddingVertical: Spacing.md,
+    backgroundColor: Color.surfaceLight,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderColor: Color.borderLight,
+  },
+  sectionHeaderLeft: { flexDirection: "row", alignItems: "center", gap: Spacing.sm, flex: 1 },
+  chevron: { fontSize: FontSize.body, color: Color.textMid, width: 16 },
+  sectionHeaderName: { fontSize: FontSize.body, fontWeight: FontWeight.bold, color: Color.textDark },
+  sectionHeaderNameMuted: { color: Color.textMuted, fontWeight: FontWeight.semibold },
+  sectionCount: {
+    fontSize: FontSize.caption,
+    color: Color.textMuted,
+    backgroundColor: Color.borderLight,
+    paddingHorizontal: 6,
+    paddingVertical: 1,
+    borderRadius: Radius.sm,
+    overflow: "hidden",
+  },
+  sectionTotal: { fontSize: FontSize.body, fontWeight: FontWeight.semibold, color: Color.textMid },
 
   // List
   listCard: { marginTop: Spacing.xs },
@@ -328,4 +519,43 @@ const styles = StyleSheet.create({
     color: Color.primary,
     letterSpacing: 0.5,
   },
+
+  // Modal
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.4)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalContent: {
+    backgroundColor: Color.surface,
+    borderRadius: Radius.lg,
+    padding: Spacing.lg,
+    width: "85%",
+    maxWidth: 360,
+    gap: Spacing.md,
+  },
+  modalTitle: { fontSize: FontSize.subtitle, fontWeight: FontWeight.bold, color: Color.textDark, textAlign: "center" },
+  modalInput: {
+    fontSize: FontSize.subtitle,
+    fontWeight: FontWeight.medium,
+    color: Color.textDark,
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.md,
+    borderWidth: 1,
+    borderColor: Color.border,
+    borderRadius: Radius.md,
+  },
+  modalSaveBtn: {
+    backgroundColor: Color.primary,
+    borderRadius: Radius.pill,
+    paddingVertical: Spacing.md,
+    alignItems: "center",
+  },
+  modalSaveBtnText: { fontSize: FontSize.body, fontWeight: FontWeight.bold, color: Color.textOnColor },
+  modalCancelBtn: {
+    paddingVertical: Spacing.sm,
+    alignItems: "center",
+  },
+  modalCancelBtnText: { fontSize: FontSize.body, color: Color.textMuted },
 });
