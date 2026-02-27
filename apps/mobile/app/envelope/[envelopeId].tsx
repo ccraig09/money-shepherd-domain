@@ -16,6 +16,7 @@ import { formatMoney } from "../../src/lib/moneyFormat";
 import { parseDollars } from "../../src/lib/moneyInput";
 import { Card } from "../../src/ui/components/Card";
 import { SectionHeader } from "../../src/ui/components/SectionHeader";
+import { DebtProgressBar } from "../../src/ui/components/DebtProgressBar";
 import { Spacing, Radius, FontSize, FontWeight, Color } from "../../src/ui/tokens";
 import type { Transaction } from "@money-shepherd/domain";
 
@@ -25,9 +26,13 @@ export default function EnvelopeDetailScreen() {
   const deleteEnvelopeAction = useAppStore((s) => s.deleteEnvelope);
   const setGoalAction = useAppStore((s) => s.setEnvelopeGoal);
   const clearGoalAction = useAppStore((s) => s.clearEnvelopeGoal);
+  const setTargetAction = useAppStore((s) => s.setEnvelopeTarget);
+  const clearTargetAction = useAppStore((s) => s.clearEnvelopeTarget);
 
   const [goalModalVisible, setGoalModalVisible] = useState(false);
   const [goalInput, setGoalInput] = useState("");
+  const [targetModalVisible, setTargetModalVisible] = useState(false);
+  const [targetInput, setTargetInput] = useState("");
 
   // Derive transactions assigned to this envelope
   const { assignmentByTxId, assignedTxs } = useMemo(() => {
@@ -167,6 +172,66 @@ export default function EnvelopeDetailScreen() {
             </Pressable>
           )}
         </View>
+
+        {/* Debt target row — only for debt envelopes */}
+        {envelope.type === "debt" && (
+          <View style={styles.goalRow}>
+            <Text style={styles.goalLabel}>
+              {envelope.target
+                ? `Debt target: $${formatMoney(envelope.target.cents)}`
+                : "No debt target"}
+            </Text>
+            <Pressable
+              onPress={() => {
+                if (envelope.target) {
+                  setTargetInput(formatMoney(envelope.target.cents));
+                } else {
+                  setTargetInput("");
+                }
+                setTargetModalVisible(true);
+              }}
+              hitSlop={8}
+              accessibilityLabel={envelope.target ? "Edit target" : "Set target"}
+            >
+              <Text style={styles.goalAction}>
+                {envelope.target ? "Edit" : "Set Target"}
+              </Text>
+            </Pressable>
+            {envelope.target && (
+              <Pressable
+                onPress={() => {
+                  Alert.alert("Clear Target", "Remove the debt target from this envelope?", [
+                    { text: "Cancel", style: "cancel" },
+                    {
+                      text: "Clear",
+                      style: "destructive",
+                      onPress: () => clearTargetAction(envelopeId),
+                    },
+                  ]);
+                }}
+                hitSlop={8}
+                accessibilityLabel="Clear target"
+              >
+                <Text style={styles.goalClear}>Clear</Text>
+              </Pressable>
+            )}
+          </View>
+        )}
+
+        {/* Debt progress visualization */}
+        {envelope.type === "debt" && envelope.target && envelope.target.cents > 0 && (
+          <View style={styles.debtProgress}>
+            <DebtProgressBar paidCents={envelope.balance.cents} targetCents={envelope.target.cents} />
+            <View style={styles.debtProgressStats}>
+              <Text style={styles.debtProgressLabel}>
+                ${formatMoney(envelope.balance.cents)} of ${formatMoney(envelope.target.cents)}
+              </Text>
+              <Text style={styles.debtProgressPct}>
+                {Math.min(100, Math.round((envelope.balance.cents / envelope.target.cents) * 100))}% paid off
+              </Text>
+            </View>
+          </View>
+        )}
 
         {/* Allocate CTA */}
         <Pressable
@@ -329,6 +394,57 @@ export default function EnvelopeDetailScreen() {
           </Pressable>
         </Pressable>
       </Modal>
+      {/* Set Target Modal */}
+      <Modal
+        visible={targetModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setTargetModalVisible(false)}
+      >
+        <Pressable
+          style={styles.modalOverlay}
+          onPress={() => setTargetModalVisible(false)}
+        >
+          <Pressable style={styles.modalContent} onPress={() => {}}>
+            <Text style={styles.modalTitle}>Debt Target</Text>
+            <Text style={styles.modalHint}>
+              What is the total debt balance for this envelope?
+            </Text>
+            <View style={styles.modalInputRow}>
+              <Text style={styles.modalDollarSign}>$</Text>
+              <TextInput
+                style={styles.modalInput}
+                value={targetInput}
+                onChangeText={setTargetInput}
+                keyboardType="decimal-pad"
+                placeholder="0.00"
+                placeholderTextColor={Color.textSubtle}
+                autoFocus
+              />
+            </View>
+            <Pressable
+              onPress={() => {
+                const parsed = parseDollars(targetInput);
+                if (!parsed.ok) {
+                  Alert.alert("Invalid Amount", parsed.error);
+                  return;
+                }
+                setTargetAction(envelopeId, parsed.cents);
+                setTargetModalVisible(false);
+              }}
+              style={styles.modalSaveBtn}
+            >
+              <Text style={styles.modalSaveBtnText}>Save Target</Text>
+            </Pressable>
+            <Pressable
+              onPress={() => setTargetModalVisible(false)}
+              style={styles.modalCancelBtn}
+            >
+              <Text style={styles.modalCancelBtnText}>Cancel</Text>
+            </Pressable>
+          </Pressable>
+        </Pressable>
+      </Modal>
     </ScrollView>
   );
 }
@@ -438,6 +554,27 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   modalCancelBtnText: { fontSize: FontSize.body, color: Color.textMuted },
+
+  // Debt progress
+  debtProgress: {
+    alignSelf: "stretch",
+    marginTop: Spacing.md,
+    gap: Spacing.xs,
+  },
+  debtProgressStats: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  debtProgressLabel: {
+    fontSize: FontSize.caption,
+    color: Color.textMuted,
+  },
+  debtProgressPct: {
+    fontSize: FontSize.caption,
+    fontWeight: FontWeight.bold,
+    color: Color.primary,
+  },
 
   // Allocate CTA
   allocateBtn: {

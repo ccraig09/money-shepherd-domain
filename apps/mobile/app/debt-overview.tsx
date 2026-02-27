@@ -33,6 +33,30 @@ export default function DebtOverviewScreen() {
     [debtEnvelopes],
   );
 
+  const progressPct = totalDebtCents > 0
+    ? Math.min(100, Math.round((totalSetAsideCents / totalDebtCents) * 100))
+    : 0;
+
+  const milestoneText = useMemo(() => {
+    if (progressPct >= 100) return "Debt free!";
+    if (progressPct >= 75) return "Almost free!";
+    if (progressPct >= 50) return "Halfway there!";
+    if (progressPct >= 25) return "Quarter way!";
+    return "Every dollar counts";
+  }, [progressPct]);
+
+  // Rough months-to-freedom estimate (only when all debts have goals)
+  const monthsToFreedom = useMemo(() => {
+    if (debtEnvelopes.length === 0) return null;
+    const allHaveGoals = debtEnvelopes.every((e) => e.goal && e.goal.cents > 0);
+    if (!allHaveGoals) return null;
+    const totalMonthlyGoalCents = debtEnvelopes.reduce((sum, e) => sum + (e.goal?.cents ?? 0), 0);
+    if (totalMonthlyGoalCents <= 0) return null;
+    const remainingCents = Math.max(0, totalDebtCents - totalSetAsideCents);
+    if (remainingCents === 0) return null;
+    return Math.ceil(remainingCents / totalMonthlyGoalCents);
+  }, [debtEnvelopes, totalDebtCents, totalSetAsideCents]);
+
   if (!state) {
     return (
       <View style={styles.center}>
@@ -73,14 +97,22 @@ export default function DebtOverviewScreen() {
         </Text>
       </View>
 
-      {/* Summary card */}
-      <View style={styles.summaryCard}>
-        <Text style={styles.summaryLabel}>Total Debt</Text>
-        <Text style={styles.summaryAmount}>${formatMoney(totalDebtCents)}</Text>
+      {/* Summary card — progress-first */}
+      <Card style={styles.summaryCard}>
+        {totalDebtCents > 0 && (
+          <View style={styles.progressTrack}>
+            <View
+              style={[styles.progressFill, { width: `${progressPct}%` }]}
+            />
+          </View>
+        )}
+        <Text style={styles.summaryHero}>{progressPct}% Paid Off</Text>
+        <Text style={styles.summaryMilestone}>{milestoneText}</Text>
+
         <View style={styles.summaryRow}>
           <View style={styles.summaryStat}>
             <Text style={styles.summaryStatLabel}>Set aside</Text>
-            <Text style={styles.summaryStatValue}>${formatMoney(totalSetAsideCents)}</Text>
+            <Text style={styles.summaryStatValueSuccess}>${formatMoney(totalSetAsideCents)}</Text>
           </View>
           <View style={styles.summaryStat}>
             <Text style={styles.summaryStatLabel}>Remaining</Text>
@@ -89,17 +121,17 @@ export default function DebtOverviewScreen() {
             </Text>
           </View>
         </View>
-        {totalDebtCents > 0 && (
-          <View style={styles.progressTrack}>
-            <View
-              style={[
-                styles.progressFill,
-                { width: `${Math.min(100, Math.round((totalSetAsideCents / totalDebtCents) * 100))}%` },
-              ]}
-            />
-          </View>
-        )}
-      </View>
+
+        <Text style={styles.summaryTotalCaption}>
+          Total debt: ${formatMoney(totalDebtCents)}
+        </Text>
+      </Card>
+
+      {monthsToFreedom !== null && (
+        <Text style={styles.estimateText}>
+          At your current pace: ~{monthsToFreedom} {monthsToFreedom === 1 ? "month" : "months"} to debt freedom
+        </Text>
+      )}
 
       {/* Debt list */}
       <Card style={styles.listCard}>
@@ -168,52 +200,61 @@ const styles = StyleSheet.create({
   title: { fontSize: FontSize.title, fontWeight: FontWeight.bold, color: Color.textDark },
   subtitle: { fontSize: FontSize.small, color: Color.textMuted, marginTop: Spacing.xs },
 
-  // Summary
+  // Summary — progress-first
   summaryCard: {
     marginHorizontal: Spacing.base,
     marginTop: Spacing.base,
-    marginBottom: Spacing.base,
-    backgroundColor: Color.debt,
-    borderRadius: Radius.hero,
-    paddingVertical: Spacing.lg,
-    paddingHorizontal: Spacing.lg,
+    marginBottom: Spacing.md,
+    padding: Spacing.lg,
+    alignItems: "center" as const,
   },
-  summaryLabel: {
-    fontSize: FontSize.small,
-    color: "rgba(255,255,255,0.75)",
-    fontWeight: FontWeight.semibold,
-    textTransform: "uppercase",
-    letterSpacing: 0.5,
-  },
-  summaryAmount: {
-    fontSize: FontSize.hero,
+  summaryHero: {
+    fontSize: FontSize.title,
     fontWeight: FontWeight.extrabold,
-    color: Color.textOnColor,
+    color: Color.primary,
+    marginTop: Spacing.md,
+  },
+  summaryMilestone: {
+    fontSize: FontSize.small,
+    color: Color.textMuted,
     marginTop: Spacing.xs,
   },
   summaryRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
+    flexDirection: "row" as const,
+    justifyContent: "space-between" as const,
+    alignSelf: "stretch" as const,
     marginTop: Spacing.base,
     paddingTop: Spacing.md,
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderColor: "rgba(255,255,255,0.3)",
+    borderColor: Color.borderLight,
   },
-  summaryStat: {},
-  summaryStatLabel: { fontSize: FontSize.small, color: "rgba(255,255,255,0.75)" },
-  summaryStatValue: { fontSize: FontSize.body, fontWeight: FontWeight.semibold, color: Color.textOnColor, marginTop: 2 },
-
-  progressTrack: {
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: "rgba(255,255,255,0.25)",
+  summaryStat: { alignItems: "center" as const, flex: 1 },
+  summaryStatLabel: { fontSize: FontSize.small, color: Color.textMuted },
+  summaryStatValue: { fontSize: FontSize.body, fontWeight: FontWeight.semibold, color: Color.textMid, marginTop: 2 },
+  summaryStatValueSuccess: { fontSize: FontSize.body, fontWeight: FontWeight.semibold, color: Color.success, marginTop: 2 },
+  summaryTotalCaption: {
+    fontSize: FontSize.caption,
+    color: Color.textMuted,
     marginTop: Spacing.md,
-    overflow: "hidden",
+  },
+  progressTrack: {
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: Color.borderLight,
+    alignSelf: "stretch" as const,
+    overflow: "hidden" as const,
   },
   progressFill: {
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: Color.textOnColor,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: Color.primary,
+  },
+  estimateText: {
+    fontSize: FontSize.small,
+    color: Color.textMuted,
+    textAlign: "center" as const,
+    marginHorizontal: Spacing.base,
+    marginBottom: Spacing.base,
   },
 
   // Empty state
