@@ -18,7 +18,7 @@ import { Card } from "../../src/ui/components/Card";
 import { SectionHeader } from "../../src/ui/components/SectionHeader";
 import { DebtProgressBar } from "../../src/ui/components/DebtProgressBar";
 import { Spacing, Radius, FontSize, FontWeight, Color } from "../../src/ui/tokens";
-import type { Transaction } from "@money-shepherd/domain";
+import type { Transaction, EnvelopeGroup } from "@money-shepherd/domain";
 
 export default function EnvelopeDetailScreen() {
   const { envelopeId } = useLocalSearchParams<{ envelopeId: string }>();
@@ -28,11 +28,16 @@ export default function EnvelopeDetailScreen() {
   const clearGoalAction = useAppStore((s) => s.clearEnvelopeGoal);
   const setTargetAction = useAppStore((s) => s.setEnvelopeTarget);
   const clearTargetAction = useAppStore((s) => s.clearEnvelopeTarget);
+  const moveToGroup = useAppStore((s) => s.moveEnvelopeToGroup);
+  const createEnvelopeGroup = useAppStore((s) => s.createEnvelopeGroup);
 
   const [goalModalVisible, setGoalModalVisible] = useState(false);
   const [goalInput, setGoalInput] = useState("");
   const [targetModalVisible, setTargetModalVisible] = useState(false);
   const [targetInput, setTargetInput] = useState("");
+  const [groupPickerVisible, setGroupPickerVisible] = useState(false);
+  const [newGroupModalVisible, setNewGroupModalVisible] = useState(false);
+  const [newGroupName, setNewGroupName] = useState("");
 
   // Derive transactions assigned to this envelope
   const { assignmentByTxId, assignedTxs } = useMemo(() => {
@@ -116,6 +121,24 @@ export default function EnvelopeDetailScreen() {
             hitSlop={8}
           >
             <Text style={styles.editBtnText}>✎ Edit</Text>
+          </Pressable>
+        </View>
+
+        {/* Group row */}
+        <View style={styles.groupRow}>
+          <Text style={styles.groupLabel}>
+            {(() => {
+              const groups: EnvelopeGroup[] = state.envelopeGroups ?? [];
+              const group = envelope.groupId ? groups.find((g) => g.id === envelope.groupId) : null;
+              return group ? group.name : "Ungrouped";
+            })()}
+          </Text>
+          <Pressable
+            onPress={() => setGroupPickerVisible(true)}
+            hitSlop={8}
+            accessibilityLabel="Change group"
+          >
+            <Text style={styles.groupAction}>Change</Text>
           </Pressable>
         </View>
 
@@ -445,6 +468,119 @@ export default function EnvelopeDetailScreen() {
           </Pressable>
         </Pressable>
       </Modal>
+      {/* Group picker modal */}
+      <Modal
+        visible={groupPickerVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setGroupPickerVisible(false)}
+      >
+        <Pressable
+          style={styles.modalOverlay}
+          onPress={() => setGroupPickerVisible(false)}
+        >
+          <Pressable style={styles.modalContent} onPress={() => {}}>
+            <Text style={styles.modalTitle}>Move to Group</Text>
+            <ScrollView style={styles.groupPickerList}>
+              {/* Ungrouped option */}
+              <Pressable
+                style={[styles.groupPickerItem, !envelope.groupId && styles.groupPickerItemActive]}
+                onPress={async () => {
+                  if (envelope.groupId) await moveToGroup(envelopeId, null);
+                  setGroupPickerVisible(false);
+                }}
+              >
+                <Text style={[styles.groupPickerItemText, !envelope.groupId && styles.groupPickerItemTextActive]}>
+                  No group
+                </Text>
+                {!envelope.groupId && <Text style={styles.groupPickerCheck}>✓</Text>}
+              </Pressable>
+              {/* Existing groups */}
+              {(state.envelopeGroups ?? []).map((g) => {
+                const isActive = envelope.groupId === g.id;
+                return (
+                  <Pressable
+                    key={g.id}
+                    style={[styles.groupPickerItem, isActive && styles.groupPickerItemActive]}
+                    onPress={async () => {
+                      if (!isActive) await moveToGroup(envelopeId, g.id);
+                      setGroupPickerVisible(false);
+                    }}
+                  >
+                    <Text style={[styles.groupPickerItemText, isActive && styles.groupPickerItemTextActive]}>
+                      {g.name}
+                    </Text>
+                    {isActive && <Text style={styles.groupPickerCheck}>✓</Text>}
+                  </Pressable>
+                );
+              })}
+              {/* Create new group option */}
+              <Pressable
+                style={styles.groupPickerItem}
+                onPress={() => {
+                  setGroupPickerVisible(false);
+                  setNewGroupName("");
+                  setNewGroupModalVisible(true);
+                }}
+              >
+                <Text style={styles.groupPickerNewText}>+ Create new group</Text>
+              </Pressable>
+            </ScrollView>
+            <Pressable
+              onPress={() => setGroupPickerVisible(false)}
+              style={styles.modalCancelBtn}
+            >
+              <Text style={styles.modalCancelBtnText}>Cancel</Text>
+            </Pressable>
+          </Pressable>
+        </Pressable>
+      </Modal>
+
+      {/* New group modal */}
+      <Modal
+        visible={newGroupModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setNewGroupModalVisible(false)}
+      >
+        <Pressable
+          style={styles.modalOverlay}
+          onPress={() => setNewGroupModalVisible(false)}
+        >
+          <Pressable style={styles.modalContent} onPress={() => {}}>
+            <Text style={styles.modalTitle}>New Group</Text>
+            <TextInput
+              style={styles.newGroupInput}
+              value={newGroupName}
+              onChangeText={setNewGroupName}
+              placeholder="Group name"
+              placeholderTextColor={Color.textSubtle}
+              autoFocus
+            />
+            <Pressable
+              onPress={async () => {
+                const trimmed = newGroupName.trim().replace(/\s+/g, " ");
+                if (!trimmed) return;
+                await createEnvelopeGroup(trimmed);
+                const updated = useAppStore.getState().state?.envelopeGroups ?? [];
+                const created = updated.find((g) => g.name === trimmed);
+                if (created) await moveToGroup(envelopeId, created.id);
+                setNewGroupModalVisible(false);
+              }}
+              style={[styles.newGroupSaveBtn, !newGroupName.trim() && styles.newGroupSaveBtnDisabled]}
+              disabled={!newGroupName.trim()}
+            >
+              <Text style={styles.newGroupSaveBtnText}>Create & Move</Text>
+            </Pressable>
+            <Pressable
+              onPress={() => setNewGroupModalVisible(false)}
+              style={styles.modalCancelBtn}
+            >
+              <Text style={styles.modalCancelBtnText}>Cancel</Text>
+            </Pressable>
+          </Pressable>
+        </Pressable>
+      </Modal>
     </ScrollView>
   );
 }
@@ -493,6 +629,53 @@ const styles = StyleSheet.create({
     backgroundColor: Color.primarySurface,
   },
   editBtnText: { fontSize: FontSize.small, fontWeight: FontWeight.semibold, color: Color.primary },
+
+  // Group row
+  groupRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.sm,
+    marginTop: Spacing.xs,
+  },
+  groupLabel: { fontSize: FontSize.small, color: Color.textMuted },
+  groupAction: { fontSize: FontSize.small, fontWeight: FontWeight.semibold, color: Color.primary },
+
+  // Group picker modal
+  groupPickerList: { maxHeight: 300 },
+  groupPickerItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.sm,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderColor: Color.borderLight,
+  },
+  groupPickerItemActive: { backgroundColor: Color.primarySurface },
+  groupPickerItemText: { fontSize: FontSize.body, color: Color.textDark },
+  groupPickerItemTextActive: { fontWeight: FontWeight.semibold, color: Color.primary },
+  groupPickerCheck: { fontSize: FontSize.body, color: Color.primary, fontWeight: FontWeight.bold },
+  groupPickerNewText: { fontSize: FontSize.body, fontWeight: FontWeight.semibold, color: Color.primary },
+
+  // New group modal
+  newGroupInput: {
+    borderWidth: 1,
+    borderColor: Color.border,
+    borderRadius: Radius.md,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.md,
+    fontSize: FontSize.body,
+    color: Color.textDark,
+  },
+  newGroupSaveBtn: {
+    backgroundColor: Color.primary,
+    borderRadius: Radius.pill,
+    paddingVertical: Spacing.md,
+    alignItems: "center",
+  },
+  newGroupSaveBtnDisabled: { opacity: 0.6 },
+  newGroupSaveBtnText: { fontSize: FontSize.body, fontWeight: FontWeight.bold, color: Color.textOnColor },
+
   balanceLabel: { fontSize: FontSize.small, color: Color.textMuted, marginTop: Spacing.xs },
   balance: { fontSize: FontSize.hero, fontWeight: FontWeight.extrabold, color: Color.success },
   balanceNegative: { color: Color.error },

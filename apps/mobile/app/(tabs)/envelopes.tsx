@@ -170,6 +170,7 @@ export default function EnvelopesScreen() {
         </View>
       </View>
 
+
       {envelopes.length === 0 ? (
         <Card style={styles.empty}>
           <Text style={styles.emptyText}>No envelopes yet.</Text>
@@ -225,6 +226,10 @@ export default function EnvelopesScreen() {
               sections={sections}
               keyExtractor={(e) => e.id}
               scrollEnabled={false}
+              stickySectionHeadersEnabled={false}
+              SectionSeparatorComponent={({ leadingItem, leadingSection, trailingSection }) =>
+                leadingItem && trailingSection ? <View style={styles.sectionGap} /> : null
+              }
               renderSectionHeader={({ section }) => {
                 const isCollapsed = collapsed.has(section.group.id);
                 const isUngrouped = section.group.id === "__ungrouped__";
@@ -301,7 +306,16 @@ export default function EnvelopesScreen() {
                           ${formatMoney(item.balance.cents)}
                         </Text>
                       </View>
-                      <ProgressBar balance={item.balance.cents} goal={item.goal?.cents} />
+                      {item.goal && item.goal.cents > 0 ? (
+                        <View style={styles.progressArea}>
+                          <ProgressBar balance={item.balance.cents} goal={item.goal.cents} />
+                          <Text style={styles.goalHint}>
+                            ${formatMoney(item.balance.cents)} of ${formatMoney(item.goal.cents)}
+                          </Text>
+                        </View>
+                      ) : isZero ? (
+                        <Text style={styles.needsFunding}>Needs funding</Text>
+                      ) : null}
                     </View>
                   </Pressable>
                 );
@@ -361,14 +375,12 @@ const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: Color.surface },
   center: { flex: 1, alignItems: "center", justifyContent: "center" },
   header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
     paddingHorizontal: Spacing.base,
     paddingTop: 60,
     paddingBottom: Spacing.md,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderColor: Color.border,
+    gap: Spacing.sm,
   },
   titleRow: { flexDirection: "row", alignItems: "center", gap: Spacing.sm },
   title: { fontSize: FontSize.title, fontWeight: FontWeight.bold, color: Color.textDark },
@@ -448,7 +460,13 @@ const styles = StyleSheet.create({
   },
   sectionHeaderLeft: { flexDirection: "row", alignItems: "center", gap: Spacing.sm, flex: 1 },
   chevron: { fontSize: FontSize.body, color: Color.textMid, width: 16 },
-  sectionHeaderName: { fontSize: FontSize.body, fontWeight: FontWeight.bold, color: Color.textDark },
+  sectionHeaderName: {
+    fontSize: FontSize.small,
+    fontWeight: FontWeight.bold,
+    color: Color.textDark,
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+  },
   sectionHeaderNameMuted: { color: Color.textMuted, fontWeight: FontWeight.semibold },
   sectionCount: {
     fontSize: FontSize.caption,
@@ -459,7 +477,8 @@ const styles = StyleSheet.create({
     borderRadius: Radius.sm,
     overflow: "hidden",
   },
-  sectionTotal: { fontSize: FontSize.body, fontWeight: FontWeight.semibold, color: Color.textMid },
+  sectionTotal: { fontSize: FontSize.subtitle, fontWeight: FontWeight.bold, color: Color.textDark },
+  sectionGap: { height: Spacing.sm },
 
   // List
   listCard: { marginTop: Spacing.xs },
@@ -480,7 +499,12 @@ const styles = StyleSheet.create({
   rowName: { fontSize: FontSize.subtitle, fontWeight: FontWeight.medium, color: Color.textDark, flexShrink: 1 },
   rowBalance: { fontSize: FontSize.subtitle, fontWeight: FontWeight.semibold, color: Color.textDark, marginLeft: Spacing.md },
   rowBalanceNegative: { color: Color.error },
-  rowBalanceZero: { color: Color.textDark },
+  rowBalanceZero: { color: Color.textSubtle },
+
+  // Progress + goal hint
+  progressArea: { gap: 3 },
+  goalHint: { fontSize: FontSize.caption, color: Color.textMuted },
+  needsFunding: { fontSize: FontSize.caption, color: Color.textSubtle, fontStyle: "italic" },
 
   // Type badges
   givingBadge: {

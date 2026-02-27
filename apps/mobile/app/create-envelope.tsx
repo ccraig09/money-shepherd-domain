@@ -7,6 +7,8 @@ import {
   StyleSheet,
   KeyboardAvoidingView,
   Platform,
+  Modal,
+  ScrollView,
 } from "react-native";
 import { router } from "expo-router";
 import type { EnvelopeType } from "@money-shepherd/domain";
@@ -23,12 +25,18 @@ const TYPE_OPTIONS: { value: EnvelopeType; label: string; hint: string }[] = [
 export default function CreateEnvelopeScreen() {
   const state = useAppStore((s) => s.state);
   const createEnvelope = useAppStore((s) => s.createEnvelope);
+  const createEnvelopeGroup = useAppStore((s) => s.createEnvelopeGroup);
 
   const [name, setName] = React.useState("");
   const [selectedType, setSelectedType] = React.useState<EnvelopeType>("spending");
+  const [selectedGroupId, setSelectedGroupId] = React.useState<string | null>(null);
   const [error, setError] = React.useState<string | null>(null);
   const [duplicateWarning, setDuplicateWarning] = React.useState<string | null>(null);
   const [saving, setSaving] = React.useState(false);
+  const [newGroupModalVisible, setNewGroupModalVisible] = React.useState(false);
+  const [newGroupName, setNewGroupName] = React.useState("");
+
+  const groups = state?.envelopeGroups ?? [];
 
   async function handleSave() {
     const normalized = name.trim().replace(/\s+/g, " ");
@@ -48,7 +56,11 @@ export default function CreateEnvelopeScreen() {
 
     setSaving(true);
     try {
-      await createEnvelope(normalized, selectedType === "spending" ? undefined : selectedType);
+      await createEnvelope(
+        normalized,
+        selectedType === "spending" ? undefined : selectedType,
+        selectedGroupId ?? undefined,
+      );
       router.back();
     } finally {
       setSaving(false);
@@ -121,6 +133,48 @@ export default function CreateEnvelopeScreen() {
           })}
         </View>
 
+        {/* Group picker */}
+        <Text style={styles.sectionLabel}>Group</Text>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.groupScroll}>
+          <View style={styles.groupRow}>
+            <Pressable
+              style={[styles.groupChip, selectedGroupId === null && styles.groupChipActive]}
+              onPress={() => setSelectedGroupId(null)}
+              accessibilityLabel="No group"
+              accessibilityRole="radio"
+              accessibilityState={{ selected: selectedGroupId === null }}
+            >
+              <Text style={[styles.groupChipText, selectedGroupId === null && styles.groupChipTextActive]}>
+                No group
+              </Text>
+            </Pressable>
+            {groups.map((g) => (
+              <Pressable
+                key={g.id}
+                style={[styles.groupChip, selectedGroupId === g.id && styles.groupChipActive]}
+                onPress={() => setSelectedGroupId(g.id)}
+                accessibilityLabel={`Group: ${g.name}`}
+                accessibilityRole="radio"
+                accessibilityState={{ selected: selectedGroupId === g.id }}
+              >
+                <Text style={[styles.groupChipText, selectedGroupId === g.id && styles.groupChipTextActive]}>
+                  {g.name}
+                </Text>
+              </Pressable>
+            ))}
+            <Pressable
+              style={styles.groupChipNew}
+              onPress={() => {
+                setNewGroupName("");
+                setNewGroupModalVisible(true);
+              }}
+              accessibilityLabel="Create new group"
+            >
+              <Text style={styles.groupChipNewText}>+ New</Text>
+            </Pressable>
+          </View>
+        </ScrollView>
+
         <Pressable
           onPress={handleSave}
           disabled={saving || !name.trim()}
@@ -138,6 +192,53 @@ export default function CreateEnvelopeScreen() {
           <Text style={styles.cancelText}>Cancel</Text>
         </Pressable>
       </View>
+
+      {/* New group modal */}
+      <Modal
+        visible={newGroupModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setNewGroupModalVisible(false)}
+      >
+        <Pressable
+          style={styles.modalOverlay}
+          onPress={() => setNewGroupModalVisible(false)}
+        >
+          <Pressable style={styles.modalContent} onPress={() => {}}>
+            <Text style={styles.modalTitle}>New Group</Text>
+            <TextInput
+              style={styles.modalInput}
+              value={newGroupName}
+              onChangeText={setNewGroupName}
+              placeholder="Group name"
+              placeholderTextColor={Color.textSubtle}
+              autoFocus
+            />
+            <Pressable
+              onPress={async () => {
+                const trimmed = newGroupName.trim().replace(/\s+/g, " ");
+                if (!trimmed) return;
+                await createEnvelopeGroup(trimmed);
+                // Find the newly created group and select it
+                const updated = useAppStore.getState().state?.envelopeGroups ?? [];
+                const created = updated.find((g) => g.name === trimmed);
+                if (created) setSelectedGroupId(created.id);
+                setNewGroupModalVisible(false);
+              }}
+              style={[styles.modalSaveBtn, !newGroupName.trim() && styles.saveBtnDisabled]}
+              disabled={!newGroupName.trim()}
+            >
+              <Text style={styles.modalSaveBtnText}>Create</Text>
+            </Pressable>
+            <Pressable
+              onPress={() => setNewGroupModalVisible(false)}
+              style={styles.modalCancelBtn}
+            >
+              <Text style={styles.modalCancelBtnText}>Cancel</Text>
+            </Pressable>
+          </Pressable>
+        </Pressable>
+      </Modal>
     </KeyboardAvoidingView>
   );
 }
@@ -194,6 +295,86 @@ const styles = StyleSheet.create({
     color: Color.textMuted,
     marginTop: 2,
   },
+
+  // Group picker
+  groupScroll: { marginBottom: Spacing.xs },
+  groupRow: {
+    flexDirection: "row",
+    gap: Spacing.sm,
+    paddingRight: Spacing.md,
+  },
+  groupChip: {
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    borderRadius: Radius.pill,
+    borderWidth: 1,
+    borderColor: Color.border,
+    backgroundColor: Color.surface,
+  },
+  groupChipActive: {
+    borderColor: Color.primary,
+    backgroundColor: Color.primarySurface,
+  },
+  groupChipText: {
+    fontSize: FontSize.small,
+    fontWeight: FontWeight.medium,
+    color: Color.textMid,
+  },
+  groupChipTextActive: {
+    color: Color.primary,
+    fontWeight: FontWeight.semibold,
+  },
+  groupChipNew: {
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    borderRadius: Radius.pill,
+    borderWidth: 1,
+    borderColor: Color.borderLight,
+    borderStyle: "dashed" as const,
+  },
+  groupChipNewText: {
+    fontSize: FontSize.small,
+    fontWeight: FontWeight.semibold,
+    color: Color.primary,
+  },
+
+  // Modal
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.4)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalContent: {
+    backgroundColor: Color.surface,
+    borderRadius: Radius.lg,
+    padding: Spacing.lg,
+    width: "85%",
+    maxWidth: 360,
+    gap: Spacing.md,
+  },
+  modalTitle: { fontSize: FontSize.subtitle, fontWeight: FontWeight.bold, color: Color.textDark, textAlign: "center" },
+  modalInput: {
+    borderWidth: 1,
+    borderColor: Color.border,
+    borderRadius: Radius.md,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.md,
+    fontSize: FontSize.body,
+    color: Color.textDark,
+  },
+  modalSaveBtn: {
+    backgroundColor: Color.primary,
+    borderRadius: Radius.pill,
+    paddingVertical: Spacing.md,
+    alignItems: "center",
+  },
+  modalSaveBtnText: { fontSize: FontSize.body, fontWeight: FontWeight.bold, color: Color.textOnColor },
+  modalCancelBtn: {
+    paddingVertical: Spacing.sm,
+    alignItems: "center",
+  },
+  modalCancelBtnText: { fontSize: FontSize.body, color: Color.textMuted },
 
   saveBtn: {
     marginTop: Spacing.lg,

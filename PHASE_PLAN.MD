@@ -424,7 +424,7 @@
 - [x] MS-25.1 Domain: EnvelopeGroup model + grouping logic
 - [x] MS-25.2 Engine/commands: create, rename, delete, reorder groups
 - [x] MS-25.3 Envelopes tab: collapsible group sections
-- [ ] MS-25.4 Create/edit envelope: group picker
+- [x] MS-25.4 Create/edit envelope: group picker
 - [ ] MS-25.5 Dashboard: grouped envelope preview
 
 ### Phase 25 Smoke Check
