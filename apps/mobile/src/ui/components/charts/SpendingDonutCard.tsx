@@ -86,7 +86,7 @@ export function SpendingDonutCard({ envelopes, spentByEnvelope }: Props) {
 
       {/* Chart — centered with total in the middle */}
       <View style={styles.chartContainer}>
-        <ChartErrorBoundary fallbackMessage="Spending chart unavailable">
+        <ChartErrorBoundary fallbackMessage="Spending chart unavailable" colors={colors}>
           <DonutChart segments={segments} size={CHART_SIZE} strokeWidth={CHART_STROKE} />
           <View style={styles.centerLabel} pointerEvents="none">
             <Text style={styles.centerAmount}>${formatMoney(totalSpent)}</Text>

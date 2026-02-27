@@ -52,7 +52,7 @@ export function MonthlyTrendCard({ trend }: Props) {
         </View>
       </View>
 
-      <ChartErrorBoundary fallbackMessage="Trend chart unavailable">
+      <ChartErrorBoundary fallbackMessage="Trend chart unavailable" colors={colors}>
         <View style={styles.chartRow}>
           {trend.map((m, i) => {
             const incomeH = maxVal > 0 ? (m.incomeCents / maxVal) * CHART_HEIGHT : 0;

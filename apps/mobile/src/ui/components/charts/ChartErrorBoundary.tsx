@@ -1,11 +1,14 @@
 import React, { Component } from "react";
 import { View, Text, StyleSheet } from "react-native";
-import { Color, FontSize, FontWeight, Spacing } from "../../tokens";
+import { FontSize, FontWeight, Spacing } from "../../tokens";
+import type { ColorTokens } from "../../tokens";
 
 type Props = {
   children: React.ReactNode;
   /** One-line fallback message when the chart can't render */
   fallbackMessage?: string;
+  /** Theme colors — passed from a parent functional component */
+  colors: ColorTokens;
 };
 
 type State = { hasError: boolean };
@@ -15,6 +18,8 @@ type State = { hasError: boolean };
  *
  * Catches the "Unimplemented component: <RNSVGSvgView>" crash that occurs
  * when react-native-svg native modules are unavailable (e.g. Expo Go).
+ *
+ * Class components cannot use hooks, so theme colors are passed as a prop.
  */
 export class ChartErrorBoundary extends Component<Props, State> {
   state: State = { hasError: false };
@@ -25,13 +30,16 @@ export class ChartErrorBoundary extends Component<Props, State> {
 
   render() {
     if (this.state.hasError) {
+      const { colors } = this.props;
       return (
         <View style={styles.fallback}>
           <Text style={styles.icon}>📊</Text>
-          <Text style={styles.text}>
+          <Text style={[styles.text, { color: colors.textMuted }]}>
             {this.props.fallbackMessage ?? "Chart unavailable"}
           </Text>
-          <Text style={styles.hint}>Requires a development build</Text>
+          <Text style={[styles.hint, { color: colors.textSubtle }]}>
+            Requires a development build
+          </Text>
         </View>
       );
     }
@@ -50,12 +58,10 @@ const styles = StyleSheet.create({
   text: {
     fontSize: FontSize.small,
     fontWeight: FontWeight.semibold,
-    color: Color.textMuted,
     textAlign: "center",
   },
   hint: {
     fontSize: FontSize.caption,
-    color: Color.textSubtle,
     textAlign: "center",
   },
 });
