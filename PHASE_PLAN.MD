@@ -433,3 +433,38 @@
 - [ ] Both household members can connect their own banks
 
 ---
+
+## Phase 25: Envelope Groups (collapsible categories)
+
+### Recommended build order
+- [ ] MS-25.1 Domain: EnvelopeGroup model + grouping logic
+- [ ] MS-25.2 Engine/commands: create, rename, delete, reorder groups
+- [ ] MS-25.3 Envelopes tab: collapsible group sections
+- [ ] MS-25.4 Create/edit envelope: group picker
+- [ ] MS-25.5 Dashboard: grouped envelope preview
+
+### Phase 25 Smoke Check
+- [ ] Groups appear as collapsible sections on Envelopes tab
+- [ ] Can create, rename, delete a group
+- [ ] Envelopes can be moved between groups
+- [ ] Dashboard shows grouped preview
+
+---
+
+## Phase 26: Dark Mode (full theme system)
+
+### Recommended build order
+- [ ] MS-26.1 Theme system: light/dark token sets + ThemeProvider
+- [ ] MS-26.2 Migrate screens to theme context (replace static Color imports)
+- [ ] MS-26.3 Settings: theme toggle (Light / Dark / System)
+- [ ] MS-26.4 Charts + custom components: dark-aware colors
+- [ ] MS-26.5 Dark mode polish: shadows, borders, status bar, splash
+
+### Phase 26 Smoke Check
+- [ ] Dark mode renders correctly on all screens
+- [ ] Theme toggle works in settings (Light / Dark / System)
+- [ ] Charts readable in dark mode
+- [ ] No white flash on navigation transitions
+- [ ] Status bar adapts to theme
+
+---
