@@ -21,7 +21,7 @@ import { InsightCard } from "../../src/ui/components/InsightCard";
 import { SpendingDonutCard, MonthlyTrendCard } from "../../src/ui/components/charts";
 import { Spacing, Radius, FontSize, FontWeight, Color } from "../../src/ui/tokens";
 import { getThisMonthSummary, getMonthlyTrend } from "../../src/lib/periodSummary";
-import { getCurrentPeriod, getFundingInPeriod, getSpendingInPeriod, generateInsights } from "@money-shepherd/domain";
+import { getCurrentPeriod, getFundingInPeriod, getSpendingInPeriod, generateInsights, groupEnvelopes } from "@money-shepherd/domain";
 import type { InsightType } from "@money-shepherd/domain";
 
 const SEVERITY_PRIORITY: Record<string, number> = { warning: 0, info: 1, success: 2 };
@@ -121,6 +121,17 @@ export default function DashboardScreen() {
     setDismissedTypes((prev) => new Set(prev).add(topInsight.type));
   }, [topInsight]);
 
+  const hasGroups = (state?.envelopeGroups ?? []).length > 0;
+  const groupedPreview = useMemo(() => {
+    if (!state || !hasGroups) return [];
+    const groups = state.envelopeGroups ?? [];
+    return groupEnvelopes(state.budget.envelopes, groups).map((g) => ({
+      group: g.group,
+      count: g.envelopes.length,
+      totalCents: g.envelopes.reduce((sum, e) => sum + e.balance.cents, 0),
+    }));
+  }, [state, hasGroups]);
+
   if (!state) {
     return (
       <View style={styles.center}>
@@ -132,7 +143,6 @@ export default function DashboardScreen() {
   const availableCents = state.budget.availableToAssign.cents;
 
   const envelopes = state.budget.envelopes.slice(0, 5);
-  const hasMoreEnvelopes = state.budget.envelopes.length > 5;
 
   return (
     <ScrollView
@@ -364,11 +374,11 @@ export default function DashboardScreen() {
       {/* Envelopes preview */}
       <SectionHeader
         title="Envelopes"
-        actionLabel={hasMoreEnvelopes ? "See all" : undefined}
-        onAction={hasMoreEnvelopes ? () => router.push("/(tabs)/envelopes") : undefined}
+        actionLabel={state.budget.envelopes.length > 0 ? "See all" : undefined}
+        onAction={state.budget.envelopes.length > 0 ? () => router.push("/(tabs)/envelopes") : undefined}
       />
 
-      {envelopes.length === 0 ? (
+      {state.budget.envelopes.length === 0 ? (
         <Card style={styles.emptyEnvelopes}>
           <Text style={styles.emptyText}>No envelopes yet.</Text>
           <Pressable
@@ -379,6 +389,39 @@ export default function DashboardScreen() {
           >
             <Text style={styles.emptyEnvelopeBtnText}>Create your first envelope</Text>
           </Pressable>
+        </Card>
+      ) : hasGroups ? (
+        <Card>
+          {groupedPreview.map((g) => {
+            const isUngrouped = g.group.id === "__ungrouped__";
+            const isZero = g.totalCents === 0;
+            const isNegative = g.totalCents < 0;
+            return (
+              <Pressable
+                key={g.group.id}
+                style={styles.groupRow}
+                onPress={() => router.push("/(tabs)/envelopes")}
+                accessibilityLabel={`${g.group.name} group, ${g.count} envelopes`}
+                accessibilityRole="button"
+              >
+                <View style={styles.groupRowLeft}>
+                  <Text style={[styles.groupRowName, isUngrouped && styles.groupRowNameMuted]}>
+                    {g.group.name}
+                  </Text>
+                  <Text style={styles.groupRowCount}>{g.count}</Text>
+                </View>
+                <Text
+                  style={[
+                    styles.groupRowBalance,
+                    isZero && styles.groupRowBalanceZero,
+                    isNegative && styles.groupRowBalanceNegative,
+                  ]}
+                >
+                  ${formatMoney(g.totalCents)}
+                </Text>
+              </Pressable>
+            );
+          })}
         </Card>
       ) : (
         <Card>
@@ -685,6 +728,38 @@ const styles = StyleSheet.create({
 
   // Accounts
   accountsSection: { marginBottom: Spacing.lg },
+
+  // Grouped envelope preview
+  groupRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: Spacing.base,
+    paddingVertical: Spacing.md,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderColor: Color.borderLight,
+  },
+  groupRowLeft: { flexDirection: "row", alignItems: "center", gap: Spacing.sm, flex: 1 },
+  groupRowName: {
+    fontSize: FontSize.small,
+    fontWeight: FontWeight.bold,
+    color: Color.textDark,
+    textTransform: "uppercase" as const,
+    letterSpacing: 0.5,
+  },
+  groupRowNameMuted: { color: Color.textMuted, fontWeight: FontWeight.semibold },
+  groupRowCount: {
+    fontSize: FontSize.caption,
+    color: Color.textMuted,
+    backgroundColor: Color.borderLight,
+    paddingHorizontal: 6,
+    paddingVertical: 1,
+    borderRadius: Radius.sm,
+    overflow: "hidden" as const,
+  },
+  groupRowBalance: { fontSize: FontSize.subtitle, fontWeight: FontWeight.bold, color: Color.textDark, marginLeft: Spacing.md },
+  groupRowBalanceZero: { color: Color.textSubtle },
+  groupRowBalanceNegative: { color: Color.error },
 
   // Envelopes
   emptyEnvelopes: {

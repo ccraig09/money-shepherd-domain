@@ -425,7 +425,7 @@
 - [x] MS-25.2 Engine/commands: create, rename, delete, reorder groups
 - [x] MS-25.3 Envelopes tab: collapsible group sections
 - [x] MS-25.4 Create/edit envelope: group picker
-- [ ] MS-25.5 Dashboard: grouped envelope preview
+- [x] MS-25.5 Dashboard: grouped envelope preview
 
 ### Phase 25 Smoke Check
 - [ ] Groups appear as collapsible sections on Envelopes tab
