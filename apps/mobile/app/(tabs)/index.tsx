@@ -17,6 +17,7 @@ import { ProgressBar } from "../../src/ui/components/ProgressBar";
 import { SectionHeader } from "../../src/ui/components/SectionHeader";
 import { AccountsCard } from "../../src/ui/components/AccountsCard";
 import { HelpTooltip } from "../../src/ui/components/HelpTooltip";
+import { SpendingDonutCard } from "../../src/ui/components/charts";
 import { Spacing, Radius, FontSize, FontWeight, Color } from "../../src/ui/tokens";
 import { getThisMonthSummary } from "../../src/lib/periodSummary";
 import { getCurrentPeriod, getFundingInPeriod, getSpendingInPeriod } from "@money-shepherd/domain";
@@ -179,28 +180,34 @@ export default function DashboardScreen() {
         </Card>
       )}
 
-      {/* Debt Freedom card */}
-      {debtSummary && (
-        <Card style={styles.debtCard} onPress={() => router.push("/debt-overview")} accessibilityLabel="View debt overview">
-          <Text style={styles.debtCardTitle}>Debt Freedom</Text>
-          <View style={styles.debtCardRow}>
-            <View style={styles.debtCardStat}>
-              <Text style={styles.debtCardStatLabel}>Total debt</Text>
-              <Text style={styles.debtCardStatValue}>${formatMoney(debtSummary.totalDebt)}</Text>
-            </View>
-            <View style={styles.debtCardStat}>
-              <Text style={styles.debtCardStatLabel}>Set aside</Text>
-              <Text style={[styles.debtCardStatValue, styles.debtCardSetAside]}>
-                ${formatMoney(debtSummary.totalSetAside)}
-              </Text>
-            </View>
-            <View style={styles.debtCardStat}>
-              <Text style={styles.debtCardStatLabel}>Debts</Text>
-              <Text style={styles.debtCardStatValue}>{debtSummary.count}</Text>
-            </View>
-          </View>
-        </Card>
+      {/* Spending breakdown donut */}
+      {monthSummary && monthSummary.spendingCents > 0 && (
+        <SpendingDonutCard
+          envelopes={state.budget.envelopes}
+          spentByEnvelope={monthSummary.spentByEnvelope}
+        />
       )}
+
+      {/* Debt Freedom card */}
+      {debtSummary && (() => {
+        const pct = debtSummary.totalDebt > 0
+          ? Math.min(100, Math.round((debtSummary.totalSetAside / debtSummary.totalDebt) * 100))
+          : 0;
+        return (
+          <Card style={styles.debtCard} onPress={() => router.push("/debt-overview")} accessibilityLabel="View debt overview">
+            <View style={styles.debtCardHeader}>
+              <Text style={styles.debtCardTitle}>Debt Freedom</Text>
+              <Text style={styles.debtCardPct}>{pct}%</Text>
+            </View>
+            <View style={styles.debtProgressTrack}>
+              <View style={[styles.debtProgressFill, { width: `${pct}%` }]} />
+            </View>
+            <Text style={styles.debtCardSummary}>
+              ${formatMoney(debtSummary.totalSetAside)} set aside of ${formatMoney(debtSummary.totalDebt)}
+            </Text>
+          </Card>
+        );
+      })()}
 
       {/* Seed budget nudge — show when not yet seeded, or when new accounts need seeding */}
       {state.accounts.length > 0 &&
@@ -451,23 +458,41 @@ const styles = StyleSheet.create({
     marginHorizontal: Spacing.base,
     marginBottom: Spacing.base,
     padding: Spacing.base,
-    borderWidth: 1,
-    borderColor: Color.debt,
-    backgroundColor: Color.debtSurface,
+  },
+  debtCardHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: Spacing.sm,
   },
   debtCardTitle: {
     fontSize: FontSize.small,
     fontWeight: FontWeight.semibold,
-    color: Color.debt,
+    color: Color.textMuted,
     textTransform: "uppercase" as const,
     letterSpacing: 0.5,
-    marginBottom: Spacing.md,
   },
-  debtCardRow: { flexDirection: "row", justifyContent: "space-between" },
-  debtCardStat: { alignItems: "center", flex: 1 },
-  debtCardStatLabel: { fontSize: FontSize.caption, color: Color.textMuted, marginBottom: Spacing.xs },
-  debtCardStatValue: { fontSize: FontSize.body, fontWeight: FontWeight.bold, color: Color.debt },
-  debtCardSetAside: { color: Color.success },
+  debtCardPct: {
+    fontSize: FontSize.body,
+    fontWeight: FontWeight.bold,
+    color: Color.primary,
+  },
+  debtProgressTrack: {
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: Color.borderLight,
+    overflow: "hidden" as const,
+    marginBottom: Spacing.sm,
+  },
+  debtProgressFill: {
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: Color.primary,
+  },
+  debtCardSummary: {
+    fontSize: FontSize.caption,
+    color: Color.textMuted,
+  },
 
   // Seed nudge
   seedNudge: {

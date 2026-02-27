@@ -72,6 +72,8 @@ type AppStore = {
   }) => Promise<void>;
   setEnvelopeGoal: (envelopeId: string, goalCents: number) => Promise<void>;
   clearEnvelopeGoal: (envelopeId: string) => Promise<void>;
+  setEnvelopeTarget: (envelopeId: string, targetCents: number) => Promise<void>;
+  clearEnvelopeTarget: (envelopeId: string) => Promise<void>;
   setEnvelopeType: (envelopeId: string, envelopeType: import("@money-shepherd/domain").EnvelopeType) => Promise<void>;
   addAssignmentRule: (args: { pattern: string; matchType: "contains" | "exact"; envelopeId: string; priority: number }) => Promise<void>;
   removeAssignmentRule: (ruleId: string) => Promise<void>;
@@ -559,6 +561,52 @@ export const useAppStore = create<AppStore>((set, get) => ({
         status: "error",
         errorMessage: err?.message ?? "Failed to clear goal",
         syncState: syncTransition(get().syncState, { type: "sync-error", error: err?.message ?? "Failed to clear goal" }),
+      });
+    }
+  },
+
+  setEnvelopeTarget: async (envelopeId: string, targetCents: number) => {
+    const current = get().state;
+    if (!current) return;
+
+    set({ status: "loading", errorMessage: null, syncState: syncTransition(get().syncState, { type: "sync-start" }) });
+    try {
+      const result = await engine.setEnvelopeTarget({ envelopeId, targetCents });
+      set({
+        state: result.state,
+        status: "ready",
+        lastSyncAt: new Date().toISOString(),
+        syncState: applyOutcome(get().syncState, result.syncOutcome, result.syncError),
+        toast: { text: "Debt target set", variant: "success" },
+      });
+    } catch (err: any) {
+      set({
+        status: "error",
+        errorMessage: err?.message ?? "Failed to set target",
+        syncState: syncTransition(get().syncState, { type: "sync-error", error: err?.message ?? "Failed to set target" }),
+      });
+    }
+  },
+
+  clearEnvelopeTarget: async (envelopeId: string) => {
+    const current = get().state;
+    if (!current) return;
+
+    set({ status: "loading", errorMessage: null, syncState: syncTransition(get().syncState, { type: "sync-start" }) });
+    try {
+      const result = await engine.clearEnvelopeTarget({ envelopeId });
+      set({
+        state: result.state,
+        status: "ready",
+        lastSyncAt: new Date().toISOString(),
+        syncState: applyOutcome(get().syncState, result.syncOutcome, result.syncError),
+        toast: { text: "Target cleared", variant: "info" },
+      });
+    } catch (err: any) {
+      set({
+        status: "error",
+        errorMessage: err?.message ?? "Failed to clear target",
+        syncState: syncTransition(get().syncState, { type: "sync-error", error: err?.message ?? "Failed to clear target" }),
       });
     }
   },

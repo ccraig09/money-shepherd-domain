@@ -88,6 +88,7 @@ function deserializeState(raw: any): AppStateV1 {
         ...e,
         balance: hydrateMoney(e.balance),
         ...(e.goal !== undefined ? { goal: hydrateMoney(e.goal) } : {}),
+        ...(e.target !== undefined ? { target: hydrateMoney(e.target) } : {}),
       })),
     },
   } as AppStateV1;

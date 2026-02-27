@@ -127,6 +127,10 @@ export default function RootLayout() {
             options={{ headerBackTitle: "Dashboard" }}
           />
           <Stack.Screen
+            name="debt-overview"
+            options={{ title: "Debt Freedom", headerBackTitle: "Home" }}
+          />
+          <Stack.Screen
             name="fill-envelopes"
             options={{ presentation: "modal", title: "Fill Envelopes" }}
           />

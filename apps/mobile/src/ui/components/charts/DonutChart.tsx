@@ -19,20 +19,23 @@ export type DonutSegment = {
 
 type Props = {
   segments: DonutSegment[];
-  /** Outer diameter in dp (default 120) */
+  /** Outer diameter in dp (default 170) */
   size?: number;
-  /** Stroke width in dp (default 14) */
+  /** Stroke width in dp (default 22) */
   strokeWidth?: number;
 };
 
+/** Gap between segments in dp — creates clean visual separation */
+const SEGMENT_GAP_PX = 4;
+
 /**
  * Donut chart built on react-native-svg + reanimated.
- * Segments are drawn as stroke-dasharray arcs around a circle.
+ * Segments are drawn as stroke-dasharray arcs with gaps between them.
  */
 export function DonutChart({
   segments,
-  size = 120,
-  strokeWidth = 14,
+  size = 170,
+  strokeWidth = 22,
 }: Props) {
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
@@ -56,15 +59,16 @@ export function DonutChart({
     );
   }
 
+  const activeSegments = segments.filter((s) => s.value > 0);
+  const gapPx = activeSegments.length > 1 ? SEGMENT_GAP_PX : 0;
+
   let cumulative = 0;
-  const arcs = segments
-    .filter((s) => s.value > 0)
-    .map((segment) => {
-      const ratio = segment.value / total;
-      const offset = cumulative;
-      cumulative += ratio;
-      return { ...segment, ratio, offset };
-    });
+  const arcs = activeSegments.map((segment) => {
+    const ratio = segment.value / total;
+    const offset = cumulative;
+    cumulative += ratio;
+    return { ...segment, ratio, offset };
+  });
 
   return (
     <View style={{ width: size, height: size }}>
@@ -81,6 +85,7 @@ export function DonutChart({
               circumference={circumference}
               ratio={arc.ratio}
               offset={arc.offset}
+              gapPx={gapPx}
               delay={i * 80}
             />
           ))}
@@ -99,6 +104,7 @@ type ArcProps = {
   circumference: number;
   ratio: number;
   offset: number;
+  gapPx: number;
   delay: number;
 };
 
@@ -111,7 +117,7 @@ function AnimatedArc({
   circumference,
   ratio,
   offset,
-  delay,
+  gapPx,
 }: ArcProps) {
   const progress = useSharedValue(0);
 
@@ -124,11 +130,12 @@ function AnimatedArc({
   }, []);
 
   const animatedProps = useAnimatedProps(() => {
-    const dashLen = circumference * ratio * progress.value;
+    const rawLen = circumference * ratio * progress.value;
+    const dashLen = Math.max(0, rawLen - gapPx);
     const gap = circumference - dashLen;
     return {
       strokeDasharray: [dashLen, gap] as unknown as string,
-      strokeDashoffset: -circumference * offset,
+      strokeDashoffset: -(circumference * offset + gapPx / 2),
     };
   });
 
@@ -140,7 +147,7 @@ function AnimatedArc({
       stroke={color}
       strokeWidth={strokeWidth}
       fill="none"
-      strokeLinecap="round"
+      strokeLinecap="butt"
       animatedProps={animatedProps}
     />
   );

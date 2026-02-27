@@ -43,7 +43,8 @@ function hydrateState(raw: any): AppStateV1 {
     envelopes: (raw.budget?.envelopes ?? []).map((e: any) => ({
       ...e,
       balance: hydrateMoney(e.balance),
-      goal: e.goal ? hydrateMoney(e.goal) : e.goal, // if you ever add goal later
+      goal: e.goal ? hydrateMoney(e.goal) : e.goal,
+      target: e.target ? hydrateMoney(e.target) : e.target,
     })),
   };
 
