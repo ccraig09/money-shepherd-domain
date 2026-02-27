@@ -406,7 +406,7 @@
 ## Phase 24: Biometric Login (Face ID / Touch ID)
 
 ### Recommended build order
-- [ ] MS-23.1 Add expo-local-authentication (install, helper module, iOS config)
+- [x] MS-23.1 Add expo-local-authentication (install, helper module, iOS config)
 - [ ] MS-23.2 Biometric unlock flow (auto-prompt on unlock screen, PIN fallback)
 - [ ] MS-23.3 Biometric opt-in during setup (offer after PIN creation)
 - [ ] MS-23.4 Settings toggle for biometric (enable/disable in settings)

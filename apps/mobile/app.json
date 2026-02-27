@@ -12,7 +12,8 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.ccraig09admin.moneyshepherdmobile",
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSFaceIDUsageDescription": "Money Shepherd uses Face ID to unlock your budget securely."
       }
     },
     "android": {
