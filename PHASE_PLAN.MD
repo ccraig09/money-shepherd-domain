@@ -398,7 +398,38 @@
 - [x] Pie chart shows spending breakdown by envelope
 - [x] Period summary card shows income/expense/net
 - [x] Trend chart shows monthly trajectory
-- [ ] At least one insight appears on Dashboard
-- [ ] Insights are dismissable
+- [x] At least one insight appears on Dashboard
+- [x] Insights are dismissable
+
+---
+
+## Phase 23: Biometric Login (Face ID / Touch ID)
+
+### Recommended build order
+- [ ] MS-23.1 Add expo-local-authentication (install, helper module, iOS config)
+- [ ] MS-23.2 Biometric unlock flow (auto-prompt on unlock screen, PIN fallback)
+- [ ] MS-23.3 Biometric opt-in during setup (offer after PIN creation)
+- [ ] MS-23.4 Settings toggle for biometric (enable/disable in settings)
+
+### Phase 23 Smoke Check
+- [ ] Face ID / Touch ID prompts on app unlock
+- [ ] Failed biometric falls back to PIN
+- [ ] Biometric can be toggled on/off in settings
+
+---
+
+## Phase 24: Production Plaid & Real Banking
+
+### Recommended build order
+- [ ] MS-24.1 Migrate Plaid tokens to SecureStore (encrypted at rest)
+- [ ] MS-24.2 Production Plaid environment config (switch from sandbox, update Cloud Functions)
+- [ ] MS-24.3 Production Plaid Link integration test (connect real bank, verify sync)
+- [ ] MS-24.4 Multi-user bank onboarding documentation (how both users connect)
+
+### Phase 24 Smoke Check
+- [ ] Plaid tokens stored in SecureStore (not AsyncStorage)
+- [ ] Real bank connected via production Plaid Link
+- [ ] Transactions from real bank sync into app
+- [ ] Both household members can connect their own banks
 
 ---
