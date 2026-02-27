@@ -428,10 +428,10 @@
 - [x] MS-25.5 Dashboard: grouped envelope preview
 
 ### Phase 25 Smoke Check
-- [ ] Groups appear as collapsible sections on Envelopes tab
-- [ ] Can create, rename, delete a group
-- [ ] Envelopes can be moved between groups
-- [ ] Dashboard shows grouped preview
+- [x] Groups appear as collapsible sections on Envelopes tab
+- [x] Can create, rename, delete a group
+- [x] Envelopes can be moved between groups
+- [x] Dashboard shows grouped preview
 
 ---
 
