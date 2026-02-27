@@ -9,6 +9,7 @@ import {
   Share,
   ActivityIndicator,
   ScrollView,
+  useColorScheme,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { loadSyncMeta, type SyncMeta } from "../../src/infra/local/syncMeta";
@@ -30,7 +31,8 @@ import {
 
 export default function SettingsScreen() {
   const styles = useThemedStyles(createStyles);
-  const { colors } = useTheme();
+  const { colors, preference, setPreference } = useTheme();
+  const systemScheme = useColorScheme();
   const router = useRouter();
   const state = useAppStore((s) => s.state);
   const resetAll = useAppStore((s) => s.resetAll);
@@ -249,6 +251,35 @@ export default function SettingsScreen() {
         </View>
       )}
 
+      {/* Appearance */}
+      <View style={styles.card}>
+        <Text style={styles.cardTitle}>Appearance</Text>
+        {(["light", "dark", "system"] as const).map((opt) => {
+          const active = preference === opt;
+          const label =
+            opt === "system"
+              ? `System (${systemScheme === "dark" ? "Dark" : "Light"})`
+              : opt === "light"
+                ? "Light"
+                : "Dark";
+          return (
+            <Pressable
+              key={opt}
+              onPress={() => setPreference(opt)}
+              style={({ pressed }) => [
+                styles.themeRow,
+                pressed && styles.actionBtnPressed,
+              ]}
+            >
+              <Text style={[styles.themeLabel, active && styles.themeLabelActive]}>
+                {label}
+              </Text>
+              {active && <Text style={styles.themeCheck}>✓</Text>}
+            </Pressable>
+          );
+        })}
+      </View>
+
       {/* Plaid */}
       {Features.PLAID && (
         <View style={styles.card}>
@@ -459,4 +490,14 @@ const createStyles = (c: ColorTokens) => StyleSheet.create({
   },
   toggleLabel: { fontSize: FontSize.subtitle, color: c.textDark, fontWeight: FontWeight.semibold },
   hintText: { fontSize: FontSize.body, color: c.textMuted, lineHeight: 20 },
+  themeRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingVertical: Spacing.md,
+    minHeight: 44,
+  },
+  themeLabel: { fontSize: FontSize.subtitle, color: c.textMid },
+  themeLabelActive: { color: c.textDark, fontWeight: FontWeight.semibold },
+  themeCheck: { fontSize: FontSize.subtitle, color: c.primary, fontWeight: FontWeight.bold },
 });

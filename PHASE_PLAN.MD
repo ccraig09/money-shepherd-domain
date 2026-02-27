@@ -440,7 +440,7 @@
 ### Recommended build order
 - [x] MS-26.1 Theme system: light/dark token sets + ThemeProvider
 - [x] MS-26.2 Migrate screens to theme context (replace static Color imports)
-- [ ] MS-26.3 Settings: theme toggle (Light / Dark / System)
+- [x] MS-26.3 Settings: theme toggle (Light / Dark / System)
 - [ ] MS-26.4 Charts + custom components: dark-aware colors
 - [ ] MS-26.5 Dark mode polish: shadows, borders, status bar, splash
 
