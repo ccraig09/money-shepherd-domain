@@ -55,8 +55,8 @@ export const FontWeight = {
   extrabold: "800",
 } as const;
 
-/** Semantic color palette — warm gold stewardship identity */
-export const Color = {
+/** Semantic color palette — light theme (warm gold stewardship identity) */
+export const lightColors = {
   // ── Brand ──────────────────────────────────
   primary: "#b8860b",
   primaryDark: "#946b09",
@@ -110,6 +110,70 @@ export const Color = {
   // ── Nudge ──────────────────────────────────
   nudgeText: "#795548",
 } as const;
+
+/** Color token shape — used by ThemeProvider. Keys match lightColors, values are hex strings. */
+export type ColorTokens = { readonly [K in keyof typeof lightColors]: string };
+
+/** Semantic color palette — dark theme */
+export const darkColors: ColorTokens = {
+  // ── Brand ──────────────────────────────────
+  primary: "#d4a017",
+  primaryDark: "#b8860b",
+  success: "#4caf6a",
+  error: "#e57373",
+  warning: "#f0b840",
+
+  // ── Text ───────────────────────────────────
+  textDark: "#f0ebe4",
+  textMid: "#c8bfb2",
+  textMuted: "#9e9488",
+  textSubtle: "#6e6358",
+  textDisabled: "#4e4640",
+  textOnColor: "#fff",
+
+  // ── Surfaces ───────────────────────────────
+  surface: "#1a1612",
+  surfaceLight: "#252019",
+
+  // ── Tinted surfaces ────────────────────────
+  primarySurface: "#2a2210",
+  successSurface: "#1a2e20",
+  errorSurface: "#2e1a18",
+  warningSurface: "#2a2410",
+
+  // ── Borders ────────────────────────────────
+  border: "#3e3628",
+  borderLight: "#322c22",
+  borderWarning: "#5a4a1a",
+
+  // ── Semantic text (for notices, nudges, status) ──
+  infoText: "#c8bfb2",
+  infoSurface: "#2a2210",
+  warningText: "#f0b840",
+  warningAction: "#e0a020",
+  errorText: "#ef9a9a",
+  pendingText: "#f0b840",
+
+  // ── Hero negative ──────────────────────────
+  heroNegative: "#ef9a9a",
+
+  // ── Giving ───────────────────────────────────
+  giving: "#b39ddb",
+  givingSurface: "#2a2238",
+
+  // ── Debt ─────────────────────────────────────
+  debt: "#e57373",
+  debtSurface: "#2e1a18",
+
+  // ── Nudge ──────────────────────────────────
+  nudgeText: "#c8bfb2",
+} as const;
+
+/**
+ * Backward-compatible alias — screens that haven't migrated to useTheme()
+ * still import `Color` and get light-mode values.
+ */
+export const Color = lightColors;
 
 /** Shadow scale — use with StyleSheet spread */
 export const Shadow = {

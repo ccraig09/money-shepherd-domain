@@ -1,7 +1,7 @@
 import {
   DarkTheme,
   DefaultTheme,
-  ThemeProvider,
+  ThemeProvider as NavThemeProvider,
 } from "@react-navigation/native";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
@@ -16,17 +16,25 @@ import {
   StyleSheet,
 } from "react-native";
 
-import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useAppStore } from "@/src/store/useAppStore";
 import { loadSyncMeta } from "@/src/infra/local/syncMeta";
 import { loadPinHash } from "@/src/infra/local/pin";
 import { Spacing, Radius, FontSize, FontWeight, Color } from "@/src/ui/tokens";
+import { ThemeProvider, useTheme } from "@/src/ui/ThemeProvider";
 import { Toast } from "@/src/ui/components/Toast";
 
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
+  return (
+    <ThemeProvider>
+      <RootLayoutInner />
+    </ThemeProvider>
+  );
+}
+
+function RootLayoutInner() {
+  const { isDark } = useTheme();
 
   const guardState = useAppStore((s) => s.guardState);
   const status = useAppStore((s) => s.status);
@@ -66,7 +74,7 @@ export default function RootLayout() {
   const needsPin = guardState === "needs-pin";
 
   return (
-    <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
+    <NavThemeProvider value={isDark ? DarkTheme : DefaultTheme}>
       <View style={styles.root}>
         <Stack>
           <Stack.Protected guard={isReady}>
@@ -168,8 +176,8 @@ export default function RootLayout() {
 
         <Toast />
       </View>
-      <StatusBar style="auto" />
-    </ThemeProvider>
+      <StatusBar style={isDark ? "light" : "dark"} />
+    </NavThemeProvider>
   );
 }
 
