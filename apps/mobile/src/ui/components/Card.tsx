@@ -1,6 +1,7 @@
 import React from "react";
 import { View, Pressable, StyleSheet, type ViewStyle } from "react-native";
-import { Spacing, Radius, Color } from "../tokens";
+import { Spacing, Radius, type ColorTokens } from "../tokens";
+import { useThemedStyles } from "../ThemeProvider";
 
 type Props = {
   children: React.ReactNode;
@@ -15,6 +16,8 @@ type Props = {
  * Pass `onPress` to make it pressable. Pass `style` to override bg, padding, etc.
  */
 export function Card({ children, onPress, accessibilityLabel, style }: Props) {
+  const styles = useThemedStyles(createStyles);
+
   if (onPress) {
     return (
       <Pressable
@@ -30,13 +33,13 @@ export function Card({ children, onPress, accessibilityLabel, style }: Props) {
   return <View style={[styles.card, style]}>{children}</View>;
 }
 
-const styles = StyleSheet.create({
+const createStyles = (c: ColorTokens) => StyleSheet.create({
   card: {
     marginHorizontal: Spacing.base,
     borderRadius: Radius.xl,
-    backgroundColor: Color.surface,
+    backgroundColor: c.surface,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: Color.borderLight,
+    borderColor: c.borderLight,
     overflow: "hidden",
   },
   pressed: {

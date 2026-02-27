@@ -1,6 +1,7 @@
 import React from "react";
 import { View, Text, Pressable, StyleSheet } from "react-native";
-import { Spacing, Radius, FontSize, FontWeight, Color } from "../tokens";
+import { Spacing, Radius, FontSize, FontWeight, type ColorTokens } from "../tokens";
+import { useThemedStyles, useTheme } from "../ThemeProvider";
 
 type Variant = "info" | "warning" | "error";
 
@@ -11,14 +12,17 @@ type Props = {
   onAction?: () => void;
 };
 
-const COLORS: Record<Variant, { bg: string; border: string; text: string; action: string }> = {
-  info: { bg: Color.infoSurface, border: Color.primary, text: Color.infoText, action: Color.primary },
-  warning: { bg: Color.warningSurface, border: Color.warning, text: Color.warningText, action: Color.warningAction },
-  error: { bg: Color.errorSurface, border: Color.error, text: Color.errorText, action: Color.error },
-};
-
 export function InlineNotice({ variant, message, actionLabel, onAction }: Props) {
-  const c = COLORS[variant];
+  const styles = useThemedStyles(createStyles);
+  const { colors } = useTheme();
+
+  const variantColors: Record<Variant, { bg: string; border: string; text: string; action: string }> = {
+    info: { bg: colors.infoSurface, border: colors.primary, text: colors.infoText, action: colors.primary },
+    warning: { bg: colors.warningSurface, border: colors.warning, text: colors.warningText, action: colors.warningAction },
+    error: { bg: colors.errorSurface, border: colors.error, text: colors.errorText, action: colors.error },
+  };
+
+  const c = variantColors[variant];
   return (
     <View
       style={[
@@ -36,7 +40,7 @@ export function InlineNotice({ variant, message, actionLabel, onAction }: Props)
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (c: ColorTokens) => StyleSheet.create({
   container: {
     borderLeftWidth: 3,
     borderRadius: Radius.sm,

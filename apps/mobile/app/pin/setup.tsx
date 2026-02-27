@@ -11,7 +11,8 @@ import {
 } from "react-native";
 import { savePinHash } from "../../src/infra/local/pin";
 import { useAppStore } from "../../src/store/useAppStore";
-import { Spacing, Radius, FontSize, FontWeight, Color } from "../../src/ui/tokens";
+import { Spacing, Radius, FontSize, FontWeight, type ColorTokens } from "../../src/ui/tokens";
+import { useThemedStyles, useTheme } from "@/src/ui/ThemeProvider";
 import {
   hasBiometricHardware,
   isBiometricEnrolled,
@@ -34,6 +35,9 @@ export default function PinSetupScreen() {
   const [isFinishing, setIsFinishing] = React.useState(false);
 
   const confirmRef = React.useRef<TextInput>(null);
+
+  const styles = useThemedStyles(createStyles);
+  const { colors } = useTheme();
 
   async function finishSetup() {
     setIsFinishing(true);
@@ -121,7 +125,7 @@ export default function PinSetupScreen() {
             style={[styles.saveBtn, isFinishing && styles.saveBtnDisabled]}
           >
             {isFinishing ? (
-              <ActivityIndicator color={Color.textOnColor} />
+              <ActivityIndicator color={colors.textOnColor} />
             ) : (
               <Text style={styles.saveBtnText}>Enable {biometricLabel}</Text>
             )}
@@ -163,7 +167,7 @@ export default function PinSetupScreen() {
             keyboardType="number-pad"
             maxLength={4}
             placeholder="••••"
-            placeholderTextColor={Color.textDisabled}
+            placeholderTextColor={colors.textDisabled}
             style={styles.pinInput}
             secureTextEntry
             returnKeyType="next"
@@ -183,7 +187,7 @@ export default function PinSetupScreen() {
             keyboardType="number-pad"
             maxLength={4}
             placeholder="••••"
-            placeholderTextColor={Color.textDisabled}
+            placeholderTextColor={colors.textDisabled}
             style={styles.pinInput}
             secureTextEntry
             returnKeyType="done"
@@ -199,7 +203,7 @@ export default function PinSetupScreen() {
           style={[styles.saveBtn, isSaving && styles.saveBtnDisabled]}
         >
           {isSaving ? (
-            <ActivityIndicator color={Color.textOnColor} />
+            <ActivityIndicator color={colors.textOnColor} />
           ) : (
             <Text style={styles.saveBtnText}>Set PIN</Text>
           )}
@@ -209,8 +213,8 @@ export default function PinSetupScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  flex: { flex: 1, backgroundColor: Color.surface },
+const createStyles = (c: ColorTokens) => StyleSheet.create({
+  flex: { flex: 1, backgroundColor: c.surface },
   container: {
     flex: 1,
     justifyContent: "center",
@@ -218,31 +222,31 @@ const styles = StyleSheet.create({
     gap: Spacing.lg,
   },
   header: { gap: Spacing.sm },
-  title: { fontSize: FontSize.title, fontWeight: FontWeight.extrabold, color: Color.textDark },
-  subtitle: { fontSize: 14, color: Color.textMid, lineHeight: 20 },
+  title: { fontSize: FontSize.title, fontWeight: FontWeight.extrabold, color: c.textDark },
+  subtitle: { fontSize: 14, color: c.textMid, lineHeight: 20 },
   section: { gap: Spacing.sm },
-  label: { fontSize: FontSize.body, fontWeight: FontWeight.semibold, color: Color.textDark },
+  label: { fontSize: FontSize.body, fontWeight: FontWeight.semibold, color: c.textDark },
   pinInput: {
     borderWidth: 1.5,
-    borderColor: Color.border,
+    borderColor: c.border,
     borderRadius: Radius.lg,
     paddingHorizontal: Spacing.base,
     paddingVertical: 14,
     fontSize: 22,
     letterSpacing: 10,
-    color: Color.textDark,
+    color: c.textDark,
     textAlign: "center",
   },
-  errorText: { fontSize: FontSize.small, color: Color.error, marginTop: -8 },
+  errorText: { fontSize: FontSize.small, color: c.error, marginTop: -8 },
   saveBtn: {
-    backgroundColor: Color.primary,
+    backgroundColor: c.primary,
     paddingVertical: Spacing.base,
     borderRadius: Radius.xl,
     alignItems: "center",
     marginTop: Spacing.xs,
   },
   saveBtnDisabled: { opacity: 0.6 },
-  saveBtnText: { color: Color.textOnColor, fontSize: FontSize.subtitle, fontWeight: FontWeight.bold },
+  saveBtnText: { color: c.textOnColor, fontSize: FontSize.subtitle, fontWeight: FontWeight.bold },
   biometricIcon: {
     alignItems: "center",
   },
@@ -254,7 +258,7 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.sm,
   },
   skipBtnText: {
-    color: Color.textMid,
+    color: c.textMid,
     fontSize: FontSize.body,
     fontWeight: FontWeight.semibold,
   },

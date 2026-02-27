@@ -1,12 +1,14 @@
 import React from "react";
 import { Animated, Pressable, StyleSheet, Text, View } from "react-native";
 import { useAppStore } from "../../store/useAppStore";
-import { Spacing, Radius, FontSize, FontWeight, Color, Shadow } from "../tokens";
+import { Spacing, Radius, FontSize, FontWeight, Shadow, type ColorTokens } from "../tokens";
+import { useThemedStyles } from "../ThemeProvider";
 
 const DEFAULT_VISIBLE_MS = 2500;
 const FADE_MS = 250;
 
 export function Toast() {
+  const styles = useThemedStyles(createStyles);
   const toast = useAppStore((s) => s.toast);
   const opacity = React.useRef(new Animated.Value(0)).current;
   const timerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -97,7 +99,7 @@ export function Toast() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (c: ColorTokens) => StyleSheet.create({
   container: {
     position: "absolute",
     top: 60,
@@ -136,18 +138,18 @@ const styles = StyleSheet.create({
     fontWeight: FontWeight.bold,
   },
   variantSuccess: {
-    backgroundColor: Color.successSurface,
-    borderLeftColor: Color.success,
+    backgroundColor: c.successSurface,
+    borderLeftColor: c.success,
   },
   variantError: {
-    backgroundColor: Color.errorSurface,
-    borderLeftColor: Color.error,
+    backgroundColor: c.errorSurface,
+    borderLeftColor: c.error,
   },
   variantInfo: {
-    backgroundColor: Color.primarySurface,
-    borderLeftColor: Color.primary,
+    backgroundColor: c.primarySurface,
+    borderLeftColor: c.primary,
   },
-  textSuccess: { color: Color.success },
-  textError: { color: Color.error },
-  textInfo: { color: Color.primary },
+  textSuccess: { color: c.success },
+  textError: { color: c.error },
+  textInfo: { color: c.primary },
 });

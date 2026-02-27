@@ -1,5 +1,5 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
-import { useColorScheme } from "react-native";
+import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { StyleSheet, useColorScheme } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { lightColors, darkColors, type ColorTokens } from "./tokens";
 
@@ -60,4 +60,18 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
 export function useTheme() {
   return useContext(ThemeContext);
+}
+
+/**
+ * Hook that memoizes a StyleSheet factory keyed on the current theme colors.
+ * Usage:
+ *   const createStyles = (c: ColorTokens) => StyleSheet.create({ ... });
+ *   // inside component:
+ *   const styles = useThemedStyles(createStyles);
+ */
+export function useThemedStyles<T extends StyleSheet.NamedStyles<T>>(
+  factory: (colors: ColorTokens) => T,
+): T {
+  const { colors } = useTheme();
+  return useMemo(() => factory(colors), [colors, factory]);
 }

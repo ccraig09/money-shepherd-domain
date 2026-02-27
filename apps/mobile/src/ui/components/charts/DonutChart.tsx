@@ -7,7 +7,7 @@ import Animated, {
   withTiming,
   Easing,
 } from "react-native-reanimated";
-import { Color } from "../../tokens";
+import { useTheme } from "../../ThemeProvider";
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
@@ -37,6 +37,8 @@ export function DonutChart({
   size = 170,
   strokeWidth = 22,
 }: Props) {
+  const { colors } = useTheme();
+
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
   const center = size / 2;
@@ -50,7 +52,7 @@ export function DonutChart({
             cx={center}
             cy={center}
             r={radius}
-            stroke={Color.borderLight}
+            stroke={colors.borderLight}
             strokeWidth={strokeWidth}
             fill="none"
           />

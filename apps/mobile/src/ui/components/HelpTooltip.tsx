@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Pressable, Text, View, Modal, StyleSheet } from "react-native";
-import { Spacing, Radius, FontSize, FontWeight, Color } from "../tokens";
+import { Spacing, Radius, FontSize, FontWeight, type ColorTokens } from "../tokens";
+import { useThemedStyles } from "../ThemeProvider";
 
 type Props = {
   title: string;
@@ -10,6 +11,7 @@ type Props = {
 };
 
 export function HelpTooltip({ title, body, inverted }: Props) {
+  const styles = useThemedStyles(createStyles);
   const [visible, setVisible] = useState(false);
 
   return (
@@ -45,13 +47,13 @@ export function HelpTooltip({ title, body, inverted }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (c: ColorTokens) => StyleSheet.create({
   icon: {
     width: 18,
     height: 18,
     borderRadius: 9,
     borderWidth: 1,
-    borderColor: Color.textSubtle,
+    borderColor: c.textSubtle,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -61,7 +63,7 @@ const styles = StyleSheet.create({
   iconText: {
     fontSize: 11,
     fontWeight: FontWeight.bold,
-    color: Color.textSubtle,
+    color: c.textSubtle,
     lineHeight: 14,
   },
   iconTextInverted: {
@@ -74,7 +76,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   card: {
-    backgroundColor: Color.surface,
+    backgroundColor: c.surface,
     borderRadius: Radius.lg,
     padding: Spacing.lg,
     marginHorizontal: Spacing.xl,
@@ -84,11 +86,11 @@ const styles = StyleSheet.create({
   title: {
     fontSize: FontSize.subtitle,
     fontWeight: FontWeight.bold,
-    color: Color.textDark,
+    color: c.textDark,
   },
   body: {
     fontSize: FontSize.body,
-    color: Color.textMid,
+    color: c.textMid,
     lineHeight: 22,
   },
   dismiss: {
@@ -100,6 +102,6 @@ const styles = StyleSheet.create({
   dismissText: {
     fontSize: FontSize.body,
     fontWeight: FontWeight.semibold,
-    color: Color.primary,
+    color: c.primary,
   },
 });

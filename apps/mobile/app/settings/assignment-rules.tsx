@@ -11,7 +11,8 @@ import {
 } from "react-native";
 import { useAppStore } from "../../src/store/useAppStore";
 import { HelpTooltip } from "../../src/ui/components/HelpTooltip";
-import { Spacing, Radius, FontSize, FontWeight, Color } from "../../src/ui/tokens";
+import { Spacing, Radius, FontSize, FontWeight, type ColorTokens } from "../../src/ui/tokens";
+import { useThemedStyles, useTheme } from "@/src/ui/ThemeProvider";
 import type { AssignmentRule } from "@money-shepherd/domain";
 
 export default function AssignmentRulesScreen() {
@@ -25,6 +26,9 @@ export default function AssignmentRulesScreen() {
   const [pattern, setPattern] = React.useState("");
   const [matchType, setMatchType] = React.useState<"contains" | "exact">("contains");
   const [selectedEnvelopeId, setSelectedEnvelopeId] = React.useState<string | null>(null);
+
+  const styles = useThemedStyles(createStyles);
+  const { colors } = useTheme();
 
   if (!state) return null;
 
@@ -96,7 +100,7 @@ export default function AssignmentRulesScreen() {
           value={pattern}
           onChangeText={setPattern}
           placeholder="e.g. walmart, starbucks"
-          placeholderTextColor={Color.textMuted}
+          placeholderTextColor={colors.textMuted}
           autoCapitalize="none"
           autoCorrect={false}
         />
@@ -239,21 +243,21 @@ export default function AssignmentRulesScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: Color.surface },
+const createStyles = (c: ColorTokens) => StyleSheet.create({
+  root: { flex: 1, backgroundColor: c.surface },
   header: {
     paddingHorizontal: Spacing.base,
     paddingTop: Spacing.md,
     paddingBottom: Spacing.md,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderColor: Color.border,
+    borderColor: c.border,
     gap: Spacing.xs,
   },
   titleRow: { flexDirection: "row", alignItems: "center", gap: Spacing.sm },
-  subtitle: { fontSize: FontSize.caption, color: Color.textMuted },
+  subtitle: { fontSize: FontSize.caption, color: c.textMuted },
   empty: { padding: Spacing.xl, alignItems: "center", gap: Spacing.sm },
-  emptyText: { fontSize: FontSize.subtitle, fontWeight: FontWeight.semibold, color: Color.textMid },
-  emptyHint: { fontSize: FontSize.body, color: Color.textMuted, textAlign: "center" },
+  emptyText: { fontSize: FontSize.subtitle, fontWeight: FontWeight.semibold, color: c.textMid },
+  emptyHint: { fontSize: FontSize.body, color: c.textMuted, textAlign: "center" },
   list: { paddingVertical: Spacing.sm },
   ruleRow: {
     flexDirection: "row",
@@ -261,59 +265,59 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.base,
     paddingVertical: Spacing.md,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderColor: Color.borderLight,
+    borderColor: c.borderLight,
     gap: Spacing.sm,
   },
   ruleReorder: { alignItems: "center", gap: 2, width: 28 },
-  reorderText: { fontSize: 12, color: Color.textMuted },
+  reorderText: { fontSize: 12, color: c.textMuted },
   reorderDisabled: { opacity: 0.3 },
-  priorityText: { fontSize: FontSize.caption, fontWeight: FontWeight.bold, color: Color.textMid },
+  priorityText: { fontSize: FontSize.caption, fontWeight: FontWeight.bold, color: c.textMid },
   ruleMain: { flex: 1, gap: 2 },
-  rulePattern: { fontSize: FontSize.body, fontWeight: FontWeight.semibold, color: Color.textDark },
-  ruleEnvelope: { fontSize: FontSize.caption, color: Color.primary },
+  rulePattern: { fontSize: FontSize.body, fontWeight: FontWeight.semibold, color: c.textDark },
+  ruleEnvelope: { fontSize: FontSize.caption, color: c.primary },
   deleteBtn: {
     width: 28,
     height: 28,
     borderRadius: Radius.md,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: Color.surfaceLight,
+    backgroundColor: c.surfaceLight,
   },
-  deleteBtnText: { fontSize: FontSize.body, color: Color.error },
+  deleteBtnText: { fontSize: FontSize.body, color: c.error },
   footer: {
     paddingHorizontal: Spacing.base,
     paddingBottom: Spacing.xl,
     paddingTop: Spacing.md,
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderColor: Color.borderLight,
+    borderColor: c.borderLight,
   },
   addBtn: {
-    backgroundColor: Color.primary,
+    backgroundColor: c.primary,
     borderRadius: Radius.lg,
     paddingVertical: Spacing.md,
     alignItems: "center",
   },
-  addBtnText: { color: Color.textOnColor, fontSize: FontSize.subtitle, fontWeight: FontWeight.bold },
+  addBtnText: { color: c.textOnColor, fontSize: FontSize.subtitle, fontWeight: FontWeight.bold },
 
   // Form styles
   formContainer: { padding: Spacing.base, paddingTop: 60, gap: Spacing.md, paddingBottom: Spacing.bottomPad },
-  formTitle: { fontSize: FontSize.title, fontWeight: FontWeight.bold, color: Color.textDark },
+  formTitle: { fontSize: FontSize.title, fontWeight: FontWeight.bold, color: c.textDark },
   label: {
     fontSize: FontSize.caption,
     fontWeight: FontWeight.semibold,
-    color: Color.textMuted,
+    color: c.textMuted,
     textTransform: "uppercase",
     letterSpacing: 0.5,
   },
   input: {
     borderWidth: 1,
-    borderColor: Color.border,
+    borderColor: c.border,
     borderRadius: Radius.md,
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.md,
     fontSize: FontSize.body,
-    color: Color.textDark,
-    backgroundColor: Color.surfaceLight,
+    color: c.textDark,
+    backgroundColor: c.surfaceLight,
   },
   toggleRow: { flexDirection: "row", gap: Spacing.sm },
   toggleBtn: {
@@ -321,33 +325,33 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.md,
     borderRadius: Radius.md,
     borderWidth: 1,
-    borderColor: Color.border,
+    borderColor: c.border,
     alignItems: "center",
   },
   toggleBtnActive: {
-    backgroundColor: Color.primarySurface,
-    borderColor: Color.primary,
+    backgroundColor: c.primarySurface,
+    borderColor: c.primary,
   },
-  toggleText: { fontSize: FontSize.body, color: Color.textMid, fontWeight: FontWeight.medium },
-  toggleTextActive: { color: Color.primary, fontWeight: FontWeight.bold },
+  toggleText: { fontSize: FontSize.body, color: c.textMid, fontWeight: FontWeight.medium },
+  toggleTextActive: { color: c.primary, fontWeight: FontWeight.bold },
   envelopeOption: {
     paddingVertical: Spacing.md,
     paddingHorizontal: Spacing.md,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderColor: Color.borderLight,
+    borderColor: c.borderLight,
   },
-  envelopeOptionSelected: { backgroundColor: Color.primarySurface },
-  envelopeOptionText: { fontSize: FontSize.body, color: Color.textDark },
-  envelopeOptionTextSelected: { color: Color.primary, fontWeight: FontWeight.bold },
+  envelopeOptionSelected: { backgroundColor: c.primarySurface },
+  envelopeOptionText: { fontSize: FontSize.body, color: c.textDark },
+  envelopeOptionTextSelected: { color: c.primary, fontWeight: FontWeight.bold },
   formActions: { gap: Spacing.sm, marginTop: Spacing.md },
   saveBtn: {
-    backgroundColor: Color.primary,
+    backgroundColor: c.primary,
     borderRadius: Radius.lg,
     paddingVertical: Spacing.md,
     alignItems: "center",
   },
   saveBtnDisabled: { opacity: 0.4 },
-  saveBtnText: { color: Color.textOnColor, fontSize: FontSize.subtitle, fontWeight: FontWeight.bold },
+  saveBtnText: { color: c.textOnColor, fontSize: FontSize.subtitle, fontWeight: FontWeight.bold },
   cancelBtn: { alignItems: "center", paddingVertical: Spacing.sm },
-  cancelBtnText: { fontSize: FontSize.body, color: Color.textMuted },
+  cancelBtnText: { fontSize: FontSize.body, color: c.textMuted },
 });

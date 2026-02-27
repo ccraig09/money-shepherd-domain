@@ -16,7 +16,8 @@ import {
 } from "@money-shepherd/domain";
 import type { Envelope } from "@money-shepherd/domain";
 import { Card } from "../src/ui/components/Card";
-import { Spacing, Radius, FontSize, FontWeight, Color } from "../src/ui/tokens";
+import { Spacing, Radius, FontSize, FontWeight, type ColorTokens } from "../src/ui/tokens";
+import { useThemedStyles, useTheme } from "@/src/ui/ThemeProvider";
 
 type EnvelopeSpending = {
   envelope: Envelope;
@@ -64,6 +65,9 @@ export default function PeriodSummaryScreen() {
       .sort((a, b) => b.spentCents - a.spentCents);
   }, [state, monthSummary]);
 
+  const styles = useThemedStyles(createStyles);
+  const { colors } = useTheme();
+
   if (!state || !monthSummary) {
     return (
       <View style={styles.center}>
@@ -88,20 +92,20 @@ export default function PeriodSummaryScreen() {
               <TotalRow
                 label="Income"
                 cents={monthSummary.incomeCents}
-                color={Color.success}
+                color={colors.success}
                 prefix="+"
               />
               <TotalRow
                 label="Spending"
                 cents={monthSummary.spendingCents}
-                color={Color.error}
+                color={colors.error}
                 prefix="-"
               />
               {givingCents > 0 && (
                 <TotalRow
                   label="Giving"
                   cents={givingCents}
-                  color={Color.giving}
+                  color={colors.giving}
                   prefix=""
                 />
               )}
@@ -109,7 +113,7 @@ export default function PeriodSummaryScreen() {
               <TotalRow
                 label="Net"
                 cents={Math.abs(monthSummary.netCents)}
-                color={monthSummary.netCents >= 0 ? Color.success : Color.error}
+                color={monthSummary.netCents >= 0 ? colors.success : colors.error}
                 prefix={monthSummary.netCents >= 0 ? "+" : "-"}
                 bold
               />
@@ -159,6 +163,7 @@ function TotalRow({
   prefix: string;
   bold?: boolean;
 }) {
+  const styles = useThemedStyles(createStyles);
   return (
     <View style={styles.totalRow}>
       <Text style={[styles.totalLabel, bold && styles.totalLabelBold]}>{label}</Text>
@@ -169,8 +174,8 @@ function TotalRow({
   );
 }
 
-const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: Color.surface },
+const createStyles = (c: ColorTokens) => StyleSheet.create({
+  root: { flex: 1, backgroundColor: c.surface },
   content: { paddingBottom: Spacing.bottomPad },
   center: { flex: 1, alignItems: "center", justifyContent: "center" },
 
@@ -188,11 +193,11 @@ const styles = StyleSheet.create({
   },
   totalLabel: {
     fontSize: FontSize.body,
-    color: Color.textMid,
+    color: c.textMid,
   },
   totalLabelBold: {
     fontWeight: FontWeight.bold,
-    color: Color.textDark,
+    color: c.textDark,
   },
   totalValue: {
     fontSize: FontSize.body,
@@ -204,14 +209,14 @@ const styles = StyleSheet.create({
   },
   netDivider: {
     height: StyleSheet.hairlineWidth,
-    backgroundColor: Color.borderLight,
+    backgroundColor: c.borderLight,
   },
 
   // Section
   sectionTitle: {
     fontSize: FontSize.small,
     fontWeight: FontWeight.semibold,
-    color: Color.textMuted,
+    color: c.textMuted,
     textTransform: "uppercase" as const,
     letterSpacing: 0.5,
     marginTop: Spacing.lg,
@@ -227,7 +232,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.base,
     paddingVertical: Spacing.md,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderColor: Color.borderLight,
+    borderColor: c.borderLight,
   },
   breakdownNameRow: {
     flexDirection: "row",
@@ -238,32 +243,32 @@ const styles = StyleSheet.create({
   breakdownName: {
     fontSize: FontSize.body,
     fontWeight: FontWeight.medium,
-    color: Color.textDark,
+    color: c.textDark,
     flexShrink: 1,
   },
   givingBadge: {
     paddingHorizontal: 5,
     paddingVertical: 1,
     borderRadius: Radius.sm,
-    backgroundColor: Color.givingSurface,
+    backgroundColor: c.givingSurface,
   },
   givingBadgeText: {
     fontSize: 9,
     fontWeight: FontWeight.bold,
-    color: Color.giving,
+    color: c.giving,
     letterSpacing: 0.5,
   },
   breakdownAmount: {
     fontSize: FontSize.body,
     fontWeight: FontWeight.semibold,
-    color: Color.error,
+    color: c.error,
     marginLeft: Spacing.md,
   },
 
   // Empty
   emptyText: {
     fontSize: FontSize.body,
-    color: Color.textMuted,
+    color: c.textMuted,
     textAlign: "center",
     marginTop: Spacing.xl,
   },

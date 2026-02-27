@@ -15,11 +15,14 @@ import { formatTimeAgo } from "../../src/lib/timeAgo";
 import { groupByDate } from "../../src/lib/dateGroup";
 import { InlineNotice } from "../../src/ui/components/InlineNotice";
 import { Card } from "../../src/ui/components/Card";
-import { Spacing, Radius, FontSize, FontWeight, Color } from "../../src/ui/tokens";
+import { Spacing, Radius, FontSize, FontWeight, type ColorTokens } from "../../src/ui/tokens";
+import { useThemedStyles, useTheme } from "@/src/ui/ThemeProvider";
 import { Features } from "../../src/config/features";
 import { isBnplTransaction } from "@money-shepherd/domain";
 
 export default function TransactionsScreen() {
+  const styles = useThemedStyles(createStyles);
+  const { colors } = useTheme();
   const state = useAppStore((s) => s.state);
   const refreshFromPlaid = useAppStore((s) => s.refreshFromPlaid);
   const lastPlaidRefreshAt = useAppStore((s) => s.lastPlaidRefreshAt);
@@ -116,7 +119,7 @@ export default function TransactionsScreen() {
             >
               {refreshing ? (
                 <>
-                  <ActivityIndicator size="small" color={Color.primary} />
+                  <ActivityIndicator size="small" color={colors.primary} />
                   <Text style={styles.refreshBtnSyncing}>Syncing…</Text>
                 </>
               ) : (
@@ -156,7 +159,7 @@ export default function TransactionsScreen() {
           <TextInput
             style={styles.searchInput}
             placeholder="Search transactions..."
-            placeholderTextColor={Color.textSubtle}
+            placeholderTextColor={colors.textSubtle}
             value={searchQuery}
             onChangeText={setSearchQuery}
             autoCorrect={false}
@@ -271,8 +274,8 @@ export default function TransactionsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: Color.surface },
+const createStyles = (c: ColorTokens) => StyleSheet.create({
+  root: { flex: 1, backgroundColor: c.surface },
   center: { flex: 1, alignItems: "center", justifyContent: "center" },
   header: {
     flexDirection: "row",
@@ -282,10 +285,10 @@ const styles = StyleSheet.create({
     paddingTop: 60,
     paddingBottom: Spacing.md,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderColor: Color.border,
+    borderColor: c.border,
   },
-  title: { fontSize: FontSize.title, fontWeight: FontWeight.bold, color: Color.textDark },
-  lastSynced: { fontSize: FontSize.caption, color: Color.textMuted, marginTop: 2 },
+  title: { fontSize: FontSize.title, fontWeight: FontWeight.bold, color: c.textDark },
+  lastSynced: { fontSize: FontSize.caption, color: c.textMuted, marginTop: 2 },
   headerActions: {
     flexDirection: "row",
     alignItems: "center",
@@ -296,49 +299,49 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.sm,
     borderRadius: Radius.pill,
     borderWidth: 1,
-    borderColor: Color.primary,
+    borderColor: c.primary,
     minWidth: 72,
     alignItems: "center",
     justifyContent: "center",
   },
   refreshBtnDisabled: { opacity: 0.5 },
-  refreshBtnText: { color: Color.primary, fontWeight: FontWeight.semibold, fontSize: FontSize.body },
-  refreshBtnSyncing: { color: Color.primary, fontSize: FontSize.caption, marginTop: 2 },
+  refreshBtnText: { color: c.primary, fontWeight: FontWeight.semibold, fontSize: FontSize.body },
+  refreshBtnSyncing: { color: c.primary, fontSize: FontSize.caption, marginTop: 2 },
   addBtn: {
     paddingHorizontal: Spacing.base,
     paddingVertical: Spacing.sm,
     borderRadius: Radius.pill,
-    backgroundColor: Color.primary,
+    backgroundColor: c.primary,
   },
-  addBtnText: { color: Color.textOnColor, fontWeight: FontWeight.semibold, fontSize: FontSize.body },
+  addBtnText: { color: c.textOnColor, fontWeight: FontWeight.semibold, fontSize: FontSize.body },
   empty: {
     padding: Spacing.lg,
     alignItems: "center",
-    backgroundColor: Color.surfaceLight,
+    backgroundColor: c.surfaceLight,
     gap: Spacing.sm,
   },
-  emptyText: { fontSize: FontSize.subtitle, fontWeight: FontWeight.semibold, color: Color.textDark, textAlign: "center" },
+  emptyText: { fontSize: FontSize.subtitle, fontWeight: FontWeight.semibold, color: c.textDark, textAlign: "center" },
   emptyBtn: {
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.md,
     borderRadius: Radius.lg,
-    backgroundColor: Color.primary,
+    backgroundColor: c.primary,
   },
-  emptyBtnText: { color: Color.textOnColor, fontWeight: FontWeight.semibold, fontSize: FontSize.body },
+  emptyBtnText: { color: c.textOnColor, fontWeight: FontWeight.semibold, fontSize: FontSize.body },
   // Search
   searchBar: {
     paddingHorizontal: Spacing.base,
     paddingVertical: Spacing.sm,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderColor: Color.borderLight,
+    borderColor: c.borderLight,
   },
   searchInput: {
-    backgroundColor: Color.surfaceLight,
+    backgroundColor: c.surfaceLight,
     borderRadius: Radius.lg,
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.sm,
     fontSize: FontSize.body,
-    color: Color.textDark,
+    color: c.textDark,
   },
   noResults: {
     flex: 1,
@@ -348,7 +351,7 @@ const styles = StyleSheet.create({
   },
   noResultsText: {
     fontSize: FontSize.body,
-    color: Color.textMuted,
+    color: c.textMuted,
   },
 
   list: { paddingBottom: Spacing.bottomPad },
@@ -358,12 +361,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.base,
     paddingTop: Spacing.base,
     paddingBottom: Spacing.xs,
-    backgroundColor: Color.surface,
+    backgroundColor: c.surface,
   },
   sectionHeaderText: {
     fontSize: FontSize.small,
     fontWeight: FontWeight.semibold,
-    color: Color.textMuted,
+    color: c.textMuted,
     textTransform: "uppercase" as const,
     letterSpacing: 0.5,
   },
@@ -376,50 +379,50 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.md,
     minHeight: 44,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderColor: Color.borderLight,
+    borderColor: c.borderLight,
   },
   rowMain: { flex: 1, gap: Spacing.xs, paddingRight: Spacing.sm },
   descRow: { flexDirection: "row", alignItems: "center", gap: Spacing.xs },
-  rowDescription: { fontSize: FontSize.body, fontWeight: FontWeight.medium, color: Color.textDark, flexShrink: 1 },
+  rowDescription: { fontSize: FontSize.body, fontWeight: FontWeight.medium, color: c.textDark, flexShrink: 1 },
   noteDot: {
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: Color.primary,
+    backgroundColor: c.primary,
     flexShrink: 0,
   },
   metaRow: { flexDirection: "row", alignItems: "center" },
-  rowAccountName: { fontSize: FontSize.caption, color: Color.textMuted, flexShrink: 1 },
-  metaAttribution: { fontSize: FontSize.caption, color: Color.textMuted, flexShrink: 0 },
+  rowAccountName: { fontSize: FontSize.caption, color: c.textMuted, flexShrink: 1 },
+  metaAttribution: { fontSize: FontSize.caption, color: c.textMuted, flexShrink: 0 },
   bankBadge: {
     paddingHorizontal: 5,
     paddingVertical: 1,
     borderRadius: Radius.sm,
-    backgroundColor: Color.surfaceLight,
+    backgroundColor: c.surfaceLight,
     borderWidth: 1,
-    borderColor: Color.borderLight,
+    borderColor: c.borderLight,
   },
-  bankBadgeText: { fontSize: 10, fontWeight: FontWeight.semibold, color: Color.textMuted },
+  bankBadgeText: { fontSize: 10, fontWeight: FontWeight.semibold, color: c.textMuted },
   bnplBadge: {
     paddingHorizontal: 5,
     paddingVertical: 1,
     borderRadius: Radius.sm,
-    backgroundColor: Color.debtSurface,
+    backgroundColor: c.debtSurface,
     borderWidth: 1,
-    borderColor: Color.debt,
+    borderColor: c.debt,
   },
-  bnplBadgeText: { fontSize: 10, fontWeight: FontWeight.semibold, color: Color.debt },
+  bnplBadgeText: { fontSize: 10, fontWeight: FontWeight.semibold, color: c.debt },
   unassignedBadge: {
     alignSelf: "flex-start",
     paddingHorizontal: Spacing.xs,
     paddingVertical: 2,
     borderRadius: Radius.sm,
-    backgroundColor: Color.warningSurface,
+    backgroundColor: c.warningSurface,
     borderWidth: 1,
-    borderColor: Color.borderWarning,
+    borderColor: c.borderWarning,
   },
-  unassignedBadgeText: { fontSize: FontSize.caption, fontWeight: FontWeight.semibold, color: Color.warning },
+  unassignedBadgeText: { fontSize: FontSize.caption, fontWeight: FontWeight.semibold, color: c.warning },
   rowAmount: { fontSize: FontSize.subtitle, fontWeight: FontWeight.semibold, minWidth: 80, textAlign: "right", paddingTop: 2, flexShrink: 0 },
-  income: { color: Color.success },
-  expense: { color: Color.error },
+  income: { color: c.success },
+  expense: { color: c.error },
 });

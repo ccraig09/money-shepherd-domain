@@ -1,6 +1,7 @@
 import React from "react";
 import { View, Text, TextInput, StyleSheet, type TextInputProps } from "react-native";
-import { Spacing, Radius, FontSize, FontWeight, Color } from "../tokens";
+import { Spacing, Radius, FontSize, FontWeight, type ColorTokens } from "../tokens";
+import { useThemedStyles, useTheme } from "../ThemeProvider";
 
 type Props = {
   value: string;
@@ -38,6 +39,9 @@ export const MoneyInput = React.forwardRef<TextInput, Props>(function MoneyInput
   },
   ref,
 ) {
+  const styles = useThemedStyles(createStyles);
+  const { colors } = useTheme();
+
   function handleChange(v: string) {
     if (error) onErrorClear();
     onChangeText(v);
@@ -59,7 +63,7 @@ export const MoneyInput = React.forwardRef<TextInput, Props>(function MoneyInput
           value={value}
           onChangeText={handleChange}
           placeholder={placeholder}
-          placeholderTextColor={Color.textSubtle}
+          placeholderTextColor={colors.textSubtle}
           keyboardType="decimal-pad"
           autoCorrect={false}
           returnKeyType={returnKeyType}
@@ -74,11 +78,11 @@ export const MoneyInput = React.forwardRef<TextInput, Props>(function MoneyInput
   );
 });
 
-const styles = StyleSheet.create({
+const createStyles = (c: ColorTokens) => StyleSheet.create({
   label: {
     fontSize: FontSize.small,
     fontWeight: FontWeight.semibold,
-    color: Color.textMid,
+    color: c.textMid,
     textTransform: "uppercase",
     letterSpacing: 0.5,
     marginBottom: 6,
@@ -87,17 +91,17 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     borderWidth: 1,
-    borderColor: Color.border,
+    borderColor: c.border,
     borderRadius: Radius.md,
     paddingHorizontal: 14,
     paddingVertical: Spacing.md,
-    backgroundColor: Color.surface,
+    backgroundColor: c.surface,
   },
-  inputRowError: { borderColor: Color.error },
-  inputRowDisabled: { backgroundColor: Color.surfaceLight },
-  prefix: { fontSize: FontSize.subtitle, color: Color.textMid, marginRight: 4 },
-  prefixDisabled: { color: Color.textSubtle },
-  input: { flex: 1, fontSize: FontSize.subtitle, color: Color.textDark, padding: 0 },
-  inputDisabled: { color: Color.textDisabled },
-  errorText: { fontSize: FontSize.small, color: Color.error, marginTop: Spacing.xs },
+  inputRowError: { borderColor: c.error },
+  inputRowDisabled: { backgroundColor: c.surfaceLight },
+  prefix: { fontSize: FontSize.subtitle, color: c.textMid, marginRight: 4 },
+  prefixDisabled: { color: c.textSubtle },
+  input: { flex: 1, fontSize: FontSize.subtitle, color: c.textDark, padding: 0 },
+  inputDisabled: { color: c.textDisabled },
+  errorText: { fontSize: FontSize.small, color: c.error, marginTop: Spacing.xs },
 });

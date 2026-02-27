@@ -1,6 +1,7 @@
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
-import { FontSize, FontWeight, Color, Spacing } from "../tokens";
+import { FontSize, FontWeight, Spacing, type ColorTokens } from "../tokens";
+import { useThemedStyles, useTheme } from "../ThemeProvider";
 
 type Props = {
   /** Amount set aside / paid in cents */
@@ -11,26 +12,29 @@ type Props = {
 
 const MILESTONES = [25, 50, 75];
 
-function getProgressColor(pct: number): string {
-  if (pct >= 100) return Color.success;
-  if (pct >= 75) return Color.success;
-  if (pct >= 50) return Color.primary;
-  if (pct >= 25) return Color.warning;
-  return Color.debt;
+function getProgressColor(pct: number, colors: ColorTokens): string {
+  if (pct >= 100) return colors.success;
+  if (pct >= 75) return colors.success;
+  if (pct >= 50) return colors.primary;
+  if (pct >= 25) return colors.warning;
+  return colors.debt;
 }
 
 export function DebtProgressBar({ paidCents, targetCents }: Props) {
+  const styles = useThemedStyles(createStyles);
+  const { colors } = useTheme();
+
   if (targetCents <= 0) return null;
 
   const pct = Math.min(100, Math.round((paidCents / targetCents) * 100));
   const isPaidOff = paidCents >= targetCents;
-  const fillColor = getProgressColor(pct);
+  const fillColor = getProgressColor(pct, colors);
 
   if (isPaidOff) {
     return (
       <View style={styles.paidOffRow}>
         <View style={[styles.track, styles.trackPaidOff]}>
-          <View style={[styles.fill, { width: "100%", backgroundColor: Color.success }]} />
+          <View style={[styles.fill, { width: "100%", backgroundColor: colors.success }]} />
         </View>
         <Text style={styles.paidOffText}>Paid off!</Text>
       </View>
@@ -63,12 +67,12 @@ export function DebtProgressBar({ paidCents, targetCents }: Props) {
 const TRACK_HEIGHT = 6;
 const MILESTONE_SIZE = 10;
 
-const styles = StyleSheet.create({
+const createStyles = (c: ColorTokens) => StyleSheet.create({
   container: { gap: Spacing.xs },
   track: {
     height: TRACK_HEIGHT,
     borderRadius: TRACK_HEIGHT / 2,
-    backgroundColor: Color.borderLight,
+    backgroundColor: c.borderLight,
     overflow: "visible",
     position: "relative",
   },
@@ -87,13 +91,13 @@ const styles = StyleSheet.create({
     height: MILESTONE_SIZE,
     borderRadius: MILESTONE_SIZE / 2,
     marginLeft: -MILESTONE_SIZE / 2,
-    backgroundColor: Color.surface,
+    backgroundColor: c.surface,
     borderWidth: 1.5,
-    borderColor: Color.borderLight,
+    borderColor: c.borderLight,
   },
   milestoneReached: {
-    borderColor: Color.success,
-    backgroundColor: Color.successSurface,
+    borderColor: c.success,
+    backgroundColor: c.successSurface,
   },
   labelRow: {
     flexDirection: "row",
@@ -106,13 +110,13 @@ const styles = StyleSheet.create({
   },
   milestoneLabel: {
     fontSize: FontSize.caption,
-    color: Color.textMuted,
+    color: c.textMuted,
     fontStyle: "italic",
   },
   paidOffRow: { gap: Spacing.xs },
   paidOffText: {
     fontSize: FontSize.caption,
     fontWeight: FontWeight.bold,
-    color: Color.success,
+    color: c.success,
   },
 });

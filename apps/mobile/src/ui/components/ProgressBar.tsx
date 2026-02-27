@@ -1,6 +1,7 @@
 import React from "react";
 import { View, StyleSheet } from "react-native";
-import { Radius, Color } from "../tokens";
+import { Radius, type ColorTokens } from "../tokens";
+import { useThemedStyles, useTheme } from "../ThemeProvider";
 
 type Props = {
   /** Current balance in cents */
@@ -9,14 +10,17 @@ type Props = {
   goal?: number;
 };
 
-function getColor(ratio: number, isNegative: boolean): string {
-  if (isNegative) return Color.error;
-  if (ratio > 0.3) return Color.success;
-  if (ratio > 0.1) return Color.warning;
-  return Color.error;
+function getColor(ratio: number, isNegative: boolean, colors: ColorTokens): string {
+  if (isNegative) return colors.error;
+  if (ratio > 0.3) return colors.success;
+  if (ratio > 0.1) return colors.warning;
+  return colors.error;
 }
 
 export function ProgressBar({ balance, goal }: Props) {
+  const styles = useThemedStyles(createStyles);
+  const { colors } = useTheme();
+
   const isNegative = balance < 0;
 
   let ratio: number;
@@ -25,18 +29,18 @@ export function ProgressBar({ balance, goal }: Props) {
   if (goal && goal > 0) {
     // Goal mode: balance / goal, clamped 0–1
     ratio = Math.max(0, Math.min(1, balance / goal));
-    color = getColor(ratio, isNegative);
+    color = getColor(ratio, isNegative, colors);
   } else {
     // Status mode: full if positive, empty if zero, full red if negative
     if (isNegative) {
       ratio = 1;
-      color = Color.error;
+      color = colors.error;
     } else if (balance === 0) {
       ratio = 0;
-      color = Color.success;
+      color = colors.success;
     } else {
       ratio = 1;
-      color = Color.success;
+      color = colors.success;
     }
   }
 
@@ -54,11 +58,11 @@ export function ProgressBar({ balance, goal }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (c: ColorTokens) => StyleSheet.create({
   track: {
     height: 3,
     borderRadius: Radius.pill,
-    backgroundColor: Color.borderLight,
+    backgroundColor: c.borderLight,
     overflow: "hidden",
   },
   fill: {

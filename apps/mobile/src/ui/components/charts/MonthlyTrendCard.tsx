@@ -10,7 +10,8 @@ import { Card } from "../Card";
 import { ChartErrorBoundary } from "./ChartErrorBoundary";
 import { formatMoney } from "../../../lib/moneyFormat";
 import type { MonthTrendPoint } from "../../../lib/periodSummary";
-import { Color, FontSize, FontWeight, Spacing } from "../../tokens";
+import { FontSize, FontWeight, Spacing, type ColorTokens } from "../../tokens";
+import { useThemedStyles, useTheme } from "../../ThemeProvider";
 
 type Props = {
   trend: MonthTrendPoint[];
@@ -24,6 +25,9 @@ const BAR_WIDTH = 16;
  * Hidden when fewer than 2 months have data.
  */
 export function MonthlyTrendCard({ trend }: Props) {
+  const styles = useThemedStyles(createStyles);
+  const { colors } = useTheme();
+
   const withData = trend.filter((m) => m.incomeCents > 0 || m.spendingCents > 0);
   if (withData.length < 2) return null;
 
@@ -38,11 +42,11 @@ export function MonthlyTrendCard({ trend }: Props) {
         <Text style={styles.title}>Monthly Trend</Text>
         <View style={styles.legend}>
           <View style={styles.legendItem}>
-            <View style={[styles.legendDot, { backgroundColor: Color.success }]} />
+            <View style={[styles.legendDot, { backgroundColor: colors.success }]} />
             <Text style={styles.legendText}>Income</Text>
           </View>
           <View style={styles.legendItem}>
-            <View style={[styles.legendDot, { backgroundColor: Color.error }]} />
+            <View style={[styles.legendDot, { backgroundColor: colors.error }]} />
             <Text style={styles.legendText}>Spending</Text>
           </View>
         </View>
@@ -58,8 +62,8 @@ export function MonthlyTrendCard({ trend }: Props) {
             return (
               <View key={m.label + i} style={styles.monthGroup}>
                 <View style={styles.barsContainer}>
-                  <AnimatedBar targetHeight={incomeH} color={Color.success} delay={i * 80} />
-                  <AnimatedBar targetHeight={spendH} color={Color.error} delay={i * 80 + 40} />
+                  <TrendAnimatedBar targetHeight={incomeH} color={colors.success} delay={i * 80} />
+                  <TrendAnimatedBar targetHeight={spendH} color={colors.error} delay={i * 80 + 40} />
                 </View>
                 <Text style={styles.monthLabel}>{m.label}</Text>
                 {hasData && (
@@ -90,7 +94,7 @@ function formatCompact(cents: number): string {
   return formatMoney(cents);
 }
 
-function AnimatedBar({
+function TrendAnimatedBar({
   targetHeight,
   color,
   delay,
@@ -131,7 +135,7 @@ function AnimatedBar({
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (c: ColorTokens) => StyleSheet.create({
   card: {
     marginHorizontal: Spacing.base,
     marginBottom: Spacing.base,
@@ -146,7 +150,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: FontSize.small,
     fontWeight: FontWeight.semibold,
-    color: Color.textMuted,
+    color: c.textMuted,
     textTransform: "uppercase" as const,
     letterSpacing: 0.5,
   },
@@ -166,7 +170,7 @@ const styles = StyleSheet.create({
   },
   legendText: {
     fontSize: FontSize.caption,
-    color: Color.textMuted,
+    color: c.textMuted,
   },
   chartRow: {
     flexDirection: "row",
@@ -186,16 +190,16 @@ const styles = StyleSheet.create({
   monthLabel: {
     fontSize: FontSize.caption,
     fontWeight: FontWeight.medium,
-    color: Color.textMuted,
+    color: c.textMuted,
   },
   netLabel: {
     fontSize: 10,
     fontWeight: FontWeight.semibold,
   },
   netPositive: {
-    color: Color.success,
+    color: c.success,
   },
   netNegative: {
-    color: Color.error,
+    color: c.error,
   },
 });

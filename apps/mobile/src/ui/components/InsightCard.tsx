@@ -1,6 +1,7 @@
 import React from "react";
 import { View, Text, Pressable, StyleSheet } from "react-native";
-import { Spacing, Radius, FontSize, FontWeight, Color, LineHeight } from "../tokens";
+import { Spacing, Radius, FontSize, FontWeight, LineHeight, type ColorTokens } from "../tokens";
+import { useThemedStyles, useTheme } from "../ThemeProvider";
 import type { Insight } from "@money-shepherd/domain";
 
 type Props = {
@@ -14,21 +15,24 @@ const SEVERITY_ICON: Record<Insight["severity"], string> = {
   success: "\u2713",
 };
 
-const SEVERITY_COLOR: Record<Insight["severity"], string> = {
-  warning: Color.warning,
-  info: Color.primary,
-  success: Color.success,
-};
-
-const SEVERITY_BG: Record<Insight["severity"], string> = {
-  warning: Color.warningSurface,
-  info: Color.primarySurface,
-  success: Color.successSurface,
-};
-
 export function InsightCard({ insight, onDismiss }: Props) {
-  const iconColor = SEVERITY_COLOR[insight.severity];
-  const bgColor = SEVERITY_BG[insight.severity];
+  const styles = useThemedStyles(createStyles);
+  const { colors } = useTheme();
+
+  const severityColor: Record<Insight["severity"], string> = {
+    warning: colors.warning,
+    info: colors.primary,
+    success: colors.success,
+  };
+
+  const severityBg: Record<Insight["severity"], string> = {
+    warning: colors.warningSurface,
+    info: colors.primarySurface,
+    success: colors.successSurface,
+  };
+
+  const iconColor = severityColor[insight.severity];
+  const bgColor = severityBg[insight.severity];
 
   return (
     <View style={[styles.card, { backgroundColor: bgColor }]}>
@@ -51,7 +55,7 @@ export function InsightCard({ insight, onDismiss }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (c: ColorTokens) => StyleSheet.create({
   card: {
     marginHorizontal: Spacing.base,
     marginBottom: Spacing.base,
@@ -72,7 +76,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   iconText: {
-    color: Color.textOnColor,
+    color: c.textOnColor,
     fontSize: 12,
     fontWeight: FontWeight.bold,
   },
@@ -80,19 +84,19 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: FontSize.small,
     fontWeight: FontWeight.semibold,
-    color: Color.textMid,
+    color: c.textMid,
     letterSpacing: 0.3,
   },
   dismiss: {
     fontSize: 22,
     lineHeight: 22,
-    color: Color.textMuted,
+    color: c.textMuted,
     fontWeight: FontWeight.medium,
   },
   message: {
     fontSize: FontSize.body,
     lineHeight: LineHeight.body,
-    color: Color.textDark,
+    color: c.textDark,
     fontWeight: FontWeight.medium,
   },
 });

@@ -14,9 +14,12 @@ import { parseDollars } from "../src/lib/moneyInput";
 import { formatMoney } from "../src/lib/moneyFormat";
 import { MoneyInput } from "../src/ui/components/MoneyInput";
 import { HelpTooltip } from "../src/ui/components/HelpTooltip";
-import { Spacing, Radius, FontSize, FontWeight, Color } from "../src/ui/tokens";
+import { Spacing, Radius, FontSize, FontWeight, type ColorTokens } from "../src/ui/tokens";
+import { useThemedStyles } from "@/src/ui/ThemeProvider";
 
 export default function AllocateScreen() {
+  const styles = useThemedStyles(createStyles);
+
   const state = useAppStore((s) => s.state);
   const allocateToEnvelope = useAppStore((s) => s.allocateToEnvelope);
 
@@ -186,12 +189,12 @@ export default function AllocateScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  flex: { flex: 1, backgroundColor: Color.surface },
+const createStyles = (c: ColorTokens) => StyleSheet.create({
+  flex: { flex: 1, backgroundColor: c.surface },
   center: { flex: 1, alignItems: "center", justifyContent: "center" },
   container: { padding: Spacing.lg, gap: Spacing.sm, paddingBottom: Spacing.bottomPad },
   availableCard: {
-    backgroundColor: Color.primarySurface,
+    backgroundColor: c.primarySurface,
     borderRadius: Radius.xl,
     padding: Spacing.base,
     alignItems: "center",
@@ -199,22 +202,22 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.sm,
   },
   availableLabelRow: { flexDirection: "row", alignItems: "center", gap: Spacing.xs },
-  availableLabel: { fontSize: FontSize.small, color: Color.textMid, fontWeight: FontWeight.medium },
-  availableAmount: { fontSize: FontSize.title, fontWeight: FontWeight.extrabold, color: Color.success },
-  availableZero: { color: Color.textDisabled },
-  zeroHint: { fontSize: FontSize.small, color: Color.error, textAlign: "center", marginTop: Spacing.xs },
+  availableLabel: { fontSize: FontSize.small, color: c.textMid, fontWeight: FontWeight.medium },
+  availableAmount: { fontSize: FontSize.title, fontWeight: FontWeight.extrabold, color: c.success },
+  availableZero: { color: c.textDisabled },
+  zeroHint: { fontSize: FontSize.small, color: c.error, textAlign: "center", marginTop: Spacing.xs },
   addIncomeBtn: {
     marginTop: Spacing.sm,
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.sm,
     borderRadius: Radius.md,
-    backgroundColor: Color.success,
+    backgroundColor: c.success,
   },
-  addIncomeBtnText: { color: Color.textOnColor, fontWeight: FontWeight.semibold, fontSize: FontSize.body },
+  addIncomeBtnText: { color: c.textOnColor, fontWeight: FontWeight.semibold, fontSize: FontSize.body },
   sectionLabel: {
     fontSize: FontSize.small,
     fontWeight: FontWeight.semibold,
-    color: Color.textMid,
+    color: c.textMid,
     textTransform: "uppercase",
     letterSpacing: 0.5,
     marginTop: Spacing.md,
@@ -229,31 +232,31 @@ const styles = StyleSheet.create({
     paddingVertical: 13,
     borderRadius: Radius.md,
     borderWidth: 1,
-    borderColor: Color.borderLight,
+    borderColor: c.borderLight,
   },
-  envelopeRowSelected: { borderColor: Color.primary, backgroundColor: Color.primarySurface },
-  envelopeName: { fontSize: FontSize.body, fontWeight: FontWeight.medium, color: Color.textDark },
-  envelopeNameSelected: { color: Color.primary, fontWeight: FontWeight.bold },
-  envelopeBalance: { fontSize: FontSize.body, color: Color.textMuted },
-  envelopeBalanceSelected: { color: Color.primary },
+  envelopeRowSelected: { borderColor: c.primary, backgroundColor: c.primarySurface },
+  envelopeName: { fontSize: FontSize.body, fontWeight: FontWeight.medium, color: c.textDark },
+  envelopeNameSelected: { color: c.primary, fontWeight: FontWeight.bold },
+  envelopeBalance: { fontSize: FontSize.body, color: c.textMuted },
+  envelopeBalanceSelected: { color: c.primary },
   allocateBtn: {
     marginTop: Spacing.lg,
-    backgroundColor: Color.primary,
+    backgroundColor: c.primary,
     borderRadius: Radius.lg,
     paddingVertical: Spacing.md,
     alignItems: "center",
   },
   allocateBtnDisabled: { opacity: 0.4 },
-  allocateBtnText: { color: Color.textOnColor, fontSize: FontSize.subtitle, fontWeight: FontWeight.bold },
+  allocateBtnText: { color: c.textOnColor, fontSize: FontSize.subtitle, fontWeight: FontWeight.bold },
   cancelBtn: { alignItems: "center", paddingVertical: Spacing.sm },
-  cancelText: { fontSize: FontSize.body, color: Color.textMuted },
+  cancelText: { fontSize: FontSize.body, color: c.textMuted },
   noEnvelopes: { alignItems: "center", gap: Spacing.base, paddingVertical: Spacing.lg },
-  noEnvelopesText: { fontSize: FontSize.subtitle, color: Color.textMid },
+  noEnvelopesText: { fontSize: FontSize.subtitle, color: c.textMid },
   createBtn: {
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.md,
     borderRadius: Radius.lg,
-    backgroundColor: Color.primary,
+    backgroundColor: c.primary,
   },
-  createBtnText: { color: Color.textOnColor, fontWeight: FontWeight.semibold, fontSize: FontSize.body },
+  createBtnText: { color: c.textOnColor, fontWeight: FontWeight.semibold, fontSize: FontSize.body },
 });

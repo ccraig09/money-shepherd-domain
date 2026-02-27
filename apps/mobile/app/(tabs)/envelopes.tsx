@@ -18,7 +18,8 @@ import type { Envelope, EnvelopeGroup } from "@money-shepherd/domain";
 import { Card } from "../../src/ui/components/Card";
 import { ProgressBar } from "../../src/ui/components/ProgressBar";
 import { HelpTooltip } from "../../src/ui/components/HelpTooltip";
-import { Spacing, Radius, FontSize, FontWeight, Color } from "../../src/ui/tokens";
+import { Spacing, Radius, FontSize, FontWeight, type ColorTokens } from "../../src/ui/tokens";
+import { useThemedStyles, useTheme } from "@/src/ui/ThemeProvider";
 
 type SortOrder = "alpha" | "balance" | "giving";
 
@@ -32,6 +33,8 @@ function sortWithinGroup(envelopes: Envelope[], sortOrder: SortOrder): Envelope[
 }
 
 export default function EnvelopesScreen() {
+  const styles = useThemedStyles(createStyles);
+  const { colors } = useTheme();
   const state = useAppStore((s) => s.state);
   const createGroup = useAppStore((s) => s.createEnvelopeGroup);
   const renameGroup = useAppStore((s) => s.renameEnvelopeGroup);
@@ -345,7 +348,7 @@ export default function EnvelopesScreen() {
               value={groupModalInput}
               onChangeText={setGroupModalInput}
               placeholder="Group name"
-              placeholderTextColor={Color.textSubtle}
+              placeholderTextColor={colors.textSubtle}
               autoFocus
               returnKeyType="done"
               onSubmitEditing={handleGroupModalSave}
@@ -371,43 +374,43 @@ export default function EnvelopesScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: Color.surface },
+const createStyles = (c: ColorTokens) => StyleSheet.create({
+  root: { flex: 1, backgroundColor: c.surface },
   center: { flex: 1, alignItems: "center", justifyContent: "center" },
   header: {
     paddingHorizontal: Spacing.base,
     paddingTop: 60,
     paddingBottom: Spacing.md,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderColor: Color.border,
+    borderColor: c.border,
     gap: Spacing.sm,
   },
   titleRow: { flexDirection: "row", alignItems: "center", gap: Spacing.sm },
-  title: { fontSize: FontSize.title, fontWeight: FontWeight.bold, color: Color.textDark },
+  title: { fontSize: FontSize.title, fontWeight: FontWeight.bold, color: c.textDark },
   headerActions: { flexDirection: "row", gap: Spacing.sm },
   allocateBtn: {
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.sm,
     borderRadius: Radius.pill,
     borderWidth: 1,
-    borderColor: Color.primary,
+    borderColor: c.primary,
   },
-  allocateBtnText: { color: Color.primary, fontWeight: FontWeight.semibold, fontSize: FontSize.body },
+  allocateBtnText: { color: c.primary, fontWeight: FontWeight.semibold, fontSize: FontSize.body },
   groupBtn: {
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.sm,
     borderRadius: Radius.pill,
     borderWidth: 1,
-    borderColor: Color.border,
+    borderColor: c.border,
   },
-  groupBtnText: { color: Color.textMid, fontWeight: FontWeight.semibold, fontSize: FontSize.body },
+  groupBtnText: { color: c.textMid, fontWeight: FontWeight.semibold, fontSize: FontSize.body },
   addBtn: {
     paddingHorizontal: Spacing.base,
     paddingVertical: Spacing.sm,
     borderRadius: Radius.pill,
-    backgroundColor: Color.primary,
+    backgroundColor: c.primary,
   },
-  addBtnText: { color: Color.textOnColor, fontWeight: FontWeight.semibold, fontSize: FontSize.body },
+  addBtnText: { color: c.textOnColor, fontWeight: FontWeight.semibold, fontSize: FontSize.body },
 
   // Sort toggle
   sortRow: {
@@ -421,31 +424,31 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.xs,
     borderRadius: Radius.pill,
     borderWidth: 1,
-    borderColor: Color.border,
-    backgroundColor: Color.surface,
+    borderColor: c.border,
+    backgroundColor: c.surface,
   },
   sortChipActive: {
-    backgroundColor: Color.primary,
-    borderColor: Color.primary,
+    backgroundColor: c.primary,
+    borderColor: c.primary,
   },
-  sortChipText: { fontSize: FontSize.small, fontWeight: FontWeight.semibold, color: Color.textMid },
-  sortChipTextActive: { color: Color.textOnColor },
+  sortChipText: { fontSize: FontSize.small, fontWeight: FontWeight.semibold, color: c.textMid },
+  sortChipTextActive: { color: c.textOnColor },
 
   // Empty state
   empty: {
     padding: Spacing.lg,
     alignItems: "center",
-    backgroundColor: Color.surfaceLight,
+    backgroundColor: c.surfaceLight,
     gap: Spacing.base,
   },
-  emptyText: { fontSize: FontSize.subtitle, fontWeight: FontWeight.semibold, color: Color.textDark },
+  emptyText: { fontSize: FontSize.subtitle, fontWeight: FontWeight.semibold, color: c.textDark },
   emptyBtn: {
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.md,
     borderRadius: Radius.lg,
-    backgroundColor: Color.primary,
+    backgroundColor: c.primary,
   },
-  emptyBtnText: { color: Color.textOnColor, fontWeight: FontWeight.semibold, fontSize: FontSize.body },
+  emptyBtnText: { color: c.textOnColor, fontWeight: FontWeight.semibold, fontSize: FontSize.body },
 
   // Section headers
   sectionHeader: {
@@ -454,30 +457,30 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingHorizontal: Spacing.base,
     paddingVertical: Spacing.md,
-    backgroundColor: Color.surfaceLight,
+    backgroundColor: c.surfaceLight,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderColor: Color.borderLight,
+    borderColor: c.borderLight,
   },
   sectionHeaderLeft: { flexDirection: "row", alignItems: "center", gap: Spacing.sm, flex: 1 },
-  chevron: { fontSize: FontSize.body, color: Color.textMid, width: 16 },
+  chevron: { fontSize: FontSize.body, color: c.textMid, width: 16 },
   sectionHeaderName: {
     fontSize: FontSize.small,
     fontWeight: FontWeight.bold,
-    color: Color.textDark,
+    color: c.textDark,
     textTransform: "uppercase",
     letterSpacing: 0.5,
   },
-  sectionHeaderNameMuted: { color: Color.textMuted, fontWeight: FontWeight.semibold },
+  sectionHeaderNameMuted: { color: c.textMuted, fontWeight: FontWeight.semibold },
   sectionCount: {
     fontSize: FontSize.caption,
-    color: Color.textMuted,
-    backgroundColor: Color.borderLight,
+    color: c.textMuted,
+    backgroundColor: c.borderLight,
     paddingHorizontal: 6,
     paddingVertical: 1,
     borderRadius: Radius.sm,
     overflow: "hidden",
   },
-  sectionTotal: { fontSize: FontSize.subtitle, fontWeight: FontWeight.bold, color: Color.textDark },
+  sectionTotal: { fontSize: FontSize.subtitle, fontWeight: FontWeight.bold, color: c.textDark },
   sectionGap: { height: Spacing.sm },
 
   // List
@@ -487,7 +490,7 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.base,
     minHeight: 44,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderColor: Color.borderLight,
+    borderColor: c.borderLight,
   },
   rowContent: { gap: Spacing.sm },
   rowTop: {
@@ -496,51 +499,51 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   rowNameArea: { flexDirection: "row", alignItems: "center", gap: Spacing.xs, flex: 1 },
-  rowName: { fontSize: FontSize.subtitle, fontWeight: FontWeight.medium, color: Color.textDark, flexShrink: 1 },
-  rowBalance: { fontSize: FontSize.subtitle, fontWeight: FontWeight.semibold, color: Color.textDark, marginLeft: Spacing.md },
-  rowBalanceNegative: { color: Color.error },
-  rowBalanceZero: { color: Color.textSubtle },
+  rowName: { fontSize: FontSize.subtitle, fontWeight: FontWeight.medium, color: c.textDark, flexShrink: 1 },
+  rowBalance: { fontSize: FontSize.subtitle, fontWeight: FontWeight.semibold, color: c.textDark, marginLeft: Spacing.md },
+  rowBalanceNegative: { color: c.error },
+  rowBalanceZero: { color: c.textSubtle },
 
   // Progress + goal hint
   progressArea: { gap: 3 },
-  goalHint: { fontSize: FontSize.caption, color: Color.textMuted },
-  needsFunding: { fontSize: FontSize.caption, color: Color.textSubtle, fontStyle: "italic" },
+  goalHint: { fontSize: FontSize.caption, color: c.textMuted },
+  needsFunding: { fontSize: FontSize.caption, color: c.textSubtle, fontStyle: "italic" },
 
   // Type badges
   givingBadge: {
     paddingHorizontal: 6,
     paddingVertical: 1,
     borderRadius: Radius.sm,
-    backgroundColor: Color.givingSurface,
+    backgroundColor: c.givingSurface,
   },
   givingBadgeText: {
     fontSize: 9,
     fontWeight: FontWeight.bold,
-    color: Color.giving,
+    color: c.giving,
     letterSpacing: 0.5,
   },
   debtBadge: {
     paddingHorizontal: 6,
     paddingVertical: 1,
     borderRadius: Radius.sm,
-    backgroundColor: Color.debtSurface,
+    backgroundColor: c.debtSurface,
   },
   debtBadgeText: {
     fontSize: 9,
     fontWeight: FontWeight.bold,
-    color: Color.debt,
+    color: c.debt,
     letterSpacing: 0.5,
   },
   savingsBadge: {
     paddingHorizontal: 6,
     paddingVertical: 1,
     borderRadius: Radius.sm,
-    backgroundColor: Color.primarySurface,
+    backgroundColor: c.primarySurface,
   },
   savingsBadgeText: {
     fontSize: 9,
     fontWeight: FontWeight.bold,
-    color: Color.primary,
+    color: c.primary,
     letterSpacing: 0.5,
   },
 
@@ -552,34 +555,34 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   modalContent: {
-    backgroundColor: Color.surface,
+    backgroundColor: c.surface,
     borderRadius: Radius.lg,
     padding: Spacing.lg,
     width: "85%",
     maxWidth: 360,
     gap: Spacing.md,
   },
-  modalTitle: { fontSize: FontSize.subtitle, fontWeight: FontWeight.bold, color: Color.textDark, textAlign: "center" },
+  modalTitle: { fontSize: FontSize.subtitle, fontWeight: FontWeight.bold, color: c.textDark, textAlign: "center" },
   modalInput: {
     fontSize: FontSize.subtitle,
     fontWeight: FontWeight.medium,
-    color: Color.textDark,
+    color: c.textDark,
     paddingVertical: Spacing.md,
     paddingHorizontal: Spacing.md,
     borderWidth: 1,
-    borderColor: Color.border,
+    borderColor: c.border,
     borderRadius: Radius.md,
   },
   modalSaveBtn: {
-    backgroundColor: Color.primary,
+    backgroundColor: c.primary,
     borderRadius: Radius.pill,
     paddingVertical: Spacing.md,
     alignItems: "center",
   },
-  modalSaveBtnText: { fontSize: FontSize.body, fontWeight: FontWeight.bold, color: Color.textOnColor },
+  modalSaveBtnText: { fontSize: FontSize.body, fontWeight: FontWeight.bold, color: c.textOnColor },
   modalCancelBtn: {
     paddingVertical: Spacing.sm,
     alignItems: "center",
   },
-  modalCancelBtnText: { fontSize: FontSize.body, color: Color.textMuted },
+  modalCancelBtnText: { fontSize: FontSize.body, color: c.textMuted },
 });

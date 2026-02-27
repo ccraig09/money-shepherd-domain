@@ -21,7 +21,8 @@ import { mapPlaidAccounts } from "../../src/infra/plaid/mapAccounts";
 import { classifyPlaidError } from "../../src/infra/plaid/errors";
 import { createEngine } from "../../src/domain/engine";
 import { useAppStore } from "../../src/store/useAppStore";
-import { Spacing, Radius, FontSize, FontWeight, Color, Shadow } from "../../src/ui/tokens";
+import { Spacing, Radius, FontSize, FontWeight, Shadow, type ColorTokens } from "../../src/ui/tokens";
+import { useThemedStyles, useTheme } from "@/src/ui/ThemeProvider";
 
 type UserEntry = {
   id: string;
@@ -39,6 +40,8 @@ export default function ConnectAccountsScreen() {
   const [meta, setMeta] = React.useState<SyncMeta | null>(null);
   const [connecting, setConnecting] = React.useState<string | null>(null);
   const [tokens, setTokens] = React.useState<Record<string, PlaidTokenData[]>>({});
+
+  const styles = useThemedStyles(createStyles);
 
   React.useEffect(() => {
     loadSyncMeta().then(setMeta);
@@ -193,6 +196,8 @@ function UserCard({
 }) {
   const hasConnections = connectedBanks.length > 0;
   const disabled = !plaidConfigured || isConnecting;
+  const styles = useThemedStyles(createStyles);
+  const { colors } = useTheme();
 
   return (
     <View style={[styles.card, isCurrentUser && styles.cardActive]}>
@@ -241,7 +246,7 @@ function UserCard({
         disabled={disabled}
       >
         {isConnecting ? (
-          <ActivityIndicator color={isCurrentUser ? Color.textDisabled : Color.primary} size="small" />
+          <ActivityIndicator color={isCurrentUser ? colors.textDisabled : colors.primary} size="small" />
         ) : (
           <Text
             style={[
@@ -258,6 +263,7 @@ function UserCard({
 }
 
 function StatusPill({ connected }: { connected: boolean }) {
+  const styles = useThemedStyles(createStyles);
   return (
     <View style={[styles.pill, connected ? styles.pillConnected : styles.pillEmpty]}>
       <Text
@@ -272,13 +278,13 @@ function StatusPill({ connected }: { connected: boolean }) {
   );
 }
 
-const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: Color.surfaceLight },
+const createStyles = (c: ColorTokens) => StyleSheet.create({
+  root: { flex: 1, backgroundColor: c.surfaceLight },
   container: { padding: 20, gap: Spacing.base, paddingBottom: Spacing.bottomPad },
-  pageTitle: { fontSize: FontSize.title, fontWeight: FontWeight.extrabold, color: Color.textDark, marginTop: Spacing.sm },
-  pageSubtitle: { fontSize: FontSize.body, color: Color.textMid, lineHeight: 22, marginBottom: Spacing.xs },
+  pageTitle: { fontSize: FontSize.title, fontWeight: FontWeight.extrabold, color: c.textDark, marginTop: Spacing.sm },
+  pageSubtitle: { fontSize: FontSize.body, color: c.textMid, lineHeight: 22, marginBottom: Spacing.xs },
   card: {
-    backgroundColor: Color.surface,
+    backgroundColor: c.surface,
     borderRadius: Radius.hero,
     padding: Spacing.base,
     ...Shadow.sm,
@@ -286,7 +292,7 @@ const styles = StyleSheet.create({
     borderColor: "transparent",
   },
   cardActive: {
-    borderColor: Color.primary,
+    borderColor: c.primary,
   },
   cardHeader: {
     flexDirection: "row",
@@ -294,16 +300,16 @@ const styles = StyleSheet.create({
     alignItems: "flex-start",
     marginBottom: Spacing.md,
   },
-  userName: { fontSize: 18, fontWeight: FontWeight.bold, color: Color.textDark },
+  userName: { fontSize: 18, fontWeight: FontWeight.bold, color: c.textDark },
   currentBadge: {
     fontSize: FontSize.caption,
-    color: Color.primary,
+    color: c.primary,
     fontWeight: FontWeight.semibold,
     marginTop: 2,
   },
   partnerHint: {
     fontSize: FontSize.caption,
-    color: Color.textMuted,
+    color: c.textMuted,
     marginTop: 2,
     maxWidth: 220,
   },
@@ -312,11 +318,11 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     borderRadius: Radius.pill,
   },
-  pillConnected: { backgroundColor: Color.successSurface },
-  pillEmpty: { backgroundColor: Color.surfaceLight },
+  pillConnected: { backgroundColor: c.successSurface },
+  pillEmpty: { backgroundColor: c.surfaceLight },
   pillText: { fontSize: FontSize.caption, fontWeight: FontWeight.semibold },
-  pillTextConnected: { color: Color.success },
-  pillTextEmpty: { color: Color.textMuted },
+  pillTextConnected: { color: c.success },
+  pillTextEmpty: { color: c.textMuted },
   bankList: {
     gap: Spacing.sm,
     marginBottom: Spacing.md,
@@ -328,20 +334,20 @@ const styles = StyleSheet.create({
   },
   institutionLabel: {
     fontSize: FontSize.small,
-    color: Color.success,
+    color: c.success,
     fontWeight: FontWeight.medium,
   },
   removeLink: {
     fontSize: FontSize.caption,
-    color: Color.error,
+    color: c.error,
     fontWeight: FontWeight.semibold,
   },
-  divider: { height: 1, backgroundColor: Color.borderLight, marginBottom: Spacing.md },
+  divider: { height: 1, backgroundColor: c.borderLight, marginBottom: Spacing.md },
   connectBtn: {
     alignItems: "center",
     paddingVertical: Spacing.md,
     borderRadius: Radius.md,
-    backgroundColor: Color.primary,
+    backgroundColor: c.primary,
   },
   connectBtnSecondary: {
     alignItems: "center",
@@ -349,20 +355,20 @@ const styles = StyleSheet.create({
     borderRadius: Radius.md,
     backgroundColor: "transparent",
     borderWidth: 1.5,
-    borderColor: Color.primary,
+    borderColor: c.primary,
   },
   connectBtnPressed: { opacity: 0.7 },
-  connectBtnDisabled: { backgroundColor: Color.surfaceLight, borderColor: "transparent" },
-  connectBtnText: { fontSize: FontSize.body, fontWeight: FontWeight.semibold, color: Color.textOnColor },
-  connectBtnTextSecondary: { fontSize: FontSize.body, fontWeight: FontWeight.semibold, color: Color.primary },
-  connectBtnTextDisabled: { color: Color.textDisabled },
+  connectBtnDisabled: { backgroundColor: c.surfaceLight, borderColor: "transparent" },
+  connectBtnText: { fontSize: FontSize.body, fontWeight: FontWeight.semibold, color: c.textOnColor },
+  connectBtnTextSecondary: { fontSize: FontSize.body, fontWeight: FontWeight.semibold, color: c.primary },
+  connectBtnTextDisabled: { color: c.textDisabled },
   warningCard: {
-    backgroundColor: Color.warningSurface,
+    backgroundColor: c.warningSurface,
     borderRadius: Radius.lg,
     padding: 14,
     borderLeftWidth: 3,
-    borderLeftColor: Color.warning,
+    borderLeftColor: c.warning,
   },
-  warningText: { fontSize: FontSize.small, color: Color.warningText, lineHeight: 20 },
-  warningCode: { fontFamily: "monospace", backgroundColor: Color.warningSurface },
+  warningText: { fontSize: FontSize.small, color: c.warningText, lineHeight: 20 },
+  warningCode: { fontFamily: "monospace", backgroundColor: c.warningSurface },
 });

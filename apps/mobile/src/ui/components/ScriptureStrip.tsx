@@ -1,9 +1,11 @@
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
 import { getDailyVerse } from "../../lib/dailyVerse";
-import { Spacing, Radius, FontSize, FontWeight, Color } from "../tokens";
+import { Spacing, Radius, FontSize, FontWeight, type ColorTokens } from "../tokens";
+import { useThemedStyles } from "../ThemeProvider";
 
 export function ScriptureStrip() {
+  const styles = useThemedStyles(createStyles);
   const verse = getDailyVerse();
 
   return (
@@ -16,27 +18,27 @@ export function ScriptureStrip() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (c: ColorTokens) => StyleSheet.create({
   container: {
     marginHorizontal: Spacing.base,
     marginBottom: Spacing.base,
-    backgroundColor: Color.primarySurface,
+    backgroundColor: c.primarySurface,
     borderRadius: Radius.lg,
     borderLeftWidth: 3,
-    borderLeftColor: Color.primary,
+    borderLeftColor: c.primary,
     padding: Spacing.md,
     gap: Spacing.xs,
   },
   verseText: {
     fontSize: FontSize.small,
     fontStyle: "italic",
-    color: Color.textDark,
+    color: c.textDark,
     lineHeight: 20,
   },
   reference: {
     fontSize: FontSize.caption,
     fontWeight: FontWeight.semibold,
-    color: Color.primary,
+    color: c.primary,
     marginTop: 2,
   },
 });

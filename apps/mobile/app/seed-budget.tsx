@@ -11,9 +11,13 @@ import { router } from "expo-router";
 import { useAppStore } from "../src/store/useAppStore";
 import { formatMoney } from "../src/lib/moneyFormat";
 import { Card } from "../src/ui/components/Card";
-import { Spacing, Radius, FontSize, FontWeight, Color, Shadow } from "../src/ui/tokens";
+import { Spacing, Radius, FontSize, FontWeight, Shadow, type ColorTokens } from "../src/ui/tokens";
+import { useThemedStyles, useTheme } from "@/src/ui/ThemeProvider";
 
 export default function SeedBudgetScreen() {
+  const styles = useThemedStyles(createStyles);
+  const { colors } = useTheme();
+
   const state = useAppStore((s) => s.state);
   const seedBudgetFromBalances = useAppStore((s) => s.seedBudgetFromBalances);
   const [seeding, setSeeding] = React.useState(false);
@@ -21,7 +25,7 @@ export default function SeedBudgetScreen() {
   if (!state) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator color={Color.primary} />
+        <ActivityIndicator color={colors.primary} />
       </View>
     );
   }
@@ -173,7 +177,7 @@ export default function SeedBudgetScreen() {
           accessibilityRole="button"
         >
           {seeding ? (
-            <ActivityIndicator color={Color.textOnColor} size="small" />
+            <ActivityIndicator color={colors.textOnColor} size="small" />
           ) : (
             <Text style={styles.seedBtnText}>
               {seedAmount > 0
@@ -198,8 +202,8 @@ export default function SeedBudgetScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: Color.surface },
+const createStyles = (c: ColorTokens) => StyleSheet.create({
+  root: { flex: 1, backgroundColor: c.surface },
   center: { flex: 1, alignItems: "center", justifyContent: "center" },
 
   header: {
@@ -211,11 +215,11 @@ const styles = StyleSheet.create({
   title: {
     fontSize: FontSize.title,
     fontWeight: FontWeight.extrabold,
-    color: Color.textDark,
+    color: c.textDark,
   },
   subtitle: {
     fontSize: FontSize.body,
-    color: Color.textMid,
+    color: c.textMid,
     lineHeight: 22,
   },
 
@@ -223,7 +227,7 @@ const styles = StyleSheet.create({
   listLabel: {
     fontSize: FontSize.small,
     fontWeight: FontWeight.semibold,
-    color: Color.textMuted,
+    color: c.textMuted,
     textTransform: "uppercase" as const,
     letterSpacing: 0.5,
     marginBottom: Spacing.sm,
@@ -235,31 +239,31 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingVertical: Spacing.md,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderColor: Color.borderLight,
+    borderColor: c.borderLight,
   },
   accountInfo: { flex: 1, gap: 2 },
   accountName: {
     fontSize: FontSize.body,
     fontWeight: FontWeight.medium,
-    color: Color.textDark,
+    color: c.textDark,
   },
-  accountNameMuted: { color: Color.textMuted },
+  accountNameMuted: { color: c.textMuted },
   accountBalance: {
     fontSize: FontSize.body,
     fontWeight: FontWeight.semibold,
-    color: Color.success,
+    color: c.success,
     marginLeft: Spacing.md,
   },
-  accountBalanceMuted: { color: Color.textMuted },
+  accountBalanceMuted: { color: c.textMuted },
 
   emptyCard: {
     padding: Spacing.lg,
     alignItems: "center",
-    backgroundColor: Color.surfaceLight,
+    backgroundColor: c.surfaceLight,
   },
   emptyText: {
     fontSize: FontSize.body,
-    color: Color.textMuted,
+    color: c.textMuted,
     textAlign: "center",
   },
 
@@ -268,9 +272,9 @@ const styles = StyleSheet.create({
     paddingTop: Spacing.md,
     paddingBottom: Spacing.bottomPad,
     borderTopWidth: 1,
-    borderColor: Color.borderLight,
+    borderColor: c.borderLight,
     gap: Spacing.sm,
-    backgroundColor: Color.surfaceLight,
+    backgroundColor: c.surfaceLight,
   },
   totalRow: {
     flexDirection: "row",
@@ -281,12 +285,12 @@ const styles = StyleSheet.create({
   totalLabel: {
     fontSize: FontSize.subtitle,
     fontWeight: FontWeight.semibold,
-    color: Color.textDark,
+    color: c.textDark,
   },
   totalAmount: {
     fontSize: FontSize.subtitle,
     fontWeight: FontWeight.bold,
-    color: Color.textDark,
+    color: c.textDark,
   },
   deltaRow: {
     flexDirection: "row",
@@ -296,30 +300,30 @@ const styles = StyleSheet.create({
   },
   deltaLabel: {
     fontSize: FontSize.body,
-    color: Color.textMuted,
+    color: c.textMuted,
   },
   deltaValue: {
     fontSize: FontSize.body,
-    color: Color.textMuted,
+    color: c.textMuted,
   },
   seedRow: {
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderColor: Color.border,
+    borderColor: c.border,
     paddingTop: Spacing.sm,
     marginTop: Spacing.xs,
   },
   seedLabel: {
     fontSize: FontSize.subtitle,
     fontWeight: FontWeight.bold,
-    color: Color.primary,
+    color: c.primary,
   },
   seedAmount: {
     fontSize: FontSize.subtitle,
     fontWeight: FontWeight.bold,
-    color: Color.primary,
+    color: c.primary,
   },
   seedBtn: {
-    backgroundColor: Color.primary,
+    backgroundColor: c.primary,
     borderRadius: Radius.lg,
     paddingVertical: Spacing.md,
     alignItems: "center",
@@ -328,7 +332,7 @@ const styles = StyleSheet.create({
   },
   seedBtnDisabled: { opacity: 0.4 },
   seedBtnText: {
-    color: Color.textOnColor,
+    color: c.textOnColor,
     fontSize: FontSize.subtitle,
     fontWeight: FontWeight.bold,
   },
@@ -338,6 +342,6 @@ const styles = StyleSheet.create({
   },
   skipText: {
     fontSize: FontSize.body,
-    color: Color.textMuted,
+    color: c.textMuted,
   },
 });

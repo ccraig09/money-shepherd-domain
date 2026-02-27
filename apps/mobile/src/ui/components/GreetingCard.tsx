@@ -1,6 +1,7 @@
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
-import { Spacing, FontSize, FontWeight, Color } from "../tokens";
+import { Spacing, FontSize, FontWeight, type ColorTokens } from "../tokens";
+import { useThemedStyles } from "../ThemeProvider";
 import { getGreeting, getDisplayName } from "../../lib/greeting";
 import { loadSyncMeta } from "../../infra/local/syncMeta";
 
@@ -30,6 +31,7 @@ type Props = {
 };
 
 export function GreetingCard({ envelopes }: Props) {
+  const styles = useThemedStyles(createStyles);
   const [displayName, setDisplayName] = React.useState<string | null>(null);
   const hour = new Date().getHours();
   const health = useEnvelopeHealth(envelopes);
@@ -52,7 +54,7 @@ export function GreetingCard({ envelopes }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (c: ColorTokens) => StyleSheet.create({
   container: {
     paddingHorizontal: Spacing.base,
     paddingBottom: Spacing.sm,
@@ -61,11 +63,11 @@ const styles = StyleSheet.create({
   greeting: {
     fontSize: FontSize.title,
     fontWeight: FontWeight.extrabold,
-    color: Color.textDark,
+    color: c.textDark,
   },
   summary: {
     fontSize: FontSize.small,
     fontWeight: FontWeight.medium,
-    color: Color.textMuted,
+    color: c.textMuted,
   },
 });

@@ -13,7 +13,8 @@ import {
 import { router } from "expo-router";
 import type { EnvelopeType } from "@money-shepherd/domain";
 import { useAppStore } from "../src/store/useAppStore";
-import { Spacing, Radius, FontSize, FontWeight, Color } from "../src/ui/tokens";
+import { Spacing, Radius, FontSize, FontWeight, type ColorTokens } from "../src/ui/tokens";
+import { useThemedStyles, useTheme } from "@/src/ui/ThemeProvider";
 
 const TYPE_OPTIONS: { value: EnvelopeType; label: string; hint: string }[] = [
   { value: "spending", label: "Spending", hint: "Day-to-day expenses" },
@@ -23,6 +24,9 @@ const TYPE_OPTIONS: { value: EnvelopeType; label: string; hint: string }[] = [
 ];
 
 export default function CreateEnvelopeScreen() {
+  const styles = useThemedStyles(createStyles);
+  const { colors } = useTheme();
+
   const state = useAppStore((s) => s.state);
   const createEnvelope = useAppStore((s) => s.createEnvelope);
   const createEnvelopeGroup = useAppStore((s) => s.createEnvelopeGroup);
@@ -102,14 +106,14 @@ export default function CreateEnvelopeScreen() {
         <View style={styles.typeRow}>
           {TYPE_OPTIONS.map((opt) => {
             const active = selectedType === opt.value;
-            const accentColor = opt.value === "giving" ? Color.giving
-              : opt.value === "debt" ? Color.debt
-              : opt.value === "savings" ? Color.primary
-              : Color.textMid;
-            const surfaceColor = opt.value === "giving" ? Color.givingSurface
-              : opt.value === "debt" ? Color.debtSurface
-              : opt.value === "savings" ? Color.primarySurface
-              : Color.surface;
+            const accentColor = opt.value === "giving" ? colors.giving
+              : opt.value === "debt" ? colors.debt
+              : opt.value === "savings" ? colors.primary
+              : colors.textMid;
+            const surfaceColor = opt.value === "giving" ? colors.givingSurface
+              : opt.value === "debt" ? colors.debtSurface
+              : opt.value === "savings" ? colors.primarySurface
+              : colors.surface;
             return (
               <Pressable
                 key={opt.value}
@@ -211,7 +215,7 @@ export default function CreateEnvelopeScreen() {
               value={newGroupName}
               onChangeText={setNewGroupName}
               placeholder="Group name"
-              placeholderTextColor={Color.textSubtle}
+              placeholderTextColor={colors.textSubtle}
               autoFocus
             />
             <Pressable
@@ -243,8 +247,8 @@ export default function CreateEnvelopeScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  flex: { flex: 1, backgroundColor: Color.surface },
+const createStyles = (c: ColorTokens) => StyleSheet.create({
+  flex: { flex: 1, backgroundColor: c.surface },
   container: {
     padding: Spacing.lg,
     gap: Spacing.sm,
@@ -252,7 +256,7 @@ const styles = StyleSheet.create({
   sectionLabel: {
     fontSize: FontSize.small,
     fontWeight: FontWeight.semibold,
-    color: Color.textMid,
+    color: c.textMid,
     textTransform: "uppercase",
     letterSpacing: 0.5,
     marginTop: Spacing.base,
@@ -260,16 +264,16 @@ const styles = StyleSheet.create({
   },
   input: {
     borderWidth: 1,
-    borderColor: Color.border,
+    borderColor: c.border,
     borderRadius: Radius.md,
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.md,
     fontSize: FontSize.subtitle,
-    color: Color.textDark,
+    color: c.textDark,
   },
-  inputError: { borderColor: Color.error },
-  errorText: { fontSize: FontSize.small, color: Color.error, marginTop: Spacing.xs },
-  warningText: { fontSize: FontSize.small, color: Color.warning, marginTop: Spacing.xs },
+  inputError: { borderColor: c.error },
+  errorText: { fontSize: FontSize.small, color: c.error, marginTop: Spacing.xs },
+  warningText: { fontSize: FontSize.small, color: c.warning, marginTop: Spacing.xs },
 
   // Type picker
   typeRow: {
@@ -282,17 +286,17 @@ const styles = StyleSheet.create({
     padding: Spacing.md,
     borderRadius: Radius.lg,
     borderWidth: 1,
-    borderColor: Color.border,
-    backgroundColor: Color.surface,
+    borderColor: c.border,
+    backgroundColor: c.surface,
   },
   typeChipLabel: {
     fontSize: FontSize.body,
     fontWeight: FontWeight.semibold,
-    color: Color.textDark,
+    color: c.textDark,
   },
   typeChipHint: {
     fontSize: FontSize.caption,
-    color: Color.textMuted,
+    color: c.textMuted,
     marginTop: 2,
   },
 
@@ -308,20 +312,20 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.sm,
     borderRadius: Radius.pill,
     borderWidth: 1,
-    borderColor: Color.border,
-    backgroundColor: Color.surface,
+    borderColor: c.border,
+    backgroundColor: c.surface,
   },
   groupChipActive: {
-    borderColor: Color.primary,
-    backgroundColor: Color.primarySurface,
+    borderColor: c.primary,
+    backgroundColor: c.primarySurface,
   },
   groupChipText: {
     fontSize: FontSize.small,
     fontWeight: FontWeight.medium,
-    color: Color.textMid,
+    color: c.textMid,
   },
   groupChipTextActive: {
-    color: Color.primary,
+    color: c.primary,
     fontWeight: FontWeight.semibold,
   },
   groupChipNew: {
@@ -329,13 +333,13 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.sm,
     borderRadius: Radius.pill,
     borderWidth: 1,
-    borderColor: Color.borderLight,
+    borderColor: c.borderLight,
     borderStyle: "dashed" as const,
   },
   groupChipNewText: {
     fontSize: FontSize.small,
     fontWeight: FontWeight.semibold,
-    color: Color.primary,
+    color: c.primary,
   },
 
   // Modal
@@ -346,49 +350,49 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   modalContent: {
-    backgroundColor: Color.surface,
+    backgroundColor: c.surface,
     borderRadius: Radius.lg,
     padding: Spacing.lg,
     width: "85%",
     maxWidth: 360,
     gap: Spacing.md,
   },
-  modalTitle: { fontSize: FontSize.subtitle, fontWeight: FontWeight.bold, color: Color.textDark, textAlign: "center" },
+  modalTitle: { fontSize: FontSize.subtitle, fontWeight: FontWeight.bold, color: c.textDark, textAlign: "center" },
   modalInput: {
     borderWidth: 1,
-    borderColor: Color.border,
+    borderColor: c.border,
     borderRadius: Radius.md,
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.md,
     fontSize: FontSize.body,
-    color: Color.textDark,
+    color: c.textDark,
   },
   modalSaveBtn: {
-    backgroundColor: Color.primary,
+    backgroundColor: c.primary,
     borderRadius: Radius.pill,
     paddingVertical: Spacing.md,
     alignItems: "center",
   },
-  modalSaveBtnText: { fontSize: FontSize.body, fontWeight: FontWeight.bold, color: Color.textOnColor },
+  modalSaveBtnText: { fontSize: FontSize.body, fontWeight: FontWeight.bold, color: c.textOnColor },
   modalCancelBtn: {
     paddingVertical: Spacing.sm,
     alignItems: "center",
   },
-  modalCancelBtnText: { fontSize: FontSize.body, color: Color.textMuted },
+  modalCancelBtnText: { fontSize: FontSize.body, color: c.textMuted },
 
   saveBtn: {
     marginTop: Spacing.lg,
-    backgroundColor: Color.primary,
+    backgroundColor: c.primary,
     borderRadius: Radius.lg,
     paddingVertical: Spacing.md,
     alignItems: "center",
   },
   saveBtnDisabled: { opacity: 0.6 },
-  saveBtnText: { color: Color.textOnColor, fontSize: FontSize.subtitle, fontWeight: FontWeight.bold },
+  saveBtnText: { color: c.textOnColor, fontSize: FontSize.subtitle, fontWeight: FontWeight.bold },
   cancelBtn: {
     marginTop: Spacing.md,
     alignItems: "center",
     paddingVertical: Spacing.sm,
   },
-  cancelText: { fontSize: FontSize.body, color: Color.textMuted },
+  cancelText: { fontSize: FontSize.body, color: c.textMuted },
 });

@@ -7,7 +7,8 @@ import Animated, {
   withTiming,
   Easing,
 } from "react-native-reanimated";
-import { Color, FontSize, FontWeight, Spacing } from "../../tokens";
+import { FontSize, FontWeight, Spacing, type ColorTokens } from "../../tokens";
+import { useThemedStyles } from "../../ThemeProvider";
 
 const AnimatedRect = Animated.createAnimatedComponent(Rect);
 
@@ -37,6 +38,7 @@ export function BarChart({
   barWidth = 28,
   gap = 12,
 }: Props) {
+  const styles = useThemedStyles(createStyles);
   const maxValue = Math.max(...bars.map((b) => Math.abs(b.value)), 1);
   const totalWidth = bars.length * barWidth + (bars.length - 1) * gap;
 
@@ -126,7 +128,7 @@ function AnimatedBar({
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (c: ColorTokens) => StyleSheet.create({
   container: {
     alignItems: "center",
   },
@@ -137,7 +139,7 @@ const styles = StyleSheet.create({
   label: {
     fontSize: FontSize.caption,
     fontWeight: FontWeight.medium,
-    color: Color.textMuted,
+    color: c.textMuted,
     textAlign: "center",
   },
 });

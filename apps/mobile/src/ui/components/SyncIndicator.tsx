@@ -1,14 +1,28 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, ActivityIndicator, StyleSheet } from "react-native";
-import { Spacing, Radius, FontSize, FontWeight, Color } from "../tokens";
+import { Spacing, Radius, FontSize, FontWeight, type ColorTokens } from "../tokens";
+import { useThemedStyles, useTheme } from "../ThemeProvider";
 import { useAppStore } from "../../store/useAppStore";
 import type { SyncStatus } from "../../domain/syncStatus";
 
 const SUCCESS_VISIBLE_MS = 3_000;
 
 export function SyncIndicator() {
+  const styles = useThemedStyles(createStyles);
+  const { colors } = useTheme();
   const syncState = useAppStore((s) => s.syncState);
   const [showSuccess, setShowSuccess] = useState(false);
+
+  const statusConfig: Record<
+    SyncStatus,
+    { text: string; color: string; bg: string }
+  > = {
+    idle: { text: "", color: colors.textMuted, bg: "transparent" },
+    syncing: { text: "Syncing\u2026", color: colors.primary, bg: colors.primarySurface },
+    success: { text: "Synced", color: colors.success, bg: colors.successSurface },
+    error: { text: "Sync failed", color: colors.error, bg: colors.errorSurface },
+    offline: { text: "Offline", color: colors.textMuted, bg: colors.surfaceLight },
+  };
 
   // Auto-hide "Synced" after a few seconds
   useEffect(() => {
@@ -31,9 +45,9 @@ export function SyncIndicator() {
   // Pending changes waiting to sync (idle or error state with local saves queued)
   if (pending > 0 && (status === "idle" || (status === "success" && !showSuccess))) {
     return (
-      <View style={[styles.pill, styles.pillProminent, { backgroundColor: Color.warningSurface, borderColor: Color.warning }]}>
-        <View style={[styles.dot, { backgroundColor: Color.warning }]} />
-        <Text style={[styles.labelProminent, { color: Color.warning }]}>
+      <View style={[styles.pill, styles.pillProminent, { backgroundColor: colors.warningSurface, borderColor: colors.warning }]}>
+        <View style={[styles.dot, { backgroundColor: colors.warning }]} />
+        <Text style={[styles.labelProminent, { color: colors.warning }]}>
           {pending} pending
         </Text>
       </View>
@@ -44,7 +58,7 @@ export function SyncIndicator() {
   const config = statusConfig[status];
   const label =
     status === "error" && pending > 0
-      ? `Sync failed · ${pending} pending`
+      ? `Sync failed \u00b7 ${pending} pending`
       : conflictMsg && status === "success"
         ? conflictMsg
         : config.text;
@@ -63,18 +77,7 @@ export function SyncIndicator() {
   );
 }
 
-const statusConfig: Record<
-  SyncStatus,
-  { text: string; color: string; bg: string }
-> = {
-  idle: { text: "", color: Color.textMuted, bg: "transparent" },
-  syncing: { text: "Syncing…", color: Color.primary, bg: Color.primarySurface },
-  success: { text: "Synced", color: Color.success, bg: Color.successSurface },
-  error: { text: "Sync failed", color: Color.error, bg: Color.errorSurface },
-  offline: { text: "Offline", color: Color.textMuted, bg: Color.surfaceLight },
-};
-
-const styles = StyleSheet.create({
+const createStyles = (c: ColorTokens) => StyleSheet.create({
   pill: {
     flexDirection: "row",
     alignItems: "center",

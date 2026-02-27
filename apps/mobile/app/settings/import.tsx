@@ -12,7 +12,8 @@ import {
 import { router } from "expo-router";
 import { useAppStore } from "../../src/store/useAppStore";
 import { validateImport } from "../../src/domain/importData";
-import { Spacing, Radius, FontSize, FontWeight, Color } from "../../src/ui/tokens";
+import { Spacing, Radius, FontSize, FontWeight, type ColorTokens } from "../../src/ui/tokens";
+import { useThemedStyles, useTheme } from "@/src/ui/ThemeProvider";
 
 export default function ImportScreen() {
   const importState = useAppStore((s) => s.importState);
@@ -20,6 +21,9 @@ export default function ImportScreen() {
   const [json, setJson] = React.useState("");
   const [error, setError] = React.useState<string | null>(null);
   const [busy, setBusy] = React.useState(false);
+
+  const styles = useThemedStyles(createStyles);
+  const { colors } = useTheme();
 
   function handleValidate() {
     setError(null);
@@ -84,7 +88,7 @@ export default function ImportScreen() {
             if (error) setError(null);
           }}
           placeholder='Paste export JSON here…'
-          placeholderTextColor={Color.textSubtle}
+          placeholderTextColor={colors.textSubtle}
           multiline
           textAlignVertical="top"
           autoCapitalize="none"
@@ -120,9 +124,9 @@ export default function ImportScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (c: ColorTokens) => StyleSheet.create({
   flex: { flex: 1 },
-  root: { flex: 1, backgroundColor: Color.surface },
+  root: { flex: 1, backgroundColor: c.surface },
   content: {
     padding: Spacing.lg,
     paddingTop: 60,
@@ -132,41 +136,41 @@ const styles = StyleSheet.create({
   title: {
     fontSize: FontSize.title,
     fontWeight: FontWeight.extrabold,
-    color: Color.textDark,
+    color: c.textDark,
   },
   hint: {
     fontSize: FontSize.body,
-    color: Color.textMid,
+    color: c.textMid,
     lineHeight: 20,
   },
   input: {
     minHeight: 200,
     borderWidth: 1,
-    borderColor: Color.border,
+    borderColor: c.border,
     borderRadius: Radius.lg,
     padding: Spacing.base,
     fontSize: FontSize.caption,
     fontFamily: Platform.OS === "ios" ? "Menlo" : "monospace",
-    color: Color.textDark,
-    backgroundColor: Color.surfaceLight,
+    color: c.textDark,
+    backgroundColor: c.surfaceLight,
   },
   error: {
     fontSize: FontSize.body,
-    color: Color.error,
+    color: c.error,
     fontWeight: FontWeight.medium,
   },
   importBtn: {
-    backgroundColor: Color.primary,
+    backgroundColor: c.primary,
     borderRadius: Radius.lg,
     paddingVertical: Spacing.md,
     alignItems: "center",
   },
   importBtnDisabled: { opacity: 0.4 },
   importBtnText: {
-    color: Color.textOnColor,
+    color: c.textOnColor,
     fontSize: FontSize.subtitle,
     fontWeight: FontWeight.bold,
   },
   cancelBtn: { alignItems: "center", paddingVertical: Spacing.sm },
-  cancelText: { fontSize: FontSize.body, color: Color.textMuted },
+  cancelText: { fontSize: FontSize.body, color: c.textMuted },
 });

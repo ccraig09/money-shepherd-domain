@@ -1,6 +1,7 @@
 import React from "react";
 import { View, Text, Pressable, StyleSheet } from "react-native";
-import { Spacing, FontSize, FontWeight, Color } from "../tokens";
+import { Spacing, FontSize, FontWeight, type ColorTokens } from "../tokens";
+import { useThemedStyles } from "../ThemeProvider";
 
 type Props = {
   title: string;
@@ -14,6 +15,8 @@ type Props = {
  * Matches the repeated pattern across Dashboard, Envelopes, and Transactions.
  */
 export function SectionHeader({ title, actionLabel, onAction }: Props) {
+  const styles = useThemedStyles(createStyles);
+
   return (
     <View style={styles.row}>
       <Text style={styles.title}>{title}</Text>
@@ -26,7 +29,7 @@ export function SectionHeader({ title, actionLabel, onAction }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (c: ColorTokens) => StyleSheet.create({
   row: {
     flexDirection: "row",
     alignItems: "center",
@@ -37,13 +40,13 @@ const styles = StyleSheet.create({
   title: {
     fontSize: FontSize.small,
     fontWeight: FontWeight.semibold,
-    color: Color.textMid,
+    color: c.textMid,
     textTransform: "uppercase",
     letterSpacing: 0.5,
   },
   action: {
     fontSize: FontSize.small,
     fontWeight: FontWeight.semibold,
-    color: Color.primary,
+    color: c.primary,
   },
 });

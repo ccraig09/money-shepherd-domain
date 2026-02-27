@@ -11,7 +11,8 @@ import { useAppStore } from "../src/store/useAppStore";
 import { formatMoney } from "../src/lib/moneyFormat";
 import { Card } from "../src/ui/components/Card";
 import { DebtProgressBar } from "../src/ui/components/DebtProgressBar";
-import { Spacing, Radius, FontSize, FontWeight, Color } from "../src/ui/tokens";
+import { Spacing, Radius, FontSize, FontWeight, type ColorTokens } from "../src/ui/tokens";
+import { useThemedStyles } from "@/src/ui/ThemeProvider";
 
 export default function DebtOverviewScreen() {
   const state = useAppStore((s) => s.state);
@@ -56,6 +57,8 @@ export default function DebtOverviewScreen() {
     if (remainingCents === 0) return null;
     return Math.ceil(remainingCents / totalMonthlyGoalCents);
   }, [debtEnvelopes, totalDebtCents, totalSetAsideCents]);
+
+  const styles = useThemedStyles(createStyles);
 
   if (!state) {
     return (
@@ -186,8 +189,8 @@ export default function DebtOverviewScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: Color.surface },
+const createStyles = (c: ColorTokens) => StyleSheet.create({
+  root: { flex: 1, backgroundColor: c.surface },
   center: { flex: 1, alignItems: "center", justifyContent: "center" },
 
   header: {
@@ -195,10 +198,10 @@ const styles = StyleSheet.create({
     paddingTop: 60,
     paddingBottom: Spacing.md,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderColor: Color.border,
+    borderColor: c.border,
   },
-  title: { fontSize: FontSize.title, fontWeight: FontWeight.bold, color: Color.textDark },
-  subtitle: { fontSize: FontSize.small, color: Color.textMuted, marginTop: Spacing.xs },
+  title: { fontSize: FontSize.title, fontWeight: FontWeight.bold, color: c.textDark },
+  subtitle: { fontSize: FontSize.small, color: c.textMuted, marginTop: Spacing.xs },
 
   // Summary — progress-first
   summaryCard: {
@@ -211,12 +214,12 @@ const styles = StyleSheet.create({
   summaryHero: {
     fontSize: FontSize.title,
     fontWeight: FontWeight.extrabold,
-    color: Color.primary,
+    color: c.primary,
     marginTop: Spacing.md,
   },
   summaryMilestone: {
     fontSize: FontSize.small,
-    color: Color.textMuted,
+    color: c.textMuted,
     marginTop: Spacing.xs,
   },
   summaryRow: {
@@ -226,32 +229,32 @@ const styles = StyleSheet.create({
     marginTop: Spacing.base,
     paddingTop: Spacing.md,
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderColor: Color.borderLight,
+    borderColor: c.borderLight,
   },
   summaryStat: { alignItems: "center" as const, flex: 1 },
-  summaryStatLabel: { fontSize: FontSize.small, color: Color.textMuted },
-  summaryStatValue: { fontSize: FontSize.body, fontWeight: FontWeight.semibold, color: Color.textMid, marginTop: 2 },
-  summaryStatValueSuccess: { fontSize: FontSize.body, fontWeight: FontWeight.semibold, color: Color.success, marginTop: 2 },
+  summaryStatLabel: { fontSize: FontSize.small, color: c.textMuted },
+  summaryStatValue: { fontSize: FontSize.body, fontWeight: FontWeight.semibold, color: c.textMid, marginTop: 2 },
+  summaryStatValueSuccess: { fontSize: FontSize.body, fontWeight: FontWeight.semibold, color: c.success, marginTop: 2 },
   summaryTotalCaption: {
     fontSize: FontSize.caption,
-    color: Color.textMuted,
+    color: c.textMuted,
     marginTop: Spacing.md,
   },
   progressTrack: {
     height: 8,
     borderRadius: 4,
-    backgroundColor: Color.borderLight,
+    backgroundColor: c.borderLight,
     alignSelf: "stretch" as const,
     overflow: "hidden" as const,
   },
   progressFill: {
     height: 8,
     borderRadius: 4,
-    backgroundColor: Color.primary,
+    backgroundColor: c.primary,
   },
   estimateText: {
     fontSize: FontSize.small,
-    color: Color.textMuted,
+    color: c.textMuted,
     textAlign: "center" as const,
     marginHorizontal: Spacing.base,
     marginBottom: Spacing.base,
@@ -264,15 +267,15 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: Spacing.md,
   },
-  emptyTitle: { fontSize: FontSize.subtitle, fontWeight: FontWeight.semibold, color: Color.textDark },
-  emptyBody: { fontSize: FontSize.body, color: Color.textMuted, textAlign: "center" },
+  emptyTitle: { fontSize: FontSize.subtitle, fontWeight: FontWeight.semibold, color: c.textDark },
+  emptyBody: { fontSize: FontSize.body, color: c.textMuted, textAlign: "center" },
   emptyBtn: {
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.md,
     borderRadius: Radius.lg,
-    backgroundColor: Color.debt,
+    backgroundColor: c.debt,
   },
-  emptyBtnText: { color: Color.textOnColor, fontWeight: FontWeight.semibold, fontSize: FontSize.body },
+  emptyBtnText: { color: c.textOnColor, fontWeight: FontWeight.semibold, fontSize: FontSize.body },
 
   // List
   listCard: { marginHorizontal: Spacing.base },
@@ -281,7 +284,7 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.base,
     minHeight: 44,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderColor: Color.borderLight,
+    borderColor: c.borderLight,
     gap: Spacing.sm,
   },
   rowTop: {
@@ -295,14 +298,14 @@ const styles = StyleSheet.create({
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: Color.debtSurface,
+    backgroundColor: c.debtSurface,
     alignItems: "center",
     justifyContent: "center",
   },
-  orderText: { fontSize: FontSize.small, fontWeight: FontWeight.bold, color: Color.debt },
+  orderText: { fontSize: FontSize.small, fontWeight: FontWeight.bold, color: c.debt },
   rowInfo: { flex: 1 },
-  rowName: { fontSize: FontSize.body, fontWeight: FontWeight.medium, color: Color.textDark },
-  rowTarget: { fontSize: FontSize.caption, color: Color.textMuted, marginTop: 2 },
-  rowTargetMissing: { fontSize: FontSize.caption, color: Color.textSubtle, fontStyle: "italic", marginTop: 2 },
-  rowBalance: { fontSize: FontSize.body, fontWeight: FontWeight.semibold, color: Color.textDark, marginLeft: 40 },
+  rowName: { fontSize: FontSize.body, fontWeight: FontWeight.medium, color: c.textDark },
+  rowTarget: { fontSize: FontSize.caption, color: c.textMuted, marginTop: 2 },
+  rowTargetMissing: { fontSize: FontSize.caption, color: c.textSubtle, fontStyle: "italic", marginTop: 2 },
+  rowBalance: { fontSize: FontSize.body, fontWeight: FontWeight.semibold, color: c.textDark, marginLeft: 40 },
 });

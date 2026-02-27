@@ -17,7 +17,8 @@ import { parseDollars } from "../../src/lib/moneyInput";
 import { Card } from "../../src/ui/components/Card";
 import { SectionHeader } from "../../src/ui/components/SectionHeader";
 import { DebtProgressBar } from "../../src/ui/components/DebtProgressBar";
-import { Spacing, Radius, FontSize, FontWeight, Color } from "../../src/ui/tokens";
+import { Spacing, Radius, FontSize, FontWeight, type ColorTokens } from "../../src/ui/tokens";
+import { useThemedStyles, useTheme } from "@/src/ui/ThemeProvider";
 import type { Transaction, EnvelopeGroup } from "@money-shepherd/domain";
 
 export default function EnvelopeDetailScreen() {
@@ -38,6 +39,9 @@ export default function EnvelopeDetailScreen() {
   const [groupPickerVisible, setGroupPickerVisible] = useState(false);
   const [newGroupModalVisible, setNewGroupModalVisible] = useState(false);
   const [newGroupName, setNewGroupName] = useState("");
+
+  const styles = useThemedStyles(createStyles);
+  const { colors } = useTheme();
 
   // Derive transactions assigned to this envelope
   const { assignmentByTxId, assignedTxs } = useMemo(() => {
@@ -390,7 +394,7 @@ export default function EnvelopeDetailScreen() {
                 onChangeText={setGoalInput}
                 keyboardType="decimal-pad"
                 placeholder="0.00"
-                placeholderTextColor={Color.textSubtle}
+                placeholderTextColor={colors.textSubtle}
                 autoFocus
               />
             </View>
@@ -441,7 +445,7 @@ export default function EnvelopeDetailScreen() {
                 onChangeText={setTargetInput}
                 keyboardType="decimal-pad"
                 placeholder="0.00"
-                placeholderTextColor={Color.textSubtle}
+                placeholderTextColor={colors.textSubtle}
                 autoFocus
               />
             </View>
@@ -554,7 +558,7 @@ export default function EnvelopeDetailScreen() {
               value={newGroupName}
               onChangeText={setNewGroupName}
               placeholder="Group name"
-              placeholderTextColor={Color.textSubtle}
+              placeholderTextColor={colors.textSubtle}
               autoFocus
             />
             <Pressable
@@ -585,8 +589,8 @@ export default function EnvelopeDetailScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: Color.surface },
+const createStyles = (c: ColorTokens) => StyleSheet.create({
+  root: { flex: 1, backgroundColor: c.surface },
   content: { paddingBottom: Spacing.bottomPad },
   center: {
     flex: 1,
@@ -594,15 +598,15 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     gap: Spacing.md,
   },
-  errorText: { fontSize: FontSize.body, color: Color.error },
+  errorText: { fontSize: FontSize.body, color: c.error },
   backBtn: {
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.sm,
     borderRadius: Radius.md,
     borderWidth: 1,
-    borderColor: Color.border,
+    borderColor: c.border,
   },
-  backBtnText: { fontSize: FontSize.body, color: Color.textMid },
+  backBtnText: { fontSize: FontSize.body, color: c.textMid },
 
   // Hero summary card
   summaryCard: {
@@ -610,8 +614,8 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.lg,
     paddingHorizontal: Spacing.base,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderColor: Color.border,
-    backgroundColor: Color.surfaceLight,
+    borderColor: c.border,
+    backgroundColor: c.surfaceLight,
     gap: Spacing.xs,
   },
   nameRow: {
@@ -619,16 +623,16 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: Spacing.sm,
   },
-  envelopeName: { fontSize: FontSize.subtitle, fontWeight: FontWeight.bold, color: Color.textDark, flexShrink: 1 },
+  envelopeName: { fontSize: FontSize.subtitle, fontWeight: FontWeight.bold, color: c.textDark, flexShrink: 1 },
   editBtn: {
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.xs,
     borderRadius: Radius.pill,
     borderWidth: 1,
-    borderColor: Color.primary,
-    backgroundColor: Color.primarySurface,
+    borderColor: c.primary,
+    backgroundColor: c.primarySurface,
   },
-  editBtnText: { fontSize: FontSize.small, fontWeight: FontWeight.semibold, color: Color.primary },
+  editBtnText: { fontSize: FontSize.small, fontWeight: FontWeight.semibold, color: c.primary },
 
   // Group row
   groupRow: {
@@ -637,8 +641,8 @@ const styles = StyleSheet.create({
     gap: Spacing.sm,
     marginTop: Spacing.xs,
   },
-  groupLabel: { fontSize: FontSize.small, color: Color.textMuted },
-  groupAction: { fontSize: FontSize.small, fontWeight: FontWeight.semibold, color: Color.primary },
+  groupLabel: { fontSize: FontSize.small, color: c.textMuted },
+  groupAction: { fontSize: FontSize.small, fontWeight: FontWeight.semibold, color: c.primary },
 
   // Group picker modal
   groupPickerList: { maxHeight: 300 },
@@ -649,37 +653,37 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.md,
     paddingHorizontal: Spacing.sm,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderColor: Color.borderLight,
+    borderColor: c.borderLight,
   },
-  groupPickerItemActive: { backgroundColor: Color.primarySurface },
-  groupPickerItemText: { fontSize: FontSize.body, color: Color.textDark },
-  groupPickerItemTextActive: { fontWeight: FontWeight.semibold, color: Color.primary },
-  groupPickerCheck: { fontSize: FontSize.body, color: Color.primary, fontWeight: FontWeight.bold },
-  groupPickerNewText: { fontSize: FontSize.body, fontWeight: FontWeight.semibold, color: Color.primary },
+  groupPickerItemActive: { backgroundColor: c.primarySurface },
+  groupPickerItemText: { fontSize: FontSize.body, color: c.textDark },
+  groupPickerItemTextActive: { fontWeight: FontWeight.semibold, color: c.primary },
+  groupPickerCheck: { fontSize: FontSize.body, color: c.primary, fontWeight: FontWeight.bold },
+  groupPickerNewText: { fontSize: FontSize.body, fontWeight: FontWeight.semibold, color: c.primary },
 
   // New group modal
   newGroupInput: {
     borderWidth: 1,
-    borderColor: Color.border,
+    borderColor: c.border,
     borderRadius: Radius.md,
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.md,
     fontSize: FontSize.body,
-    color: Color.textDark,
+    color: c.textDark,
   },
   newGroupSaveBtn: {
-    backgroundColor: Color.primary,
+    backgroundColor: c.primary,
     borderRadius: Radius.pill,
     paddingVertical: Spacing.md,
     alignItems: "center",
   },
   newGroupSaveBtnDisabled: { opacity: 0.6 },
-  newGroupSaveBtnText: { fontSize: FontSize.body, fontWeight: FontWeight.bold, color: Color.textOnColor },
+  newGroupSaveBtnText: { fontSize: FontSize.body, fontWeight: FontWeight.bold, color: c.textOnColor },
 
-  balanceLabel: { fontSize: FontSize.small, color: Color.textMuted, marginTop: Spacing.xs },
-  balance: { fontSize: FontSize.hero, fontWeight: FontWeight.extrabold, color: Color.success },
-  balanceNegative: { color: Color.error },
-  balanceZero: { color: Color.textMuted },
+  balanceLabel: { fontSize: FontSize.small, color: c.textMuted, marginTop: Spacing.xs },
+  balance: { fontSize: FontSize.hero, fontWeight: FontWeight.extrabold, color: c.success },
+  balanceNegative: { color: c.error },
+  balanceZero: { color: c.textMuted },
 
   // Goal row
   goalRow: {
@@ -688,9 +692,9 @@ const styles = StyleSheet.create({
     gap: Spacing.sm,
     marginTop: Spacing.sm,
   },
-  goalLabel: { fontSize: FontSize.small, color: Color.textMuted },
-  goalAction: { fontSize: FontSize.small, fontWeight: FontWeight.semibold, color: Color.primary },
-  goalClear: { fontSize: FontSize.small, fontWeight: FontWeight.semibold, color: Color.error },
+  goalLabel: { fontSize: FontSize.small, color: c.textMuted },
+  goalAction: { fontSize: FontSize.small, fontWeight: FontWeight.semibold, color: c.primary },
+  goalClear: { fontSize: FontSize.small, fontWeight: FontWeight.semibold, color: c.error },
 
   // Goal modal
   modalOverlay: {
@@ -700,43 +704,43 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   modalContent: {
-    backgroundColor: Color.surface,
+    backgroundColor: c.surface,
     borderRadius: Radius.lg,
     padding: Spacing.lg,
     width: "85%",
     maxWidth: 360,
     gap: Spacing.md,
   },
-  modalTitle: { fontSize: FontSize.subtitle, fontWeight: FontWeight.bold, color: Color.textDark, textAlign: "center" },
-  modalHint: { fontSize: FontSize.small, color: Color.textMuted, textAlign: "center" },
+  modalTitle: { fontSize: FontSize.subtitle, fontWeight: FontWeight.bold, color: c.textDark, textAlign: "center" },
+  modalHint: { fontSize: FontSize.small, color: c.textMuted, textAlign: "center" },
   modalInputRow: {
     flexDirection: "row",
     alignItems: "center",
     borderWidth: 1,
-    borderColor: Color.border,
+    borderColor: c.border,
     borderRadius: Radius.md,
     paddingHorizontal: Spacing.md,
   },
-  modalDollarSign: { fontSize: FontSize.subtitle, fontWeight: FontWeight.bold, color: Color.textMid, marginRight: Spacing.xs },
+  modalDollarSign: { fontSize: FontSize.subtitle, fontWeight: FontWeight.bold, color: c.textMid, marginRight: Spacing.xs },
   modalInput: {
     flex: 1,
     fontSize: FontSize.subtitle,
     fontWeight: FontWeight.bold,
-    color: Color.textDark,
+    color: c.textDark,
     paddingVertical: Spacing.md,
   },
   modalSaveBtn: {
-    backgroundColor: Color.primary,
+    backgroundColor: c.primary,
     borderRadius: Radius.pill,
     paddingVertical: Spacing.md,
     alignItems: "center",
   },
-  modalSaveBtnText: { fontSize: FontSize.body, fontWeight: FontWeight.bold, color: Color.textOnColor },
+  modalSaveBtnText: { fontSize: FontSize.body, fontWeight: FontWeight.bold, color: c.textOnColor },
   modalCancelBtn: {
     paddingVertical: Spacing.sm,
     alignItems: "center",
   },
-  modalCancelBtnText: { fontSize: FontSize.body, color: Color.textMuted },
+  modalCancelBtnText: { fontSize: FontSize.body, color: c.textMuted },
 
   // Debt progress
   debtProgress: {
@@ -751,12 +755,12 @@ const styles = StyleSheet.create({
   },
   debtProgressLabel: {
     fontSize: FontSize.caption,
-    color: Color.textMuted,
+    color: c.textMuted,
   },
   debtProgressPct: {
     fontSize: FontSize.caption,
     fontWeight: FontWeight.bold,
-    color: Color.primary,
+    color: c.primary,
   },
 
   // Allocate CTA
@@ -765,9 +769,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.xl,
     paddingVertical: Spacing.md,
     borderRadius: Radius.pill,
-    backgroundColor: Color.primary,
+    backgroundColor: c.primary,
   },
-  allocateBtnText: { fontSize: FontSize.body, fontWeight: FontWeight.bold, color: Color.textOnColor },
+  allocateBtnText: { fontSize: FontSize.body, fontWeight: FontWeight.bold, color: c.textOnColor },
 
   // Transfer
   transferBtn: {
@@ -776,9 +780,9 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.md,
     borderRadius: Radius.pill,
     borderWidth: 1,
-    borderColor: Color.primary,
+    borderColor: c.primary,
   },
-  transferBtnText: { fontSize: FontSize.body, fontWeight: FontWeight.bold, color: Color.primary },
+  transferBtnText: { fontSize: FontSize.body, fontWeight: FontWeight.bold, color: c.primary },
 
   // Delete
   deleteBtn: {
@@ -786,17 +790,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.base,
     paddingVertical: Spacing.sm,
   },
-  deleteBtnText: { fontSize: FontSize.small, fontWeight: FontWeight.semibold, color: Color.error },
+  deleteBtnText: { fontSize: FontSize.small, fontWeight: FontWeight.semibold, color: c.error },
 
   // Empty state
   empty: {
     padding: Spacing.lg,
     alignItems: "center",
-    backgroundColor: Color.surfaceLight,
+    backgroundColor: c.surfaceLight,
     gap: Spacing.sm,
   },
-  emptyText: { fontSize: FontSize.body, fontWeight: FontWeight.semibold, color: Color.textMuted, textAlign: "center" },
-  emptyHint: { fontSize: FontSize.caption, color: Color.textSubtle, textAlign: "center" },
+  emptyText: { fontSize: FontSize.body, fontWeight: FontWeight.semibold, color: c.textMuted, textAlign: "center" },
+  emptyHint: { fontSize: FontSize.caption, color: c.textSubtle, textAlign: "center" },
 
   // Activity list
   list: { paddingBottom: 0 },
@@ -806,24 +810,24 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.base,
     paddingVertical: Spacing.md,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderColor: Color.borderLight,
+    borderColor: c.borderLight,
   },
   rowMain: { flex: 1, gap: Spacing.xs, paddingRight: Spacing.sm },
   descRow: { flexDirection: "row", alignItems: "center", gap: Spacing.xs },
-  rowDescription: { fontSize: FontSize.body, fontWeight: FontWeight.medium, color: Color.textDark, flexShrink: 1 },
+  rowDescription: { fontSize: FontSize.body, fontWeight: FontWeight.medium, color: c.textDark, flexShrink: 1 },
   bankBadge: {
     paddingHorizontal: 5,
     paddingVertical: 1,
     borderRadius: Radius.sm,
-    backgroundColor: Color.surfaceLight,
+    backgroundColor: c.surfaceLight,
     borderWidth: 1,
-    borderColor: Color.borderLight,
+    borderColor: c.borderLight,
   },
-  bankBadgeText: { fontSize: 10, fontWeight: FontWeight.semibold, color: Color.textMuted },
+  bankBadgeText: { fontSize: 10, fontWeight: FontWeight.semibold, color: c.textMuted },
   metaRow: { flexDirection: "row", alignItems: "center" },
-  rowAccountName: { fontSize: FontSize.caption, color: Color.textMuted, flexShrink: 1 },
-  rowAccountDate: { fontSize: FontSize.caption, color: Color.textMuted, flexShrink: 0 },
+  rowAccountName: { fontSize: FontSize.caption, color: c.textMuted, flexShrink: 1 },
+  rowAccountDate: { fontSize: FontSize.caption, color: c.textMuted, flexShrink: 0 },
   rowAmount: { fontSize: FontSize.subtitle, fontWeight: FontWeight.semibold, paddingTop: 2 },
-  income: { color: Color.success },
-  expense: { color: Color.error },
+  income: { color: c.success },
+  expense: { color: c.error },
 });

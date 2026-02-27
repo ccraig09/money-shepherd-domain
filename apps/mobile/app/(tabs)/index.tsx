@@ -19,7 +19,8 @@ import { AccountsCard } from "../../src/ui/components/AccountsCard";
 import { HelpTooltip } from "../../src/ui/components/HelpTooltip";
 import { InsightCard } from "../../src/ui/components/InsightCard";
 import { SpendingDonutCard, MonthlyTrendCard } from "../../src/ui/components/charts";
-import { Spacing, Radius, FontSize, FontWeight, Color } from "../../src/ui/tokens";
+import { Spacing, Radius, FontSize, FontWeight, type ColorTokens } from "../../src/ui/tokens";
+import { useThemedStyles } from "@/src/ui/ThemeProvider";
 import { getThisMonthSummary, getMonthlyTrend } from "../../src/lib/periodSummary";
 import { getCurrentPeriod, getFundingInPeriod, getSpendingInPeriod, generateInsights, groupEnvelopes } from "@money-shepherd/domain";
 import type { InsightType } from "@money-shepherd/domain";
@@ -27,6 +28,7 @@ import type { InsightType } from "@money-shepherd/domain";
 const SEVERITY_PRIORITY: Record<string, number> = { warning: 0, info: 1, success: 2 };
 
 export default function DashboardScreen() {
+  const styles = useThemedStyles(createStyles);
   const state = useAppStore((s) => s.state);
 
   const totalEnvelopeCents = useMemo(
@@ -482,8 +484,8 @@ export default function DashboardScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: Color.surface },
+const createStyles = (c: ColorTokens) => StyleSheet.create({
+  root: { flex: 1, backgroundColor: c.surface },
   content: { paddingBottom: Spacing.bottomPad },
   center: { flex: 1, alignItems: "center", justifyContent: "center" },
   header: {
@@ -494,13 +496,13 @@ const styles = StyleSheet.create({
     paddingTop: 60,
     paddingBottom: Spacing.base,
   },
-  appName: { fontSize: FontSize.small, fontWeight: FontWeight.semibold, color: Color.primary, textTransform: "uppercase" as const, letterSpacing: 1 },
+  appName: { fontSize: FontSize.small, fontWeight: FontWeight.semibold, color: c.primary, textTransform: "uppercase" as const, letterSpacing: 1 },
 
   // Hero card
   heroCard: {
     marginHorizontal: Spacing.base,
     marginBottom: Spacing.base,
-    backgroundColor: Color.primary,
+    backgroundColor: c.primary,
     borderRadius: Radius.hero,
     paddingVertical: Spacing.xl,
     paddingHorizontal: Spacing.lg,
@@ -508,8 +510,8 @@ const styles = StyleSheet.create({
   },
   heroLabelRow: { flexDirection: "row", alignItems: "center", gap: Spacing.xs },
   heroLabel: { fontSize: FontSize.small, color: "rgba(255,255,255,0.75)", fontWeight: FontWeight.semibold, textTransform: "uppercase" as const, letterSpacing: 0.5 },
-  heroAmount: { fontSize: FontSize.hero, fontWeight: FontWeight.extrabold, color: Color.textOnColor, marginTop: Spacing.xs },
-  heroAmountNegative: { color: Color.heroNegative },
+  heroAmount: { fontSize: FontSize.hero, fontWeight: FontWeight.extrabold, color: c.textOnColor, marginTop: Spacing.xs },
+  heroAmountNegative: { color: c.heroNegative },
   heroStat: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -519,7 +521,7 @@ const styles = StyleSheet.create({
     borderColor: "rgba(255,255,255,0.3)",
   },
   heroStatLabel: { fontSize: FontSize.small, color: "rgba(255,255,255,0.75)" },
-  heroStatValue: { fontSize: FontSize.small, fontWeight: FontWeight.semibold, color: Color.textOnColor },
+  heroStatValue: { fontSize: FontSize.small, fontWeight: FontWeight.semibold, color: c.textOnColor },
 
   // This Month card
   monthCard: {
@@ -530,7 +532,7 @@ const styles = StyleSheet.create({
   monthTitle: {
     fontSize: FontSize.small,
     fontWeight: FontWeight.semibold,
-    color: Color.textMuted,
+    color: c.textMuted,
     textTransform: "uppercase" as const,
     letterSpacing: 0.5,
     marginBottom: Spacing.md,
@@ -540,10 +542,10 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   monthStat: { alignItems: "center", flex: 1 },
-  monthStatLabel: { fontSize: FontSize.caption, color: Color.textMuted, marginBottom: Spacing.xs },
+  monthStatLabel: { fontSize: FontSize.caption, color: c.textMuted, marginBottom: Spacing.xs },
   monthStatValue: { fontSize: FontSize.body, fontWeight: FontWeight.bold },
-  monthIncome: { color: Color.success },
-  monthSpending: { color: Color.error },
+  monthIncome: { color: c.success },
+  monthSpending: { color: c.error },
 
   // Income vs Spending ratio bar
   ratioBarSection: {
@@ -557,12 +559,12 @@ const styles = StyleSheet.create({
     overflow: "hidden",
   },
   ratioBarIncome: {
-    backgroundColor: Color.success,
+    backgroundColor: c.success,
     borderTopLeftRadius: 4,
     borderBottomLeftRadius: 4,
   },
   ratioBarSpending: {
-    backgroundColor: Color.error,
+    backgroundColor: c.error,
     borderTopRightRadius: 4,
     borderBottomRightRadius: 4,
   },
@@ -573,12 +575,12 @@ const styles = StyleSheet.create({
   ratioBarLabelIncome: {
     fontSize: FontSize.caption,
     fontWeight: FontWeight.semibold,
-    color: Color.success,
+    color: c.success,
   },
   ratioBarLabelSpending: {
     fontSize: FontSize.caption,
     fontWeight: FontWeight.semibold,
-    color: Color.error,
+    color: c.error,
   },
 
   // Giving row in This Month card
@@ -589,10 +591,10 @@ const styles = StyleSheet.create({
     marginTop: Spacing.md,
     paddingTop: Spacing.md,
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderColor: Color.borderLight,
+    borderColor: c.borderLight,
   },
-  givingRowLabel: { fontSize: FontSize.small, color: Color.giving, fontWeight: FontWeight.semibold },
-  givingRowValue: { fontSize: FontSize.body, fontWeight: FontWeight.bold, color: Color.giving },
+  givingRowLabel: { fontSize: FontSize.small, color: c.giving, fontWeight: FontWeight.semibold },
+  givingRowValue: { fontSize: FontSize.body, fontWeight: FontWeight.bold, color: c.giving },
 
   // Debt Freedom card
   debtCard: {
@@ -609,30 +611,30 @@ const styles = StyleSheet.create({
   debtCardTitle: {
     fontSize: FontSize.small,
     fontWeight: FontWeight.semibold,
-    color: Color.textMuted,
+    color: c.textMuted,
     textTransform: "uppercase" as const,
     letterSpacing: 0.5,
   },
   debtCardPct: {
     fontSize: FontSize.body,
     fontWeight: FontWeight.bold,
-    color: Color.primary,
+    color: c.primary,
   },
   debtProgressTrack: {
     height: 8,
     borderRadius: 4,
-    backgroundColor: Color.borderLight,
+    backgroundColor: c.borderLight,
     overflow: "hidden" as const,
     marginBottom: Spacing.sm,
   },
   debtProgressFill: {
     height: 8,
     borderRadius: 4,
-    backgroundColor: Color.primary,
+    backgroundColor: c.primary,
   },
   debtCardSummary: {
     fontSize: FontSize.caption,
-    color: Color.textMuted,
+    color: c.textMuted,
   },
 
   // Seed nudge
@@ -642,14 +644,14 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    backgroundColor: Color.primarySurface,
+    backgroundColor: c.primarySurface,
     borderRadius: Radius.lg,
     paddingHorizontal: Spacing.base,
     paddingVertical: Spacing.md,
     borderWidth: 1,
-    borderColor: Color.primary,
+    borderColor: c.primary,
   },
-  seedNudgeText: { fontSize: 14, fontWeight: FontWeight.medium, color: Color.primaryDark, flex: 1 },
+  seedNudgeText: { fontSize: 14, fontWeight: FontWeight.medium, color: c.primaryDark, flex: 1 },
 
   // Fill nudge
   fillNudge: {
@@ -658,14 +660,14 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    backgroundColor: Color.primarySurface,
+    backgroundColor: c.primarySurface,
     borderRadius: Radius.lg,
     paddingHorizontal: Spacing.base,
     paddingVertical: Spacing.md,
     borderWidth: 1,
-    borderColor: Color.primary,
+    borderColor: c.primary,
   },
-  fillNudgeText: { fontSize: 14, fontWeight: FontWeight.medium, color: Color.primaryDark, flex: 1 },
+  fillNudgeText: { fontSize: 14, fontWeight: FontWeight.medium, color: c.primaryDark, flex: 1 },
 
   // Nudge
   nudge: {
@@ -674,15 +676,15 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    backgroundColor: Color.warningSurface,
+    backgroundColor: c.warningSurface,
     borderRadius: Radius.lg,
     paddingHorizontal: Spacing.base,
     paddingVertical: Spacing.md,
     borderWidth: 1,
-    borderColor: Color.borderWarning,
+    borderColor: c.borderWarning,
   },
-  nudgeText: { fontSize: 14, fontWeight: FontWeight.medium, color: Color.nudgeText },
-  nudgeArrow: { fontSize: FontSize.subtitle, color: Color.nudgeText },
+  nudgeText: { fontSize: 14, fontWeight: FontWeight.medium, color: c.nudgeText },
+  nudgeArrow: { fontSize: FontSize.subtitle, color: c.nudgeText },
 
   // Quick actions
   ctaRow: {
@@ -699,10 +701,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 1,
-    borderColor: Color.error,
-    backgroundColor: Color.errorSurface,
+    borderColor: c.error,
+    backgroundColor: c.errorSurface,
   },
-  ctaExpenseText: { color: Color.error, fontWeight: FontWeight.bold, fontSize: FontSize.body },
+  ctaExpenseText: { color: c.error, fontWeight: FontWeight.bold, fontSize: FontSize.body },
   ctaIncome: {
     flex: 1,
     borderRadius: Radius.xl,
@@ -711,10 +713,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 1,
-    borderColor: Color.success,
-    backgroundColor: Color.successSurface,
+    borderColor: c.success,
+    backgroundColor: c.successSurface,
   },
-  ctaIncomeText: { color: Color.success, fontWeight: FontWeight.bold, fontSize: FontSize.body },
+  ctaIncomeText: { color: c.success, fontWeight: FontWeight.bold, fontSize: FontSize.body },
   ctaAllocate: {
     flex: 1,
     borderRadius: Radius.xl,
@@ -722,9 +724,9 @@ const styles = StyleSheet.create({
     minHeight: 44,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: Color.primary,
+    backgroundColor: c.primary,
   },
-  ctaAllocateText: { color: Color.textOnColor, fontWeight: FontWeight.bold, fontSize: FontSize.body },
+  ctaAllocateText: { color: c.textOnColor, fontWeight: FontWeight.bold, fontSize: FontSize.body },
 
   // Accounts
   accountsSection: { marginBottom: Spacing.lg },
@@ -737,51 +739,51 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.base,
     paddingVertical: Spacing.md,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderColor: Color.borderLight,
+    borderColor: c.borderLight,
   },
   groupRowLeft: { flexDirection: "row", alignItems: "center", gap: Spacing.sm, flex: 1 },
   groupRowName: {
     fontSize: FontSize.small,
     fontWeight: FontWeight.bold,
-    color: Color.textDark,
+    color: c.textDark,
     textTransform: "uppercase" as const,
     letterSpacing: 0.5,
   },
-  groupRowNameMuted: { color: Color.textMuted, fontWeight: FontWeight.semibold },
+  groupRowNameMuted: { color: c.textMuted, fontWeight: FontWeight.semibold },
   groupRowCount: {
     fontSize: FontSize.caption,
-    color: Color.textMuted,
-    backgroundColor: Color.borderLight,
+    color: c.textMuted,
+    backgroundColor: c.borderLight,
     paddingHorizontal: 6,
     paddingVertical: 1,
     borderRadius: Radius.sm,
     overflow: "hidden" as const,
   },
-  groupRowBalance: { fontSize: FontSize.subtitle, fontWeight: FontWeight.bold, color: Color.textDark, marginLeft: Spacing.md },
-  groupRowBalanceZero: { color: Color.textSubtle },
-  groupRowBalanceNegative: { color: Color.error },
+  groupRowBalance: { fontSize: FontSize.subtitle, fontWeight: FontWeight.bold, color: c.textDark, marginLeft: Spacing.md },
+  groupRowBalanceZero: { color: c.textSubtle },
+  groupRowBalanceNegative: { color: c.error },
 
   // Envelopes
   emptyEnvelopes: {
     padding: Spacing.lg,
-    backgroundColor: Color.surfaceLight,
+    backgroundColor: c.surfaceLight,
     alignItems: "center",
     gap: Spacing.sm,
   },
-  emptyText: { fontSize: FontSize.body, color: Color.textMuted, textAlign: "center" },
+  emptyText: { fontSize: FontSize.body, color: c.textMuted, textAlign: "center" },
   emptyEnvelopeBtn: {
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.md,
     borderRadius: Radius.md,
-    backgroundColor: Color.primary,
+    backgroundColor: c.primary,
   },
-  emptyEnvelopeBtnText: { color: Color.textOnColor, fontWeight: FontWeight.semibold, fontSize: FontSize.body },
+  emptyEnvelopeBtnText: { color: c.textOnColor, fontWeight: FontWeight.semibold, fontSize: FontSize.body },
   envelopeRow: {
     paddingHorizontal: Spacing.base,
     paddingVertical: Spacing.md,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderColor: Color.borderLight,
-    backgroundColor: Color.surface,
+    borderColor: c.borderLight,
+    backgroundColor: c.surface,
   },
   envelopeRowContent: { gap: Spacing.sm },
   envelopeRowTop: {
@@ -790,22 +792,22 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   envelopeNameRow: { flexDirection: "row", alignItems: "center", gap: Spacing.xs, flex: 1 },
-  envelopeName: { fontSize: FontSize.body, fontWeight: FontWeight.medium, color: Color.textDark, flexShrink: 1 },
+  envelopeName: { fontSize: FontSize.body, fontWeight: FontWeight.medium, color: c.textDark, flexShrink: 1 },
   overspentBadge: {
     paddingHorizontal: 5,
     paddingVertical: 1,
     borderRadius: Radius.sm,
-    backgroundColor: Color.errorSurface,
+    backgroundColor: c.errorSurface,
   },
-  overspentBadgeText: { fontSize: 9, fontWeight: FontWeight.bold, color: Color.error, letterSpacing: 0.5 },
+  overspentBadgeText: { fontSize: 9, fontWeight: FontWeight.bold, color: c.error, letterSpacing: 0.5 },
   givingBadge: {
     paddingHorizontal: 5,
     paddingVertical: 1,
     borderRadius: Radius.sm,
-    backgroundColor: Color.givingSurface,
+    backgroundColor: c.givingSurface,
   },
-  givingBadgeText: { fontSize: 9, fontWeight: FontWeight.bold, color: Color.giving, letterSpacing: 0.5 },
-  envelopeSpentMonth: { fontSize: FontSize.caption, color: Color.textMuted },
-  envelopeBalance: { fontSize: FontSize.body, fontWeight: FontWeight.semibold, color: Color.success, marginLeft: Spacing.md },
-  envelopeBalanceNegative: { color: Color.error },
+  givingBadgeText: { fontSize: 9, fontWeight: FontWeight.bold, color: c.giving, letterSpacing: 0.5 },
+  envelopeSpentMonth: { fontSize: FontSize.caption, color: c.textMuted },
+  envelopeBalance: { fontSize: FontSize.body, fontWeight: FontWeight.semibold, color: c.success, marginLeft: Spacing.md },
+  envelopeBalanceNegative: { color: c.error },
 });

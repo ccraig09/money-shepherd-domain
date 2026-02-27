@@ -14,7 +14,8 @@ import { router, Stack, useLocalSearchParams } from "expo-router";
 import { useAppStore } from "../../src/store/useAppStore";
 import { formatMoney } from "../../src/lib/moneyFormat";
 import { parseDollars, formatCents } from "../../src/lib/moneyInput";
-import { Spacing, Radius, FontSize, FontWeight, Color } from "../../src/ui/tokens";
+import { Spacing, Radius, FontSize, FontWeight, type ColorTokens } from "../../src/ui/tokens";
+import { useThemedStyles, useTheme } from "@/src/ui/ThemeProvider";
 
 const MAX_NOTE_LENGTH = 200;
 
@@ -46,6 +47,9 @@ export default function TransactionDetailScreen() {
   const [editSaving, setEditSaving] = React.useState(false);
 
   const isPlaid = tx?.id.startsWith("plaid-tx-") ?? false;
+
+  const styles = useThemedStyles(createStyles);
+  const { colors } = useTheme();
 
   // Sync draft if note changes externally
   React.useEffect(() => {
@@ -352,7 +356,7 @@ export default function TransactionDetailScreen() {
               value={draft}
               onChangeText={(v) => setDraft(v.slice(0, MAX_NOTE_LENGTH))}
               placeholder="Add a note…"
-              placeholderTextColor={Color.textDisabled}
+              placeholderTextColor={colors.textDisabled}
               multiline
               maxLength={MAX_NOTE_LENGTH}
               onBlur={handleSaveNote}
@@ -386,6 +390,7 @@ export default function TransactionDetailScreen() {
 }
 
 function DetailRow({ label, value }: { label: string; value: string }) {
+  const styles = useThemedStyles(createStyles);
   return (
     <View style={styles.detailRow}>
       <Text style={styles.detailLabel}>{label}</Text>
@@ -396,36 +401,36 @@ function DetailRow({ label, value }: { label: string; value: string }) {
   );
 }
 
-const styles = StyleSheet.create({
-  flex: { flex: 1, backgroundColor: Color.surface },
+const createStyles = (c: ColorTokens) => StyleSheet.create({
+  flex: { flex: 1, backgroundColor: c.surface },
   center: {
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
     gap: Spacing.md,
   },
-  errorText: { fontSize: FontSize.body, color: Color.error },
+  errorText: { fontSize: FontSize.body, color: c.error },
   backBtn: {
     paddingHorizontal: 20,
     paddingVertical: 10,
     borderRadius: Radius.md,
     borderWidth: 1,
-    borderColor: Color.border,
+    borderColor: c.border,
   },
-  backBtnText: { fontSize: 14, color: Color.textMid },
+  backBtnText: { fontSize: 14, color: c.textMid },
   content: { paddingBottom: Spacing.bottomPad },
   amountCard: {
     alignItems: "center",
     paddingVertical: Spacing.lg,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderColor: Color.borderLight,
-    backgroundColor: Color.surfaceLight,
+    borderColor: c.borderLight,
+    backgroundColor: c.surfaceLight,
     gap: Spacing.xs,
   },
   amount: { fontSize: 32, fontWeight: FontWeight.extrabold },
-  amountType: { fontSize: FontSize.small, color: Color.textMuted },
-  income: { color: Color.success },
-  expense: { color: Color.error },
+  amountType: { fontSize: FontSize.small, color: c.textMuted },
+  income: { color: c.success },
+  expense: { color: c.error },
   detailSection: {
     paddingHorizontal: Spacing.base,
     paddingTop: Spacing.base,
@@ -437,13 +442,13 @@ const styles = StyleSheet.create({
     alignItems: "flex-start",
     paddingVertical: Spacing.sm,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderColor: Color.borderLight,
+    borderColor: c.borderLight,
   },
-  detailLabel: { fontSize: 14, color: Color.textMuted, width: 100 },
+  detailLabel: { fontSize: 14, color: c.textMuted, width: 100 },
   detailValue: {
     fontSize: FontSize.body,
     fontWeight: FontWeight.medium,
-    color: Color.textDark,
+    color: c.textDark,
     flex: 1,
     textAlign: "right",
   },
@@ -455,11 +460,11 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.md,
     borderRadius: Radius.md,
     borderWidth: 1,
-    borderColor: Color.primary,
+    borderColor: c.primary,
     alignItems: "center" as const,
   },
   editBtnText: {
-    color: Color.primary,
+    color: c.primary,
     fontSize: FontSize.body,
     fontWeight: FontWeight.semibold,
   },
@@ -472,11 +477,11 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.md,
     borderRadius: Radius.md,
     borderWidth: 1,
-    borderColor: Color.border,
+    borderColor: c.border,
     alignItems: "center" as const,
   },
   cancelBtnText: {
-    color: Color.textMid,
+    color: c.textMid,
     fontSize: FontSize.body,
     fontWeight: FontWeight.semibold,
   },
@@ -484,28 +489,28 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: Spacing.md,
     borderRadius: Radius.md,
-    backgroundColor: Color.primary,
+    backgroundColor: c.primary,
     alignItems: "center" as const,
   },
   saveEditBtnText: {
-    color: Color.textOnColor,
+    color: c.textOnColor,
     fontSize: FontSize.body,
     fontWeight: FontWeight.semibold,
   },
   editDescRow: {
     paddingVertical: Spacing.sm,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderColor: Color.borderLight,
+    borderColor: c.borderLight,
     gap: Spacing.xs,
   },
   editDescInput: {
     borderWidth: 1,
-    borderColor: Color.border,
+    borderColor: c.border,
     borderRadius: Radius.sm,
     paddingHorizontal: 10,
     paddingVertical: Spacing.sm,
     fontSize: FontSize.body,
-    color: Color.textDark,
+    color: c.textDark,
   },
   editAmountRow: {
     flexDirection: "row" as const,
@@ -518,7 +523,7 @@ const styles = StyleSheet.create({
     textAlign: "center" as const,
   },
   editErrorText: {
-    color: Color.error,
+    color: c.error,
     fontSize: FontSize.small,
     paddingHorizontal: Spacing.base,
     paddingTop: Spacing.sm,
@@ -530,20 +535,20 @@ const styles = StyleSheet.create({
   sectionLabel: {
     fontSize: FontSize.small,
     fontWeight: FontWeight.semibold,
-    color: Color.textMid,
+    color: c.textMid,
     textTransform: "uppercase" as const,
     letterSpacing: 0.5,
     marginBottom: Spacing.sm,
   },
   noteInput: {
     borderWidth: 1,
-    borderColor: Color.border,
+    borderColor: c.border,
     borderRadius: Radius.md,
     paddingHorizontal: 14,
     paddingTop: Spacing.md,
     paddingBottom: Spacing.md,
     fontSize: FontSize.body,
-    color: Color.textDark,
+    color: c.textDark,
     minHeight: 80,
     textAlignVertical: "top",
   },
@@ -553,16 +558,16 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginTop: Spacing.sm,
   },
-  charCount: { fontSize: FontSize.caption, color: Color.textDisabled },
+  charCount: { fontSize: FontSize.caption, color: c.textDisabled },
   saveBtn: {
     paddingHorizontal: Spacing.base,
     paddingVertical: Spacing.sm,
     borderRadius: Radius.sm,
-    backgroundColor: Color.primary,
+    backgroundColor: c.primary,
   },
   saveBtnDisabled: { opacity: 0.6 },
-  saveBtnText: { color: Color.textOnColor, fontSize: 14, fontWeight: FontWeight.semibold },
-  savedLabel: { fontSize: FontSize.caption, color: Color.success, fontWeight: FontWeight.semibold },
+  saveBtnText: { color: c.textOnColor, fontSize: 14, fontWeight: FontWeight.semibold },
+  savedLabel: { fontSize: FontSize.caption, color: c.success, fontWeight: FontWeight.semibold },
   unassignSection: {
     paddingHorizontal: Spacing.base,
     paddingTop: Spacing.lg,
@@ -571,11 +576,11 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.md,
     borderRadius: Radius.md,
     borderWidth: 1,
-    borderColor: Color.error,
+    borderColor: c.error,
     alignItems: "center" as const,
   },
   unassignBtnText: {
-    color: Color.error,
+    color: c.error,
     fontSize: FontSize.body,
     fontWeight: FontWeight.semibold,
   },
@@ -586,11 +591,11 @@ const styles = StyleSheet.create({
   deleteBtn: {
     paddingVertical: Spacing.md,
     borderRadius: Radius.md,
-    backgroundColor: Color.error,
+    backgroundColor: c.error,
     alignItems: "center" as const,
   },
   deleteBtnText: {
-    color: Color.textOnColor,
+    color: c.textOnColor,
     fontSize: FontSize.body,
     fontWeight: FontWeight.semibold,
   },

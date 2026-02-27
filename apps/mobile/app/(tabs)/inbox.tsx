@@ -11,10 +11,12 @@ import { useAppStore } from "../../src/store/useAppStore";
 import { formatMoney } from "../../src/lib/moneyFormat";
 import { Card } from "../../src/ui/components/Card";
 import { HelpTooltip } from "../../src/ui/components/HelpTooltip";
-import { Spacing, Radius, FontSize, FontWeight, Color } from "../../src/ui/tokens";
+import { Spacing, Radius, FontSize, FontWeight, type ColorTokens } from "../../src/ui/tokens";
+import { useThemedStyles } from "@/src/ui/ThemeProvider";
 import { suggestEnvelope, detectRecurring, normalizePayee, isBnplTransaction, type Transaction, type EnvelopeSuggestion } from "@money-shepherd/domain";
 
 export default function InboxScreen() {
+  const styles = useThemedStyles(createStyles);
   const state = useAppStore((s) => s.state);
   const confirmAllSuggestions = useAppStore((s) => s.confirmAllSuggestions);
 
@@ -253,8 +255,8 @@ export default function InboxScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: Color.surface },
+const createStyles = (c: ColorTokens) => StyleSheet.create({
+  root: { flex: 1, backgroundColor: c.surface },
   center: { flex: 1, alignItems: "center", justifyContent: "center" },
   header: {
     flexDirection: "row",
@@ -264,26 +266,26 @@ const styles = StyleSheet.create({
     paddingTop: 60,
     paddingBottom: Spacing.md,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderColor: Color.border,
+    borderColor: c.border,
   },
-  title: { fontSize: FontSize.title, fontWeight: FontWeight.bold, color: Color.textDark },
+  title: { fontSize: FontSize.title, fontWeight: FontWeight.bold, color: c.textDark },
   badge: {
-    backgroundColor: Color.error,
+    backgroundColor: c.error,
     borderRadius: Radius.md,
     paddingHorizontal: Spacing.sm,
     paddingVertical: 2,
     minWidth: 22,
     alignItems: "center",
   },
-  badgeText: { color: Color.textOnColor, fontSize: FontSize.caption, fontWeight: FontWeight.bold },
+  badgeText: { color: c.textOnColor, fontSize: FontSize.caption, fontWeight: FontWeight.bold },
   empty: {
     padding: Spacing.lg,
     alignItems: "center",
-    backgroundColor: Color.surfaceLight,
+    backgroundColor: c.surfaceLight,
     gap: Spacing.sm,
   },
-  emptyText: { fontSize: FontSize.subtitle, fontWeight: FontWeight.bold, color: Color.success },
-  emptyHint: { fontSize: FontSize.body, color: Color.textMuted, textAlign: "center" },
+  emptyText: { fontSize: FontSize.subtitle, fontWeight: FontWeight.bold, color: c.success },
+  emptyHint: { fontSize: FontSize.body, color: c.textMuted, textAlign: "center" },
   nextActions: {
     flexDirection: "row",
     flexWrap: "wrap",
@@ -292,9 +294,9 @@ const styles = StyleSheet.create({
     gap: 4,
     marginTop: Spacing.sm,
   },
-  nextLabel: { fontSize: FontSize.small, color: Color.textMuted },
-  nextLink: { fontSize: FontSize.small, color: Color.primary, fontWeight: FontWeight.semibold },
-  nextSep: { fontSize: FontSize.small, color: Color.textMuted },
+  nextLabel: { fontSize: FontSize.small, color: c.textMuted },
+  nextLink: { fontSize: FontSize.small, color: c.primary, fontWeight: FontWeight.semibold },
+  nextSep: { fontSize: FontSize.small, color: c.textMuted },
   list: { paddingVertical: Spacing.sm },
   row: {
     flexDirection: "row",
@@ -303,29 +305,29 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.md,
     minHeight: 44,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderColor: Color.borderLight,
+    borderColor: c.borderLight,
   },
   rowMain: { flex: 1, gap: Spacing.xs, paddingRight: Spacing.sm },
   descRow: { flexDirection: "row", alignItems: "center", gap: Spacing.xs },
-  rowDescription: { fontSize: FontSize.body, fontWeight: FontWeight.medium, color: Color.textDark, flexShrink: 1 },
+  rowDescription: { fontSize: FontSize.body, fontWeight: FontWeight.medium, color: c.textDark, flexShrink: 1 },
   bankBadge: {
     paddingHorizontal: 5,
     paddingVertical: 1,
     borderRadius: Radius.sm,
-    backgroundColor: Color.surfaceLight,
+    backgroundColor: c.surfaceLight,
     borderWidth: 1,
-    borderColor: Color.borderLight,
+    borderColor: c.borderLight,
   },
-  bankBadgeText: { fontSize: 10, fontWeight: FontWeight.semibold, color: Color.textMuted },
+  bankBadgeText: { fontSize: 10, fontWeight: FontWeight.semibold, color: c.textMuted },
   bnplBadge: {
     paddingHorizontal: 5,
     paddingVertical: 1,
     borderRadius: Radius.sm,
-    backgroundColor: Color.debtSurface,
+    backgroundColor: c.debtSurface,
     borderWidth: 1,
-    borderColor: Color.debt,
+    borderColor: c.debt,
   },
-  bnplBadgeText: { fontSize: 10, fontWeight: FontWeight.semibold, color: Color.debt },
+  bnplBadgeText: { fontSize: 10, fontWeight: FontWeight.semibold, color: c.debt },
   suggestionBadge: {
     alignSelf: "flex-start",
     paddingHorizontal: 6,
@@ -334,29 +336,29 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   suggestionBadgeHigh: {
-    backgroundColor: Color.successSurface,
+    backgroundColor: c.successSurface,
     borderWidth: 1,
-    borderColor: Color.success,
+    borderColor: c.success,
   },
   suggestionBadgeMedium: {
-    backgroundColor: Color.primarySurface,
+    backgroundColor: c.primarySurface,
     borderWidth: 1,
-    borderColor: Color.primary,
+    borderColor: c.primary,
   },
   suggestionBadgeText: {
     fontSize: 11,
     fontWeight: FontWeight.semibold,
-    color: Color.primary,
+    color: c.primary,
   },
   metaRow: { flexDirection: "row", alignItems: "center" },
-  rowAccountName: { fontSize: FontSize.caption, color: Color.textMuted, flexShrink: 1 },
-  rowAccountDate: { fontSize: FontSize.caption, color: Color.textMuted, flexShrink: 0 },
-  metaAttribution: { fontSize: FontSize.caption, color: Color.textMuted, flexShrink: 0 },
+  rowAccountName: { fontSize: FontSize.caption, color: c.textMuted, flexShrink: 1 },
+  rowAccountDate: { fontSize: FontSize.caption, color: c.textMuted, flexShrink: 0 },
+  metaAttribution: { fontSize: FontSize.caption, color: c.textMuted, flexShrink: 0 },
   rowRight: { alignItems: "flex-end", gap: Spacing.xs, marginLeft: Spacing.md, paddingTop: 2 },
   rowAmount: { fontSize: FontSize.subtitle, fontWeight: FontWeight.semibold },
-  income: { color: Color.success },
-  expense: { color: Color.error },
-  assignHint: { fontSize: FontSize.caption, color: Color.textMuted },
+  income: { color: c.success },
+  expense: { color: c.error },
+  assignHint: { fontSize: FontSize.caption, color: c.textMuted },
   infoBtn: {
     marginLeft: Spacing.sm,
     width: 28,
@@ -364,20 +366,20 @@ const styles = StyleSheet.create({
     borderRadius: Radius.md,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: Color.surfaceLight,
+    backgroundColor: c.surfaceLight,
     marginTop: 2,
   },
-  infoBtnText: { fontSize: FontSize.body, color: Color.textMuted },
+  infoBtnText: { fontSize: FontSize.body, color: c.textMuted },
   confirmAllBtn: {
     marginHorizontal: Spacing.base,
     marginTop: Spacing.sm,
     paddingVertical: Spacing.md,
     borderRadius: Radius.lg,
-    backgroundColor: Color.success,
+    backgroundColor: c.success,
     alignItems: "center",
   },
   confirmAllText: {
-    color: Color.textOnColor,
+    color: c.textOnColor,
     fontSize: FontSize.subtitle,
     fontWeight: FontWeight.bold,
   },

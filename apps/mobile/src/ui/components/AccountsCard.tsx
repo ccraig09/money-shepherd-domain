@@ -2,7 +2,8 @@ import React from "react";
 import { View, Text, StyleSheet } from "react-native";
 import { Card } from "./Card";
 import { SectionHeader } from "./SectionHeader";
-import { Spacing, FontSize, FontWeight, Color, Radius } from "../tokens";
+import { Spacing, FontSize, FontWeight, Radius, type ColorTokens } from "../tokens";
+import { useThemedStyles } from "../ThemeProvider";
 import { formatMoney } from "../../lib/moneyFormat";
 import type { Account } from "@money-shepherd/domain";
 
@@ -23,6 +24,8 @@ function isDebtAccount(account: Account): boolean {
 }
 
 export function AccountsCard({ accounts }: Props) {
+  const styles = useThemedStyles(createStyles);
+
   if (accounts.length === 0) return null;
 
   const cashAccounts = accounts.filter(isCashAccount);
@@ -94,6 +97,7 @@ export function AccountsCard({ accounts }: Props) {
 }
 
 function AccountRow({ account }: { account: Account }) {
+  const styles = useThemedStyles(createStyles);
   const plaid = isPlaidAccount(account);
   const negative = account.balance.cents < 0;
 
@@ -118,31 +122,31 @@ function AccountRow({ account }: { account: Account }) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (c: ColorTokens) => StyleSheet.create({
   groupHeader: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: Spacing.base,
     paddingVertical: Spacing.sm,
-    backgroundColor: Color.surfaceLight,
+    backgroundColor: c.surfaceLight,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderColor: Color.borderLight,
+    borderColor: c.borderLight,
   },
   groupLabel: {
     fontSize: FontSize.caption,
     fontWeight: FontWeight.semibold,
-    color: Color.textMuted,
+    color: c.textMuted,
     textTransform: "uppercase" as const,
     letterSpacing: 0.5,
   },
   groupAmount: {
     fontSize: FontSize.small,
     fontWeight: FontWeight.bold,
-    color: Color.success,
+    color: c.success,
   },
   debtAmount: {
-    color: Color.error,
+    color: c.error,
   },
   totalRow: {
     flexDirection: "row",
@@ -150,22 +154,22 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingHorizontal: Spacing.base,
     paddingVertical: Spacing.md,
-    backgroundColor: Color.surfaceLight,
+    backgroundColor: c.surfaceLight,
   },
   totalLabel: {
     fontSize: FontSize.small,
     fontWeight: FontWeight.semibold,
-    color: Color.textMid,
+    color: c.textMid,
     textTransform: "uppercase" as const,
     letterSpacing: 0.5,
   },
   totalAmount: {
     fontSize: FontSize.subtitle,
     fontWeight: FontWeight.bold,
-    color: Color.textDark,
+    color: c.textDark,
   },
   totalAmountNegative: {
-    color: Color.error,
+    color: c.error,
   },
   accountRow: {
     flexDirection: "row",
@@ -174,7 +178,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.base,
     paddingVertical: Spacing.md,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderColor: Color.borderLight,
+    borderColor: c.borderLight,
   },
   accountInfo: {
     flexDirection: "row",
@@ -185,7 +189,7 @@ const styles = StyleSheet.create({
   accountName: {
     fontSize: FontSize.body,
     fontWeight: FontWeight.medium,
-    color: Color.textDark,
+    color: c.textDark,
     flexShrink: 1,
   },
   badge: {
@@ -194,28 +198,28 @@ const styles = StyleSheet.create({
     borderRadius: Radius.pill,
   },
   badgePlaid: {
-    backgroundColor: Color.primarySurface,
+    backgroundColor: c.primarySurface,
   },
   badgeManual: {
-    backgroundColor: Color.surfaceLight,
+    backgroundColor: c.surfaceLight,
   },
   badgeText: {
     fontSize: FontSize.caption,
     fontWeight: FontWeight.semibold,
   },
   badgeTextPlaid: {
-    color: Color.primaryDark,
+    color: c.primaryDark,
   },
   badgeTextManual: {
-    color: Color.textMuted,
+    color: c.textMuted,
   },
   accountBalance: {
     fontSize: FontSize.body,
     fontWeight: FontWeight.semibold,
-    color: Color.success,
+    color: c.success,
     marginLeft: Spacing.md,
   },
   accountBalanceNegative: {
-    color: Color.error,
+    color: c.error,
   },
 });

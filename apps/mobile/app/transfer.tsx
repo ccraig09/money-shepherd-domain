@@ -13,9 +13,12 @@ import { useAppStore } from "../src/store/useAppStore";
 import { parseDollars } from "../src/lib/moneyInput";
 import { formatMoney } from "../src/lib/moneyFormat";
 import { MoneyInput } from "../src/ui/components/MoneyInput";
-import { Spacing, Radius, FontSize, FontWeight, Color } from "../src/ui/tokens";
+import { Spacing, Radius, FontSize, FontWeight, type ColorTokens } from "../src/ui/tokens";
+import { useThemedStyles } from "@/src/ui/ThemeProvider";
 
 export default function TransferScreen() {
+  const styles = useThemedStyles(createStyles);
+
   const { from } = useLocalSearchParams<{ from?: string }>();
   const state = useAppStore((s) => s.state);
   const transferAction = useAppStore((s) => s.transferBetweenEnvelopes);
@@ -225,24 +228,24 @@ export default function TransferScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  flex: { flex: 1, backgroundColor: Color.surface },
+const createStyles = (c: ColorTokens) => StyleSheet.create({
+  flex: { flex: 1, backgroundColor: c.surface },
   center: { flex: 1, alignItems: "center", justifyContent: "center" },
   container: { padding: Spacing.lg, gap: Spacing.sm, paddingBottom: Spacing.bottomPad },
   emptyState: { alignItems: "center", gap: Spacing.base, paddingVertical: Spacing.xl },
-  emptyText: { fontSize: FontSize.body, color: Color.textMid, textAlign: "center" },
+  emptyText: { fontSize: FontSize.body, color: c.textMid, textAlign: "center" },
   backBtn: {
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.sm,
     borderRadius: Radius.md,
     borderWidth: 1,
-    borderColor: Color.border,
+    borderColor: c.border,
   },
-  backBtnText: { fontSize: FontSize.body, color: Color.textMid },
+  backBtnText: { fontSize: FontSize.body, color: c.textMid },
   sectionLabel: {
     fontSize: FontSize.small,
     fontWeight: FontWeight.semibold,
-    color: Color.textMid,
+    color: c.textMid,
     textTransform: "uppercase",
     letterSpacing: 0.5,
     marginTop: Spacing.md,
@@ -257,30 +260,30 @@ const styles = StyleSheet.create({
     paddingVertical: 13,
     borderRadius: Radius.md,
     borderWidth: 1,
-    borderColor: Color.borderLight,
+    borderColor: c.borderLight,
   },
-  envelopeRowSelected: { borderColor: Color.primary, backgroundColor: Color.primarySurface },
+  envelopeRowSelected: { borderColor: c.primary, backgroundColor: c.primarySurface },
   envelopeRowDisabled: { opacity: 0.35 },
-  envelopeName: { fontSize: FontSize.body, fontWeight: FontWeight.medium, color: Color.textDark },
-  envelopeNameSelected: { color: Color.primary, fontWeight: FontWeight.bold },
-  envelopeNameDisabled: { color: Color.textDisabled },
-  envelopeBalance: { fontSize: FontSize.body, color: Color.textMuted },
-  envelopeBalanceSelected: { color: Color.primary },
+  envelopeName: { fontSize: FontSize.body, fontWeight: FontWeight.medium, color: c.textDark },
+  envelopeNameSelected: { color: c.primary, fontWeight: FontWeight.bold },
+  envelopeNameDisabled: { color: c.textDisabled },
+  envelopeBalance: { fontSize: FontSize.body, color: c.textMuted },
+  envelopeBalanceSelected: { color: c.primary },
   balanceHint: {
     fontSize: FontSize.small,
-    color: Color.textMuted,
+    color: c.textMuted,
     marginTop: Spacing.sm,
     textAlign: "center",
   },
   transferBtn: {
     marginTop: Spacing.lg,
-    backgroundColor: Color.primary,
+    backgroundColor: c.primary,
     borderRadius: Radius.lg,
     paddingVertical: Spacing.md,
     alignItems: "center",
   },
   transferBtnDisabled: { opacity: 0.4 },
-  transferBtnText: { color: Color.textOnColor, fontSize: FontSize.subtitle, fontWeight: FontWeight.bold },
+  transferBtnText: { color: c.textOnColor, fontSize: FontSize.subtitle, fontWeight: FontWeight.bold },
   cancelBtn: { alignItems: "center", paddingVertical: Spacing.sm },
-  cancelText: { fontSize: FontSize.body, color: Color.textMuted },
+  cancelText: { fontSize: FontSize.body, color: c.textMuted },
 });

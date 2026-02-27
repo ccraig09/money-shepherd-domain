@@ -15,9 +15,12 @@ import { parseDollars, formatCents } from "../src/lib/moneyInput";
 import { formatMoney } from "../src/lib/moneyFormat";
 import { MoneyInput } from "../src/ui/components/MoneyInput";
 import { ProgressBar } from "../src/ui/components/ProgressBar";
-import { Spacing, Radius, FontSize, FontWeight, Color } from "../src/ui/tokens";
+import { Spacing, Radius, FontSize, FontWeight, type ColorTokens } from "../src/ui/tokens";
+import { useThemedStyles } from "@/src/ui/ThemeProvider";
 
 export default function FillEnvelopesScreen() {
+  const styles = useThemedStyles(createStyles);
+
   const state = useAppStore((s) => s.state);
   const fillEnvelopes = useAppStore((s) => s.fillEnvelopes);
 
@@ -235,38 +238,38 @@ export default function FillEnvelopesScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  flex: { flex: 1, backgroundColor: Color.surface },
+const createStyles = (c: ColorTokens) => StyleSheet.create({
+  flex: { flex: 1, backgroundColor: c.surface },
   center: { flex: 1, alignItems: "center", justifyContent: "center" },
   container: { padding: Spacing.lg, gap: Spacing.sm, paddingBottom: Spacing.bottomPad },
 
   // Available card
   availableCard: {
-    backgroundColor: Color.primarySurface,
+    backgroundColor: c.primarySurface,
     borderRadius: Radius.xl,
     padding: Spacing.base,
     alignItems: "center",
     gap: Spacing.xs,
     marginBottom: Spacing.sm,
   },
-  availableLabel: { fontSize: FontSize.small, color: Color.textMid, fontWeight: FontWeight.medium },
-  availableAmount: { fontSize: FontSize.title, fontWeight: FontWeight.extrabold, color: Color.success },
-  availableZero: { color: Color.textDisabled },
-  zeroHint: { fontSize: FontSize.small, color: Color.error, textAlign: "center", marginTop: Spacing.xs },
+  availableLabel: { fontSize: FontSize.small, color: c.textMid, fontWeight: FontWeight.medium },
+  availableAmount: { fontSize: FontSize.title, fontWeight: FontWeight.extrabold, color: c.success },
+  availableZero: { color: c.textDisabled },
+  zeroHint: { fontSize: FontSize.small, color: c.error, textAlign: "center", marginTop: Spacing.xs },
   addIncomeBtn: {
     marginTop: Spacing.sm,
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.sm,
     borderRadius: Radius.md,
-    backgroundColor: Color.success,
+    backgroundColor: c.success,
   },
-  addIncomeBtnText: { color: Color.textOnColor, fontWeight: FontWeight.semibold, fontSize: FontSize.body },
+  addIncomeBtnText: { color: c.textOnColor, fontWeight: FontWeight.semibold, fontSize: FontSize.body },
 
   // Period
   periodLabel: {
     fontSize: FontSize.subtitle,
     fontWeight: FontWeight.bold,
-    color: Color.textDark,
+    color: c.textDark,
     textAlign: "center",
     marginBottom: Spacing.xs,
   },
@@ -275,7 +278,7 @@ const styles = StyleSheet.create({
   sectionLabel: {
     fontSize: FontSize.small,
     fontWeight: FontWeight.semibold,
-    color: Color.textMid,
+    color: c.textMid,
     textTransform: "uppercase",
     letterSpacing: 0.5,
     marginTop: Spacing.md,
@@ -284,7 +287,7 @@ const styles = StyleSheet.create({
 
   // Envelope card
   envelopeCard: {
-    backgroundColor: Color.surfaceLight,
+    backgroundColor: c.surfaceLight,
     borderRadius: Radius.lg,
     padding: Spacing.md,
     gap: Spacing.sm,
@@ -295,37 +298,37 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
   },
-  envelopeName: { fontSize: FontSize.body, fontWeight: FontWeight.medium, color: Color.textDark, flex: 1 },
-  envelopeProgress: { fontSize: FontSize.small, color: Color.textMuted, fontWeight: FontWeight.medium },
-  envelopeBalance: { fontSize: FontSize.small, color: Color.success, fontWeight: FontWeight.medium },
+  envelopeName: { fontSize: FontSize.body, fontWeight: FontWeight.medium, color: c.textDark, flex: 1 },
+  envelopeProgress: { fontSize: FontSize.small, color: c.textMuted, fontWeight: FontWeight.medium },
+  envelopeBalance: { fontSize: FontSize.small, color: c.success, fontWeight: FontWeight.medium },
 
   // Warning
   warningBanner: {
-    backgroundColor: Color.warningSurface,
+    backgroundColor: c.warningSurface,
     borderRadius: Radius.md,
     padding: Spacing.md,
     borderWidth: 1,
-    borderColor: Color.borderWarning,
+    borderColor: c.borderWarning,
     marginTop: Spacing.sm,
   },
-  warningText: { fontSize: FontSize.small, color: Color.nudgeText, fontWeight: FontWeight.medium, textAlign: "center" },
+  warningText: { fontSize: FontSize.small, color: c.nudgeText, fontWeight: FontWeight.medium, textAlign: "center" },
 
   // Footer
   footer: { marginTop: Spacing.md, gap: Spacing.sm },
   totalLabel: {
     fontSize: FontSize.subtitle,
     fontWeight: FontWeight.bold,
-    color: Color.textDark,
+    color: c.textDark,
     textAlign: "center",
   },
   fillBtn: {
-    backgroundColor: Color.primary,
+    backgroundColor: c.primary,
     borderRadius: Radius.lg,
     paddingVertical: Spacing.md,
     alignItems: "center",
   },
   fillBtnDisabled: { opacity: 0.4 },
-  fillBtnText: { color: Color.textOnColor, fontSize: FontSize.subtitle, fontWeight: FontWeight.bold },
+  fillBtnText: { color: c.textOnColor, fontSize: FontSize.subtitle, fontWeight: FontWeight.bold },
   cancelBtn: { alignItems: "center", paddingVertical: Spacing.sm },
-  cancelText: { fontSize: FontSize.body, color: Color.textMuted },
+  cancelText: { fontSize: FontSize.body, color: c.textMuted },
 });

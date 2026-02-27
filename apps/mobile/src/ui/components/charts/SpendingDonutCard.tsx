@@ -5,7 +5,8 @@ import { DonutChart } from "./DonutChart";
 import type { DonutSegment } from "./DonutChart";
 import { ChartErrorBoundary } from "./ChartErrorBoundary";
 import { formatMoney } from "../../../lib/moneyFormat";
-import { Color, FontSize, FontWeight, Spacing } from "../../tokens";
+import { FontSize, FontWeight, Spacing, type ColorTokens } from "../../tokens";
+import { useThemedStyles, useTheme } from "../../ThemeProvider";
 import type { Envelope } from "@money-shepherd/domain";
 
 /** Vibrant, high-saturation palette — distinct hues for data viz */
@@ -34,6 +35,9 @@ type Props = {
  * Hidden when there is no spending data.
  */
 export function SpendingDonutCard({ envelopes, spentByEnvelope }: Props) {
+  const styles = useThemedStyles(createStyles);
+  const { colors } = useTheme();
+
   const sorted = envelopes
     .map((env) => ({
       envelope: env,
@@ -60,9 +64,9 @@ export function SpendingDonutCard({ envelopes, spentByEnvelope }: Props) {
   let paletteIdx = 0;
   const segments: DonutSegment[] = displayed.map((entry) => {
     if (entry.envelope.type === "giving")
-      return { value: entry.spent, color: Color.giving, label: entry.envelope.name };
+      return { value: entry.spent, color: colors.giving, label: entry.envelope.name };
     if (entry.envelope.type === "debt")
-      return { value: entry.spent, color: Color.debt, label: entry.envelope.name };
+      return { value: entry.spent, color: colors.debt, label: entry.envelope.name };
     const color = CHART_PALETTE[paletteIdx % CHART_PALETTE.length];
     paletteIdx++;
     return { value: entry.spent, color, label: entry.envelope.name };
@@ -71,7 +75,7 @@ export function SpendingDonutCard({ envelopes, spentByEnvelope }: Props) {
   if (otherCents > 0) {
     segments.push({
       value: otherCents,
-      color: Color.textSubtle,
+      color: colors.textSubtle,
       label: "Other",
     });
   }
@@ -111,7 +115,7 @@ export function SpendingDonutCard({ envelopes, spentByEnvelope }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (c: ColorTokens) => StyleSheet.create({
   card: {
     marginHorizontal: Spacing.base,
     marginBottom: Spacing.base,
@@ -120,7 +124,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: FontSize.small,
     fontWeight: FontWeight.semibold,
-    color: Color.textMuted,
+    color: c.textMuted,
     textTransform: "uppercase" as const,
     letterSpacing: 0.5,
     marginBottom: Spacing.md,
@@ -142,11 +146,11 @@ const styles = StyleSheet.create({
   centerAmount: {
     fontSize: FontSize.subtitle,
     fontWeight: FontWeight.bold,
-    color: Color.textDark,
+    color: c.textDark,
   },
   centerCaption: {
     fontSize: FontSize.caption,
-    color: Color.textMuted,
+    color: c.textMuted,
   },
   legend: {
     gap: Spacing.sm,
@@ -165,19 +169,19 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: FontSize.body,
     fontWeight: FontWeight.medium,
-    color: Color.textDark,
+    color: c.textDark,
   },
   legendPct: {
     fontSize: FontSize.small,
     fontWeight: FontWeight.semibold,
-    color: Color.textMuted,
+    color: c.textMuted,
     minWidth: 32,
     textAlign: "right",
   },
   legendAmount: {
     fontSize: FontSize.body,
     fontWeight: FontWeight.semibold,
-    color: Color.textDark,
+    color: c.textDark,
     minWidth: 80,
     textAlign: "right",
   },

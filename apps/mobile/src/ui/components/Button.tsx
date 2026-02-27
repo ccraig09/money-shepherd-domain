@@ -7,7 +7,8 @@ import {
   type ViewStyle,
   type TextStyle,
 } from "react-native";
-import { Spacing, Radius, FontSize, FontWeight, Color } from "../tokens";
+import { Spacing, Radius, FontSize, FontWeight, type ColorTokens } from "../tokens";
+import { useThemedStyles, useTheme } from "../ThemeProvider";
 
 type Variant = "primary" | "secondary" | "destructive" | "outline";
 
@@ -20,27 +21,6 @@ type Props = {
   style?: ViewStyle;
 };
 
-const bgMap: Record<Variant, string> = {
-  primary: Color.primary,
-  secondary: Color.surfaceLight,
-  destructive: Color.error,
-  outline: "transparent",
-};
-
-const textMap: Record<Variant, string> = {
-  primary: Color.textOnColor,
-  secondary: Color.textDark,
-  destructive: Color.textOnColor,
-  outline: Color.primary,
-};
-
-const borderMap: Record<Variant, string | undefined> = {
-  primary: undefined,
-  secondary: undefined,
-  destructive: undefined,
-  outline: Color.primary,
-};
-
 export function Button({
   label,
   onPress,
@@ -49,6 +29,30 @@ export function Button({
   loading = false,
   style,
 }: Props) {
+  const styles = useThemedStyles(createStyles);
+  const { colors } = useTheme();
+
+  const bgMap: Record<Variant, string> = {
+    primary: colors.primary,
+    secondary: colors.surfaceLight,
+    destructive: colors.error,
+    outline: "transparent",
+  };
+
+  const textMap: Record<Variant, string> = {
+    primary: colors.textOnColor,
+    secondary: colors.textDark,
+    destructive: colors.textOnColor,
+    outline: colors.primary,
+  };
+
+  const borderMap: Record<Variant, string | undefined> = {
+    primary: undefined,
+    secondary: undefined,
+    destructive: undefined,
+    outline: colors.primary,
+  };
+
   const bg = bgMap[variant];
   const textColor = textMap[variant];
   const border = borderMap[variant];
@@ -85,7 +89,7 @@ export function Button({
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (c: ColorTokens) => StyleSheet.create({
   base: {
     borderRadius: Radius.lg,
     paddingVertical: Spacing.md,

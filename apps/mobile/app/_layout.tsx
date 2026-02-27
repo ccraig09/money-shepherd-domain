@@ -19,8 +19,8 @@ import {
 import { useAppStore } from "@/src/store/useAppStore";
 import { loadSyncMeta } from "@/src/infra/local/syncMeta";
 import { loadPinHash } from "@/src/infra/local/pin";
-import { Spacing, Radius, FontSize, FontWeight, Color } from "@/src/ui/tokens";
-import { ThemeProvider, useTheme } from "@/src/ui/ThemeProvider";
+import { Spacing, Radius, FontSize, FontWeight, type ColorTokens } from "@/src/ui/tokens";
+import { ThemeProvider, useTheme, useThemedStyles } from "@/src/ui/ThemeProvider";
 import { Toast } from "@/src/ui/components/Toast";
 
 SplashScreen.preventAutoHideAsync();
@@ -34,7 +34,8 @@ export default function RootLayout() {
 }
 
 function RootLayoutInner() {
-  const { isDark } = useTheme();
+  const { isDark, colors } = useTheme();
+  const styles = useThemedStyles(createStyles);
 
   const guardState = useAppStore((s) => s.guardState);
   const status = useAppStore((s) => s.status);
@@ -158,7 +159,7 @@ function RootLayoutInner() {
 
         {isReady && (status === "loading" || status === "idle") && (
           <View style={[StyleSheet.absoluteFillObject, styles.overlay]}>
-            <ActivityIndicator size="large" color={Color.primary} />
+            <ActivityIndicator size="large" color={colors.primary} />
             <Text style={styles.loadingText}>Syncing household budget…</Text>
           </View>
         )}
@@ -181,18 +182,18 @@ function RootLayoutInner() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (c: ColorTokens) => StyleSheet.create({
   root: { flex: 1 },
   overlay: {
-    backgroundColor: Color.surface,
+    backgroundColor: c.surface,
     alignItems: "center",
     justifyContent: "center",
     gap: Spacing.md,
   },
-  loadingText: { fontSize: FontSize.body, color: Color.textMid },
+  loadingText: { fontSize: FontSize.body, color: c.textMid },
   errorText: {
     fontSize: FontSize.body,
-    color: Color.error,
+    color: c.error,
     textAlign: "center",
     paddingHorizontal: 32,
   },
@@ -202,7 +203,7 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.md,
     borderRadius: Radius.md,
     borderWidth: 1.5,
-    borderColor: Color.primary,
+    borderColor: c.primary,
   },
-  retryText: { fontSize: FontSize.body, fontWeight: FontWeight.semibold, color: Color.primary },
+  retryText: { fontSize: FontSize.body, fontWeight: FontWeight.semibold, color: c.primary },
 });

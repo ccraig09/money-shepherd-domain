@@ -16,7 +16,8 @@ import { clearPin } from "../../src/infra/local/pin";
 import { useAppStore } from "../../src/store/useAppStore";
 import { buildExportPayload } from "../../src/domain/exportData";
 import type { SyncStatus } from "../../src/domain/syncStatus";
-import { Spacing, Radius, FontSize, FontWeight, Color } from "../../src/ui/tokens";
+import { Spacing, Radius, FontSize, FontWeight, type ColorTokens } from "../../src/ui/tokens";
+import { useThemedStyles, useTheme } from "@/src/ui/ThemeProvider";
 import { Features } from "../../src/config/features";
 import {
   hasBiometricHardware,
@@ -28,6 +29,8 @@ import {
 } from "../../src/infra/local/biometric";
 
 export default function SettingsScreen() {
+  const styles = useThemedStyles(createStyles);
+  const { colors } = useTheme();
   const router = useRouter();
   const state = useAppStore((s) => s.state);
   const resetAll = useAppStore((s) => s.resetAll);
@@ -235,7 +238,7 @@ export default function SettingsScreen() {
               <Switch
                 value={biometricEnabled}
                 onValueChange={handleBiometricToggle}
-                trackColor={{ false: Color.borderLight, true: Color.primary }}
+                trackColor={{ false: colors.borderLight, true: colors.primary }}
               />
             </View>
           ) : (
@@ -323,7 +326,7 @@ export default function SettingsScreen() {
       </View>
 
       {isBusy && (
-        <ActivityIndicator size="small" color={Color.primary} style={styles.spinner} />
+        <ActivityIndicator size="small" color={colors.primary} style={styles.spinner} />
       )}
     </ScrollView>
   );
@@ -367,6 +370,7 @@ function formatSyncTime(iso: string): string {
 }
 
 function Row({ label, value }: { label: string; value: string }) {
+  const styles = useThemedStyles(createStyles);
   return (
     <View style={styles.row}>
       <Text style={styles.rowLabel}>{label}</Text>
@@ -376,6 +380,7 @@ function Row({ label, value }: { label: string; value: string }) {
 }
 
 function Divider() {
+  const styles = useThemedStyles(createStyles);
   return <View style={styles.divider} />;
 }
 
@@ -390,6 +395,7 @@ function ActionButton({
   disabled?: boolean;
   destructive?: boolean;
 }) {
+  const styles = useThemedStyles(createStyles);
   return (
     <Pressable
       onPress={onPress}
@@ -407,13 +413,13 @@ function ActionButton({
   );
 }
 
-const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: Color.surfaceLight },
+const createStyles = (c: ColorTokens) => StyleSheet.create({
+  root: { flex: 1, backgroundColor: c.surfaceLight },
   container: { padding: Spacing.lg, paddingTop: 60, gap: Spacing.lg, paddingBottom: Spacing.bottomPad },
-  appName: { fontSize: FontSize.small, fontWeight: FontWeight.semibold, color: Color.primary, textTransform: "uppercase", letterSpacing: 0.5 },
-  pageTitle: { fontSize: FontSize.title, fontWeight: FontWeight.extrabold, color: Color.textDark, marginTop: 2 },
+  appName: { fontSize: FontSize.small, fontWeight: FontWeight.semibold, color: c.primary, textTransform: "uppercase", letterSpacing: 0.5 },
+  pageTitle: { fontSize: FontSize.title, fontWeight: FontWeight.extrabold, color: c.textDark, marginTop: 2 },
   card: {
-    backgroundColor: Color.surface,
+    backgroundColor: c.surface,
     borderRadius: Radius.hero,
     padding: Spacing.base,
     gap: Spacing.xs,
@@ -425,7 +431,7 @@ const styles = StyleSheet.create({
   cardTitle: {
     fontSize: FontSize.caption,
     fontWeight: FontWeight.semibold,
-    color: Color.textMuted,
+    color: c.textMuted,
     textTransform: "uppercase",
     letterSpacing: 0.8,
     marginBottom: Spacing.sm,
@@ -436,14 +442,14 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingVertical: Spacing.xs,
   },
-  rowLabel: { fontSize: FontSize.body, color: Color.textMid },
-  rowValue: { fontSize: FontSize.body, color: Color.textDark, fontWeight: FontWeight.medium, maxWidth: "60%" },
-  divider: { height: StyleSheet.hairlineWidth, backgroundColor: Color.borderLight, marginVertical: 2 },
+  rowLabel: { fontSize: FontSize.body, color: c.textMid },
+  rowValue: { fontSize: FontSize.body, color: c.textDark, fontWeight: FontWeight.medium, maxWidth: "60%" },
+  divider: { height: StyleSheet.hairlineWidth, backgroundColor: c.borderLight, marginVertical: 2 },
   actionBtn: { paddingVertical: Spacing.md, minHeight: 44 },
   actionBtnPressed: { opacity: 0.6 },
   actionBtnDisabled: { opacity: 0.4 },
-  actionBtnText: { fontSize: FontSize.subtitle, color: Color.primary, fontWeight: FontWeight.semibold },
-  actionBtnTextDestructive: { color: Color.error },
+  actionBtnText: { fontSize: FontSize.subtitle, color: c.primary, fontWeight: FontWeight.semibold },
+  actionBtnTextDestructive: { color: c.error },
   spinner: { alignSelf: "center", marginTop: Spacing.sm },
   toggleRow: {
     flexDirection: "row",
@@ -451,6 +457,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingVertical: Spacing.xs,
   },
-  toggleLabel: { fontSize: FontSize.subtitle, color: Color.textDark, fontWeight: FontWeight.semibold },
-  hintText: { fontSize: FontSize.body, color: Color.textMuted, lineHeight: 20 },
+  toggleLabel: { fontSize: FontSize.subtitle, color: c.textDark, fontWeight: FontWeight.semibold },
+  hintText: { fontSize: FontSize.body, color: c.textMuted, lineHeight: 20 },
 });

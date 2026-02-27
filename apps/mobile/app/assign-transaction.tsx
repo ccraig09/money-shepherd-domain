@@ -13,9 +13,13 @@ import { loadSyncMeta } from "../src/infra/local/syncMeta";
 import { formatMoney } from "../src/lib/moneyFormat";
 import { Card } from "../src/ui/components/Card";
 import { SectionHeader } from "../src/ui/components/SectionHeader";
-import { Spacing, Radius, FontSize, FontWeight, Color } from "../src/ui/tokens";
+import { Spacing, Radius, FontSize, FontWeight, type ColorTokens } from "../src/ui/tokens";
+import { useThemedStyles, useTheme } from "@/src/ui/ThemeProvider";
 
 export default function AssignTransactionScreen() {
+  const styles = useThemedStyles(createStyles);
+  const { colors } = useTheme();
+
   const { transactionId, suggestedEnvelopeId } = useLocalSearchParams<{
     transactionId: string;
     suggestedEnvelopeId?: string;
@@ -38,7 +42,7 @@ export default function AssignTransactionScreen() {
   if (!state || !transactionId) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator color={Color.primary} />
+        <ActivityIndicator color={colors.primary} />
       </View>
     );
   }
@@ -178,10 +182,10 @@ export default function AssignTransactionScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: Color.surface },
+const createStyles = (c: ColorTokens) => StyleSheet.create({
+  root: { flex: 1, backgroundColor: c.surface },
   center: { flex: 1, alignItems: "center", justifyContent: "center" },
-  errorText: { fontSize: FontSize.body, color: Color.error },
+  errorText: { fontSize: FontSize.body, color: c.error },
   summary: {
     flexDirection: "row",
     alignItems: "center",
@@ -189,13 +193,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.base,
     paddingVertical: Spacing.base,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderColor: Color.border,
-    backgroundColor: Color.surfaceLight,
+    borderColor: c.border,
+    backgroundColor: c.surfaceLight,
   },
-  summaryDesc: { fontSize: FontSize.body, fontWeight: FontWeight.semibold, color: Color.textDark, flex: 1 },
+  summaryDesc: { fontSize: FontSize.body, fontWeight: FontWeight.semibold, color: c.textDark, flex: 1 },
   summaryAmount: { fontSize: FontSize.subtitle, fontWeight: FontWeight.bold, marginLeft: Spacing.md },
-  income: { color: Color.success },
-  expense: { color: Color.error },
+  income: { color: c.success },
+  expense: { color: c.error },
   list: { paddingBottom: Spacing.base },
   envelopeRow: {
     flexDirection: "row",
@@ -205,51 +209,51 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.md,
     minHeight: 44,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderColor: Color.borderLight,
+    borderColor: c.borderLight,
   },
   envelopeRowSelected: {
-    backgroundColor: Color.primarySurface,
+    backgroundColor: c.primarySurface,
   },
-  envelopeName: { fontSize: FontSize.subtitle, fontWeight: FontWeight.medium, color: Color.textDark },
-  envelopeNameSelected: { color: Color.primary, fontWeight: FontWeight.bold },
-  envelopeBalance: { fontSize: FontSize.body, color: Color.textMuted },
-  envelopeBalanceSelected: { color: Color.primary },
+  envelopeName: { fontSize: FontSize.subtitle, fontWeight: FontWeight.medium, color: c.textDark },
+  envelopeNameSelected: { color: c.primary, fontWeight: FontWeight.bold },
+  envelopeBalance: { fontSize: FontSize.body, color: c.textMuted },
+  envelopeBalanceSelected: { color: c.primary },
   noEnvelopes: {
     padding: Spacing.lg,
     alignItems: "center",
-    backgroundColor: Color.surfaceLight,
+    backgroundColor: c.surfaceLight,
     gap: Spacing.base,
   },
-  noEnvelopesText: { fontSize: FontSize.subtitle, color: Color.textMid },
+  noEnvelopesText: { fontSize: FontSize.subtitle, color: c.textMid },
   createBtn: {
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.md,
     borderRadius: Radius.lg,
-    backgroundColor: Color.primary,
+    backgroundColor: c.primary,
   },
-  createBtnText: { color: Color.textOnColor, fontWeight: FontWeight.semibold, fontSize: FontSize.body },
+  createBtnText: { color: c.textOnColor, fontWeight: FontWeight.semibold, fontSize: FontSize.body },
   footer: {
     paddingHorizontal: Spacing.base,
     paddingBottom: Spacing.xl,
     paddingTop: Spacing.md,
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderColor: Color.borderLight,
+    borderColor: c.borderLight,
     gap: Spacing.sm,
   },
   assignBtn: {
-    backgroundColor: Color.primary,
+    backgroundColor: c.primary,
     borderRadius: Radius.lg,
     paddingVertical: Spacing.md,
     alignItems: "center",
   },
   assignBtnDisabled: { opacity: 0.4 },
-  assignBtnText: { color: Color.textOnColor, fontSize: FontSize.subtitle, fontWeight: FontWeight.bold },
+  assignBtnText: { color: c.textOnColor, fontSize: FontSize.subtitle, fontWeight: FontWeight.bold },
   cancelBtn: { alignItems: "center", paddingVertical: Spacing.sm },
-  cancelText: { fontSize: FontSize.body, color: Color.textMuted },
+  cancelText: { fontSize: FontSize.body, color: c.textMuted },
   overspendWarning: {
     paddingHorizontal: Spacing.base,
     paddingVertical: Spacing.xs,
-    backgroundColor: Color.warningSurface,
+    backgroundColor: c.warningSurface,
   },
-  overspendText: { fontSize: FontSize.small, color: Color.warning, fontWeight: FontWeight.medium },
+  overspendText: { fontSize: FontSize.small, color: c.warning, fontWeight: FontWeight.medium },
 });

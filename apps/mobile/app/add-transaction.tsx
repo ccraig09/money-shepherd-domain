@@ -20,11 +20,15 @@ import { MoneyInput } from "../src/ui/components/MoneyInput";
 import { buildAccountPickerList } from "../src/lib/accountStatus";
 import { loadPlaidTokens, type PlaidTokenData } from "../src/infra/local/secureTokens";
 import { loadSyncMeta } from "../src/infra/local/syncMeta";
-import { Spacing, Radius, FontSize, FontWeight, Color } from "../src/ui/tokens";
+import { Spacing, Radius, FontSize, FontWeight, type ColorTokens } from "../src/ui/tokens";
+import { useThemedStyles, useTheme } from "@/src/ui/ThemeProvider";
 
 type TxKind = "income" | "expense";
 
 export default function AddTransactionScreen() {
+  const styles = useThemedStyles(createStyles);
+  const { colors } = useTheme();
+
   const { kind: kindParam } = useLocalSearchParams<{ kind?: string }>();
   const state = useAppStore((s) => s.state);
   const addManualTransaction = useAppStore((s) => s.addManualTransaction);
@@ -264,7 +268,7 @@ export default function AddTransactionScreen() {
           value={description}
           onChangeText={setDescription}
           placeholder="e.g. Paycheck, Walmart, Gas"
-          placeholderTextColor={Color.textMuted}
+          placeholderTextColor={colors.textMuted}
           style={styles.input}
           accessibilityLabel="Transaction description"
           returnKeyType="done"
@@ -292,8 +296,8 @@ export default function AddTransactionScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  flex: { flex: 1, backgroundColor: Color.surface },
+const createStyles = (c: ColorTokens) => StyleSheet.create({
+  flex: { flex: 1, backgroundColor: c.surface },
   container: {
     padding: Spacing.lg,
     gap: Spacing.sm,
@@ -302,37 +306,37 @@ const styles = StyleSheet.create({
   sectionLabel: {
     fontSize: FontSize.small,
     fontWeight: FontWeight.semibold,
-    color: Color.textMid,
+    color: c.textMid,
     textTransform: "uppercase",
     letterSpacing: 0.5,
     marginTop: Spacing.base,
     marginBottom: Spacing.xs,
   },
-  optional: { fontWeight: FontWeight.medium, textTransform: "none", color: Color.textSubtle },
+  optional: { fontWeight: FontWeight.medium, textTransform: "none", color: c.textSubtle },
   row: { flexDirection: "row", gap: Spacing.sm },
   selectField: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     borderWidth: 1,
-    borderColor: Color.border,
+    borderColor: c.border,
     borderRadius: Radius.md,
     paddingHorizontal: Spacing.md,
     paddingVertical: 13,
-    backgroundColor: Color.surface,
+    backgroundColor: c.surface,
   },
-  selectFieldText: { fontSize: FontSize.subtitle, color: Color.textDark, flex: 1 },
-  selectChevron: { fontSize: FontSize.title, color: Color.textSubtle, marginLeft: Spacing.sm },
+  selectFieldText: { fontSize: FontSize.subtitle, color: c.textDark, flex: 1 },
+  selectChevron: { fontSize: FontSize.title, color: c.textSubtle, marginLeft: Spacing.sm },
   modalHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     padding: Spacing.base,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderColor: Color.border,
+    borderColor: c.border,
   },
-  modalTitle: { fontSize: FontSize.subtitle, fontWeight: FontWeight.bold, color: Color.textDark },
-  modalClose: { fontSize: FontSize.subtitle, color: Color.primary, fontWeight: FontWeight.semibold },
+  modalTitle: { fontSize: FontSize.subtitle, fontWeight: FontWeight.bold, color: c.textDark },
+  modalClose: { fontSize: FontSize.subtitle, color: c.primary, fontWeight: FontWeight.semibold },
   modalRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -340,54 +344,54 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.base,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderColor: Color.borderLight,
+    borderColor: c.borderLight,
   },
-  modalRowSelected: { backgroundColor: Color.primarySurface },
+  modalRowSelected: { backgroundColor: c.primarySurface },
   modalRowContent: { flex: 1 },
-  modalRowText: { fontSize: FontSize.subtitle, color: Color.textDark },
-  modalRowTextSelected: { color: Color.primary, fontWeight: FontWeight.semibold },
-  modalRowTextDisconnected: { color: Color.textDisabled },
-  disconnectedLabel: { fontSize: FontSize.caption, color: Color.textSubtle, marginTop: 2 },
-  modalCheck: { fontSize: FontSize.subtitle, color: Color.primary, marginLeft: Spacing.sm },
+  modalRowText: { fontSize: FontSize.subtitle, color: c.textDark },
+  modalRowTextSelected: { color: c.primary, fontWeight: FontWeight.semibold },
+  modalRowTextDisconnected: { color: c.textDisabled },
+  disconnectedLabel: { fontSize: FontSize.caption, color: c.textSubtle, marginTop: 2 },
+  modalCheck: { fontSize: FontSize.subtitle, color: c.primary, marginLeft: Spacing.sm },
   toggleBtn: {
     flex: 1,
     paddingVertical: Spacing.md,
     borderRadius: Radius.md,
     borderWidth: 1,
-    borderColor: Color.border,
+    borderColor: c.border,
     alignItems: "center",
   },
-  toggleText: { fontSize: FontSize.body, color: Color.textMid },
-  incomeActive: { borderColor: Color.success, backgroundColor: Color.successSurface },
-  incomeText: { color: Color.success, fontWeight: FontWeight.semibold },
-  expenseActive: { borderColor: Color.error, backgroundColor: Color.errorSurface },
-  expenseText: { color: Color.error, fontWeight: FontWeight.semibold },
+  toggleText: { fontSize: FontSize.body, color: c.textMid },
+  incomeActive: { borderColor: c.success, backgroundColor: c.successSurface },
+  incomeText: { color: c.success, fontWeight: FontWeight.semibold },
+  expenseActive: { borderColor: c.error, backgroundColor: c.errorSurface },
+  expenseText: { color: c.error, fontWeight: FontWeight.semibold },
   input: {
     borderWidth: 1,
-    borderColor: Color.border,
+    borderColor: c.border,
     borderRadius: Radius.md,
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.md,
     fontSize: FontSize.subtitle,
-    color: Color.textDark,
+    color: c.textDark,
   },
   saveBtn: {
     marginTop: Spacing.lg,
-    backgroundColor: Color.primary,
+    backgroundColor: c.primary,
     borderRadius: Radius.lg,
     paddingVertical: Spacing.md,
     alignItems: "center",
   },
   saveBtnDisabled: { opacity: 0.6 },
-  saveBtnText: { color: Color.textOnColor, fontSize: FontSize.subtitle, fontWeight: FontWeight.bold },
+  saveBtnText: { color: c.textOnColor, fontSize: FontSize.subtitle, fontWeight: FontWeight.bold },
   cancelBtn: {
     marginTop: Spacing.md,
     alignItems: "center",
     paddingVertical: Spacing.sm,
   },
-  cancelText: { fontSize: FontSize.body, color: Color.textMuted },
+  cancelText: { fontSize: FontSize.body, color: c.textMuted },
   preview: { textAlign: "center", fontSize: FontSize.title, fontWeight: FontWeight.extrabold, marginVertical: Spacing.sm },
-  previewMuted: { color: Color.textSubtle },
-  previewIncome: { color: Color.success },
-  previewExpense: { color: Color.error },
+  previewMuted: { color: c.textSubtle },
+  previewIncome: { color: c.success },
+  previewExpense: { color: c.error },
 });
