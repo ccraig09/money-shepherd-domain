@@ -12,6 +12,13 @@ import {
 import { verifyPin } from "../../src/infra/local/pin";
 import { useAppStore } from "../../src/store/useAppStore";
 import { Spacing, Radius, FontSize, FontWeight, Color } from "../../src/ui/tokens";
+import {
+  hasBiometricHardware,
+  isBiometricEnrolled,
+  loadBiometricPreference,
+  authenticateWithBiometric,
+  getBiometricTypeLabel,
+} from "../../src/infra/local/biometric";
 
 export default function PinUnlockScreen() {
   const bootstrap = useAppStore((s) => s.bootstrap);
@@ -20,14 +27,41 @@ export default function PinUnlockScreen() {
   const [pin, setPin] = React.useState("");
   const [isChecking, setIsChecking] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
+  const [biometricAvailable, setBiometricAvailable] = React.useState(false);
+  const [biometricLabel, setBiometricLabel] = React.useState("Biometric");
 
   const inputRef = React.useRef<TextInput>(null);
 
+  const attemptBiometric = React.useCallback(async () => {
+    const result = await authenticateWithBiometric();
+    if (result.success) {
+      await bootstrap();
+      setGuardReady();
+    }
+  }, [bootstrap, setGuardReady]);
+
   React.useEffect(() => {
-    // Auto-focus on mount
-    const t = setTimeout(() => inputRef.current?.focus(), 100);
-    return () => clearTimeout(t);
-  }, []);
+    let cancelled = false;
+    async function init() {
+      const [prefOn, hasHw, enrolled] = await Promise.all([
+        loadBiometricPreference(),
+        hasBiometricHardware(),
+        isBiometricEnrolled(),
+      ]);
+      const available = prefOn && hasHw && enrolled;
+      if (cancelled) return;
+      setBiometricAvailable(available);
+      if (available) {
+        const label = await getBiometricTypeLabel();
+        if (!cancelled) setBiometricLabel(label);
+        attemptBiometric();
+      } else {
+        setTimeout(() => inputRef.current?.focus(), 100);
+      }
+    }
+    init();
+    return () => { cancelled = true; };
+  }, [attemptBiometric]);
 
   async function onSubmit() {
     if (!/^\d{4}$/.test(pin)) {
@@ -95,6 +129,12 @@ export default function PinUnlockScreen() {
             <Text style={styles.unlockBtnText}>Unlock</Text>
           )}
         </Pressable>
+
+        {biometricAvailable && (
+          <Pressable onPress={attemptBiometric} style={styles.biometricBtn}>
+            <Text style={styles.biometricBtnText}>Use {biometricLabel}</Text>
+          </Pressable>
+        )}
       </View>
     </KeyboardAvoidingView>
   );
@@ -132,4 +172,13 @@ const styles = StyleSheet.create({
   },
   unlockBtnDisabled: { opacity: 0.6 },
   unlockBtnText: { color: Color.textOnColor, fontSize: FontSize.subtitle, fontWeight: FontWeight.bold },
+  biometricBtn: {
+    alignItems: "center",
+    paddingVertical: Spacing.sm,
+  },
+  biometricBtnText: {
+    color: Color.primary,
+    fontSize: FontSize.body,
+    fontWeight: FontWeight.semibold,
+  },
 });
