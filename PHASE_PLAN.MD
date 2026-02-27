@@ -403,7 +403,7 @@
 
 ---
 
-## Phase 23: Biometric Login (Face ID / Touch ID)
+## Phase 24: Biometric Login (Face ID / Touch ID)
 
 ### Recommended build order
 - [ ] MS-23.1 Add expo-local-authentication (install, helper module, iOS config)
@@ -411,26 +411,10 @@
 - [ ] MS-23.3 Biometric opt-in during setup (offer after PIN creation)
 - [ ] MS-23.4 Settings toggle for biometric (enable/disable in settings)
 
-### Phase 23 Smoke Check
+### Phase 24 Smoke Check
 - [ ] Face ID / Touch ID prompts on app unlock
 - [ ] Failed biometric falls back to PIN
 - [ ] Biometric can be toggled on/off in settings
-
----
-
-## Phase 24: Production Plaid & Real Banking
-
-### Recommended build order
-- [ ] MS-24.1 Migrate Plaid tokens to SecureStore (encrypted at rest)
-- [ ] MS-24.2 Production Plaid environment config (switch from sandbox, update Cloud Functions)
-- [ ] MS-24.3 Production Plaid Link integration test (connect real bank, verify sync)
-- [ ] MS-24.4 Multi-user bank onboarding documentation (how both users connect)
-
-### Phase 24 Smoke Check
-- [ ] Plaid tokens stored in SecureStore (not AsyncStorage)
-- [ ] Real bank connected via production Plaid Link
-- [ ] Transactions from real bank sync into app
-- [ ] Both household members can connect their own banks
 
 ---
 
@@ -466,5 +450,23 @@
 - [ ] Charts readable in dark mode
 - [ ] No white flash on navigation transitions
 - [ ] Status bar adapts to theme
+
+---
+
+## Phase 27: Production Plaid & Real Banking
+
+> **Build order note:** Do this phase last — after biometric, envelope groups, and dark mode are polished. This is the "go live" moment.
+
+### Recommended build order
+- [ ] MS-24.1 Migrate Plaid tokens to SecureStore (encrypted at rest)
+- [ ] MS-24.2 Production Plaid environment config (switch from sandbox, update Cloud Functions)
+- [ ] MS-24.3 Production Plaid Link integration test (connect real bank, verify sync)
+- [ ] MS-24.4 Multi-user bank onboarding documentation (how both users connect)
+
+### Phase 27 Smoke Check
+- [ ] Plaid tokens stored in SecureStore (not AsyncStorage)
+- [ ] Real bank connected via production Plaid Link
+- [ ] Transactions from real bank sync into app
+- [ ] Both household members can connect their own banks
 
 ---
