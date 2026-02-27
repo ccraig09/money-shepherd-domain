@@ -445,11 +445,11 @@
 - [x] MS-26.5 Dark mode polish: shadows, borders, status bar, splash
 
 ### Phase 26 Smoke Check
-- [ ] Dark mode renders correctly on all screens
-- [ ] Theme toggle works in settings (Light / Dark / System)
-- [ ] Charts readable in dark mode
-- [ ] No white flash on navigation transitions
-- [ ] Status bar adapts to theme
+- [x] Dark mode renders correctly on all screens
+- [x] Theme toggle works in settings (Light / Dark / System)
+- [x] Charts readable in dark mode
+- [x] No white flash on navigation transitions
+- [x] Status bar adapts to theme
 
 ---
 
