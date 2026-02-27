@@ -391,7 +391,7 @@
 - [x] MS-22.2 Spending by envelope pie/donut chart
 - [x] MS-22.3 PeriodSummaryCard visual upgrade (mini chart enhancement for existing This Month card)
 - [x] MS-22.4 Income vs Expense trend bar chart (3-6 months)
-- [ ] MS-22.5 Rule-based insights engine (pattern matching, no AI)
+- [x] MS-22.5 Rule-based insights engine (pattern matching, no AI)
 - [ ] MS-22.6 InsightCard component + placement ("Money Shepherd says...")
 
 ### Phase 22 Smoke Check
