@@ -470,3 +470,83 @@
 - [ ] Both household members can connect their own banks
 
 ---
+
+## Phase 28: AI Advisor — Foundation + Guided Setup
+
+> **Goal:** After connecting a bank, AI analyzes spending, auto-creates envelopes, sets budgets, and categorizes transactions — all with user preview/confirm. Uses OpenAI GPT-4o-mini via Cloud Functions. $5/month budget cap with full usage monitoring.
+
+### Recommended build order
+- [ ] MS-28.1 OpenAI Cloud Function setup (SDK, secrets, system prompt)
+- [ ] MS-28.1b API usage monitoring + cost controls ($5/mo cap, rate limits, Settings UI)
+- [ ] MS-28.2 Context builder (AppState → AI summary, pure function + tests)
+- [ ] MS-28.3 Spending analysis Cloud Function (suggest envelopes + budgets)
+- [ ] MS-28.4 Guided setup wizard UI (preview + one-tap create envelopes)
+- [ ] MS-28.5 Auto-allocate suggestions (preview + one-tap allocate)
+- [ ] MS-28.6 AI auto-categorization Cloud Function (merchant → envelope mapping)
+- [ ] MS-28.7 Integrate AI categorization into suggestEnvelope hierarchy
+- [ ] MS-28.8 Auto-assign preview + bulk confirm in Inbox
+
+### Architecture Notes
+- LLM: OpenAI GPT-4o-mini (~$0.03/mo est.) via Firebase Cloud Functions
+- API key in Firebase secrets (same pattern as Plaid)
+- All AI actions: Preview → Confirm → Engine execute (no silent mutations)
+- Cached payee categorizations in existing `payeeMappings` field
+- AI tier slots into suggestEnvelope hierarchy: rules > AI > recurring > payee
+- System prompt versioned in code — no runtime training needed
+- Guardrails: $5/mo hard cap, 20 calls/day rate limit, 4K token cap, no PII sent
+- Usage monitoring: Firestore log, per-function breakdown, Settings UI dashboard
+
+### Phase 28 Smoke Check
+- [ ] Connect bank → "Set Up Your Budget" wizard appears
+- [ ] AI suggests envelopes based on real spending (giving first)
+- [ ] Can edit/remove suggestions before creating
+- [ ] One-tap creates all selected envelopes with goals
+- [ ] AI suggests allocation → preview → one-tap allocate
+- [ ] New transactions from unknown merchants get AI-categorized
+- [ ] AI suggestions appear in Inbox with "Confirm All"
+- [ ] Rate limit prevents excessive API calls
+- [ ] Settings shows AI usage stats (calls, tokens, cost, budget remaining)
+
+---
+
+## Phase 29: AI Advisor — Ongoing Intelligence
+
+> **Goal:** Monthly spending reviews, budget adjustment suggestions, enhanced dashboard insights, anomaly alerts.
+
+### Recommended build order
+- [ ] MS-29.1 Monthly review Cloud Function (spending summary + adjustment suggestions)
+- [ ] MS-29.2 Budget adjustment UI (monthly review card + one-tap adjust)
+- [ ] MS-29.3 AI-enhanced insights (blend AI + rule-based on dashboard)
+- [ ] MS-29.4 Spending anomaly alerts (unusual charges, spending spikes)
+
+### Phase 29 Smoke Check
+- [ ] Start of month → monthly review card appears on dashboard
+- [ ] Review shows per-envelope highlights (over/under budget)
+- [ ] Budget adjustments can be previewed and applied in one tap
+- [ ] AI insights blend with rule-based insights on dashboard
+- [ ] Unusual spending triggers an alert
+
+---
+
+## Phase 30: AI Advisor — Conversational
+
+> **Goal:** Chat interface where users ask financial questions and the AI can suggest + execute budget actions, with full conversation history.
+
+### Recommended build order
+- [ ] MS-30.1 Chat UI component (bubbles, markdown, action cards)
+- [ ] MS-30.2 Conversational Cloud Function (multi-turn, budget-aware)
+- [ ] MS-30.3 Action execution from chat (preview → confirm → engine)
+- [ ] MS-30.4 Chat session persistence + history (multi-session storage, auto-title, 24h resume)
+- [ ] MS-30.5 Chat history list UI (past conversations, read-only view, swipe to delete)
+
+### Phase 30 Smoke Check
+- [ ] Tap "Ask Money Shepherd" → chat screen opens
+- [ ] Ask "How am I doing this month?" → get spending summary response
+- [ ] Ask "Create a Vacation savings envelope for $2000" → action card appears → confirm → envelope created
+- [ ] Ask "Move $50 from Dining to Groceries" → transfer action card → confirm → balances update
+- [ ] Chat persists across app relaunches (within 24h)
+- [ ] Start new conversation → old one appears in history list
+- [ ] Tap old conversation → view past messages (read-only)
+- [ ] AI unavailable → graceful error message, no crash
+
+---
