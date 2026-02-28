@@ -3,31 +3,47 @@ import {
   loadPlaidTokens,
   removePlaidToken,
   clearAllPlaidTokens,
-  type PlaidTokenData,
 } from "../secureTokens";
+import type { PlaidTokenData } from "../secureTokens";
 
-// Mock AsyncStorage with an in-memory map
-const store = new Map<string, string>();
+// In-memory stores for SecureStore and AsyncStorage
+const secureStoreMap = new Map<string, string>();
+const asyncStorageMap = new Map<string, string>();
+
+jest.mock("expo-secure-store", () => ({
+  setItemAsync: jest.fn((key: string, value: string) => {
+    secureStoreMap.set(key, value);
+    return Promise.resolve();
+  }),
+  getItemAsync: jest.fn((key: string) => {
+    return Promise.resolve(secureStoreMap.get(key) ?? null);
+  }),
+  deleteItemAsync: jest.fn((key: string) => {
+    secureStoreMap.delete(key);
+    return Promise.resolve();
+  }),
+}));
 
 jest.mock("@react-native-async-storage/async-storage", () => ({
   __esModule: true,
   default: {
     setItem: jest.fn((key: string, value: string) => {
-      store.set(key, value);
+      asyncStorageMap.set(key, value);
       return Promise.resolve();
     }),
     getItem: jest.fn((key: string) => {
-      return Promise.resolve(store.get(key) ?? null);
+      return Promise.resolve(asyncStorageMap.get(key) ?? null);
     }),
     removeItem: jest.fn((key: string) => {
-      store.delete(key);
+      asyncStorageMap.delete(key);
       return Promise.resolve();
     }),
   },
 }));
 
 beforeEach(() => {
-  store.clear();
+  secureStoreMap.clear();
+  asyncStorageMap.clear();
 });
 
 const CHASE: PlaidTokenData = {
@@ -42,8 +58,7 @@ const WELLS: PlaidTokenData = {
   institutionName: "Wells Fargo",
 };
 
-
-describe("secureTokens (multi-item)", () => {
+describe("secureTokens (SecureStore backend)", () => {
   describe("addPlaidToken + loadPlaidTokens", () => {
     it("stores and retrieves a single token", async () => {
       await addPlaidToken("user-los", CHASE);
@@ -70,6 +85,19 @@ describe("secureTokens (multi-item)", () => {
       const tokens = await loadPlaidTokens("user-los");
       expect(tokens).toEqual([]);
     });
+
+    it("stores each token as a separate SecureStore key", async () => {
+      await addPlaidToken("user-los", CHASE);
+      await addPlaidToken("user-los", WELLS);
+
+      // Index key contains both itemIds
+      const indexRaw = secureStoreMap.get("plaid_idx_user-los");
+      expect(JSON.parse(indexRaw!)).toEqual(["item-chase-abc", "item-wells-def"]);
+
+      // Each token stored separately
+      expect(secureStoreMap.has("plaid_tok_user-los_item-chase-abc")).toBe(true);
+      expect(secureStoreMap.has("plaid_tok_user-los_item-wells-def")).toBe(true);
+    });
   });
 
   describe("user isolation", () => {
@@ -92,6 +120,13 @@ describe("secureTokens (multi-item)", () => {
       expect(tokens).toEqual([WELLS]);
     });
 
+    it("cleans up the per-item SecureStore key on remove", async () => {
+      await addPlaidToken("user-los", CHASE);
+      await removePlaidToken("user-los", CHASE.itemId);
+
+      expect(secureStoreMap.has("plaid_tok_user-los_item-chase-abc")).toBe(false);
+    });
+
     it("does not throw when removing a non-existent itemId", async () => {
       await addPlaidToken("user-los", CHASE);
       await expect(removePlaidToken("user-los", "no-such-item")).resolves.toBeUndefined();
@@ -107,6 +142,16 @@ describe("secureTokens (multi-item)", () => {
       expect(await loadPlaidTokens("user-los")).toEqual([]);
     });
 
+    it("cleans up all SecureStore keys on clear", async () => {
+      await addPlaidToken("user-los", CHASE);
+      await addPlaidToken("user-los", WELLS);
+      await clearAllPlaidTokens("user-los");
+
+      expect(secureStoreMap.has("plaid_idx_user-los")).toBe(false);
+      expect(secureStoreMap.has("plaid_tok_user-los_item-chase-abc")).toBe(false);
+      expect(secureStoreMap.has("plaid_tok_user-los_item-wells-def")).toBe(false);
+    });
+
     it("does not affect another user", async () => {
       await addPlaidToken("user-los", CHASE);
       await addPlaidToken("user-jackia", WELLS);
@@ -117,17 +162,48 @@ describe("secureTokens (multi-item)", () => {
     });
   });
 
-  describe("migration from single-object format", () => {
-    it("auto-migrates old single-object format to array on read", async () => {
-      // Simulate old format: a single object, not an array
-      store.set("plaid_token_user-los", JSON.stringify(CHASE));
+  describe("migration from AsyncStorage", () => {
+    it("migrates array format from AsyncStorage to SecureStore on first read", async () => {
+      asyncStorageMap.set("plaid_token_user-los", JSON.stringify([CHASE, WELLS]));
+
+      const tokens = await loadPlaidTokens("user-los");
+      expect(tokens).toEqual([CHASE, WELLS]);
+
+      // Old key removed
+      expect(asyncStorageMap.has("plaid_token_user-los")).toBe(false);
+
+      // Data now in SecureStore
+      expect(secureStoreMap.has("plaid_idx_user-los")).toBe(true);
+      expect(secureStoreMap.has("plaid_tok_user-los_item-chase-abc")).toBe(true);
+      expect(secureStoreMap.has("plaid_tok_user-los_item-wells-def")).toBe(true);
+    });
+
+    it("migrates single-object format from AsyncStorage", async () => {
+      asyncStorageMap.set("plaid_token_user-los", JSON.stringify(CHASE));
 
       const tokens = await loadPlaidTokens("user-los");
       expect(tokens).toEqual([CHASE]);
 
-      // Verify it was migrated in storage
-      const raw = store.get("plaid_token_user-los");
-      expect(JSON.parse(raw!)).toEqual([CHASE]);
+      expect(asyncStorageMap.has("plaid_token_user-los")).toBe(false);
+      expect(secureStoreMap.has("plaid_tok_user-los_item-chase-abc")).toBe(true);
+    });
+
+    it("does not re-migrate once data is in SecureStore", async () => {
+      // First read triggers migration
+      asyncStorageMap.set("plaid_token_user-los", JSON.stringify([CHASE]));
+      await loadPlaidTokens("user-los");
+
+      // Put something back in AsyncStorage (should be ignored)
+      asyncStorageMap.set("plaid_token_user-los", JSON.stringify([WELLS]));
+
+      // Second read uses SecureStore, not AsyncStorage
+      const tokens = await loadPlaidTokens("user-los");
+      expect(tokens).toEqual([CHASE]);
+    });
+
+    it("returns empty array when neither storage has data", async () => {
+      const tokens = await loadPlaidTokens("user-los");
+      expect(tokens).toEqual([]);
     });
   });
 });
