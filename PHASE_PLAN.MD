@@ -458,7 +458,7 @@
 > **Build order note:** Do this phase last — after biometric, envelope groups, and dark mode are polished. This is the "go live" moment.
 
 ### Recommended build order
-- [ ] MS-24.1 Migrate Plaid tokens to SecureStore (encrypted at rest)
+- [x] MS-24.1 Migrate Plaid tokens to SecureStore (encrypted at rest)
 - [ ] MS-24.2 Production Plaid environment config (switch from sandbox, update Cloud Functions)
 - [ ] MS-24.3 Production Plaid Link integration test (connect real bank, verify sync)
 - [ ] MS-24.4 Multi-user bank onboarding documentation (how both users connect)
