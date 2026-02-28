@@ -22,6 +22,7 @@ web-build/
 # Local env files
 .env*.local
 .env
+apps/mobile/.env.development
 
 # OS Clutter
 .DS_Store
