@@ -1,5 +1,5 @@
 import { onCall, HttpsError } from "firebase-functions/v2/https";
-import { defineSecret } from "firebase-functions/params";
+import { defineSecret, defineString } from "firebase-functions/params";
 import { initializeApp } from "firebase-admin/app";
 import { Configuration, PlaidApi, PlaidEnvironments, Products, CountryCode } from "plaid";
 
@@ -7,10 +7,11 @@ initializeApp();
 
 const PLAID_CLIENT_ID = defineSecret("PLAID_CLIENT_ID");
 const PLAID_SECRET = defineSecret("PLAID_SECRET");
+const PLAID_ENV = defineString("PLAID_ENV", { default: "sandbox" });
 
 function makePlaidClient(clientId: string, secret: string): PlaidApi {
   const config = new Configuration({
-    basePath: PlaidEnvironments[process.env.PLAID_ENV ?? "sandbox"],
+    basePath: PlaidEnvironments[PLAID_ENV.value() as keyof typeof PlaidEnvironments],
     baseOptions: {
       headers: {
         "PLAID-CLIENT-ID": clientId,
