@@ -471,6 +471,47 @@
 
 ---
 
+## Phase 27.5: Plaid Compliance & Policies
+
+> **Goal:** Complete Plaid's 12 required compliance attestations (due 09/01/2026), publish privacy policy online, create security policy documents, and implement Plaid best-practice code changes. See `docs/plans/2026-02-27-plaid-compliance-design.md` for full design.
+
+### Recommended build order
+
+#### Tier 1 — Dashboard & Public Presence
+
+- [ ] MS-27.5.1 GitHub Pages site (privacy policy + landing page, set Website URL in Plaid App Profile)
+- [ ] MS-27.5.2 Verify 2FA on all internal services (GitHub, Firebase, Plaid, Apple Developer)
+- [ ] MS-27.5.3 App icon for Plaid dashboard (create/upload 1024x1024 PNG)
+
+#### Tier 2 — Policy Documents
+
+- [ ] MS-27.5.4 Information Security Policy (data handling, encryption, incident response)
+- [ ] MS-27.5.5 Access Control & Identity Management Policy (access grants/revokes, review cadence)
+- [ ] MS-27.5.6 Vulnerability Management Policy (scanning, patching SLA, EOL monitoring, zero trust)
+
+#### Tier 3 — Code Changes
+
+- [ ] MS-27.5.7 `/item/remove` Cloud Function (revoke Plaid access when user disconnects bank)
+- [ ] MS-27.5.8 Consent dialog before Plaid Link (data sharing explanation + privacy policy link)
+- [ ] MS-27.5.9 In-app privacy & data policy screen (Settings → Privacy & Data)
+- [ ] MS-27.5.10 Plaid Link `onEvent` logging (capture link_session_id + events for debugging)
+
+#### Tier 4 — Attest on Dashboard
+
+- [ ] MS-27.5.11 Check off all 12 attestations on Plaid Compliance Center
+
+### Phase 27.5 Smoke Check
+
+- [ ] Privacy policy accessible at public URL
+- [ ] Website URL set in Plaid App Profile (no more "1" badge)
+- [ ] ISP, Access Control, and Vulnerability Management policies in repo
+- [ ] Disconnect bank → Plaid item removed server-side
+- [ ] Consent dialog shown before Plaid Link opens
+- [ ] Privacy & Data screen accessible from Settings
+- [ ] All 12 attestations checked off in Plaid dashboard
+
+---
+
 ## Phase 28: AI Advisor — Foundation + Guided Setup
 
 > **Goal:** After connecting a bank, AI analyzes spending, auto-creates envelopes, sets budgets, and categorizes transactions — all with user preview/confirm. Uses OpenAI GPT-4o-mini via Cloud Functions. $5/month budget cap with full usage monitoring.
