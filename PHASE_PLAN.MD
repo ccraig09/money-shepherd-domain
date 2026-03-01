@@ -1,5 +1,130 @@
 # PHASE_PLAN.md
 
+# PHASE_PLAN.md (STRUCTURE UPDATE)
+
+# Foundations vs Product Evolution + Tracks
+
+## How this plan is organized (Foundations vs Product Evolution)
+
+This project has two layers of work:
+
+### A) [FOUNDATION] Work (must be stable before building features)
+
+These phases establish the non-negotiables:
+
+- Monorepo/tooling
+- Domain model + core rules (Money, envelopes, assignments)
+- Engine + recompute
+- Local persistence (offline-first)
+- Sync plumbing (Firebase auth/rules + push/pull + conflict strategy)
+- Onboarding (Setup + PIN)
+
+**Rule:** Do not start [EVOLUTION] work until the [FOUNDATION] smoke checks are green.
+
+### B) [EVOLUTION] Work (features, polish, expansion)
+
+These phases grow the product after it is usable:
+
+- Better UX and input handling
+- Plaid integration and banking UX
+- Sync confidence indicators + retries
+- UI polish, identity, design system work
+- Daily-use power features (editing, transfers, periods, goals)
+- Insights, rules, debt tools, dark mode, biometrics
+- Compliance, production hardening, AI advisor
+
+**Rule:** [EVOLUTION] can be reordered by dependency and value, but keep each “track” cohesive.
+
+---
+
+## Tracks (recommended for large roadmaps)
+
+Once foundations are complete, group work into tracks. Tracks can contain multiple phases.
+
+Suggested tracks for Money Shepherd:
+
+- **Track A: Core MVP** (Phase 14–19)
+- **Track B: Daily Use Essentials** (Phase 23)
+- **Track C: Smart Assignment** (Phase 20)
+- **Track D: Debt Freedom** (Phase 21)
+- **Track E: Insights & Visuals** (Phase 22)
+- **Track F: Security & Access** (Phase 24, 26)
+- **Track G: Banking Production + Compliance** (Phase 27, 27.5)
+- **Track H: AI Advisor** (Phase 28–30)
+
+---
+
+## How to tag each phase
+
+Add one of these tags to every phase heading:
+
+- **[FOUNDATION]** = required for reliability + usability
+- **[EVOLUTION]** = product features / polish / roadmap expansion
+
+Optional sub-tag:
+
+- **[EVOLUTION | Track X]** = an evolution phase belonging to a track
+
+---
+
+## Recommended header edits (apply to your existing phases)
+
+### Foundations
+
+- `## Phase 0–12 [FOUNDATION]: Repo + Domain + Engine + Storage + Sync Plumbing` (if you add the missing early phases)
+- `## Phase 13 [FOUNDATION]: Setup + PIN + Bootstrap (Two-device foundation)`
+
+### Evolution (with tracks)
+
+- `## Phase 14 [EVOLUTION | Track A: Core MVP]: Core UI flows`
+- `## Phase 15 [EVOLUTION | Track A: Core MVP]: Plaid integration`
+- `## Phase 16 [EVOLUTION | Track A: Core MVP]: Input + UX polish`
+- `## Phase 17 [EVOLUTION | Track A: Core MVP]: Sync UX`
+- `## Phase 18 [EVOLUTION | Track A: Core MVP]: UI polish + navigation`
+- `## Phase 19 [EVOLUTION | Track A: Core MVP]: Hardening + release readiness`
+
+- `## Phase 23 [EVOLUTION | Track B: Daily Use Essentials]: Daily Use Essentials`
+- `## Phase 20 [EVOLUTION | Track C: Smart Assignment]: Smart Assignment`
+- `## Phase 21 [EVOLUTION | Track D: Debt Freedom]: Debt Freedom Tools`
+- `## Phase 22 [EVOLUTION | Track E: Insights & Visuals]: Insights & Visuals`
+
+- `## Phase 24 [EVOLUTION | Track F: Security & Access]: Biometric Login`
+- `## Phase 25 [EVOLUTION | Track A or F]: Envelope Groups` (your call; most teams treat this as UX structure)
+- `## Phase 26 [EVOLUTION | Track F: Security & Access]: Dark Mode`
+
+- `## Phase 27 [EVOLUTION | Track G: Banking Production + Compliance]: Production Plaid & Real Banking`
+- `## Phase 27.5 [EVOLUTION | Track G: Banking Production + Compliance]: Plaid Compliance & Policies`
+
+- `## Phase 28 [EVOLUTION | Track H: AI Advisor]: AI Advisor — Foundation + Guided Setup`
+- `## Phase 29 [EVOLUTION | Track H: AI Advisor]: AI Advisor — Ongoing Intelligence`
+- `## Phase 30 [EVOLUTION | Track H: AI Advisor]: AI Advisor — Conversational`
+
+---
+
+## Optional (highly recommended): add these to every phase
+
+### Foundation impact (why this matters)
+
+- Dependencies (what must already be green)
+- What it strengthens (reliability, correctness, security, UX)
+
+### Product impact (what user gets)
+
+- What Los/Jackia can do after this phase
+- What “done” looks like in the UI
+
+Template:
+
+### Foundation impact
+
+- Depends on:
+- Strengthens:
+
+### Product impact
+
+- Enables:
+- Visible outcome:
+
 # Money Shepherd - Phase Plan (Living Checklist)
 
 > Purpose:
@@ -387,6 +512,7 @@
 ## Phase 22: Insights & Visuals (charts, trends, advisor voice)
 
 ### Recommended build order
+
 - [x] MS-22.1 Charting library setup (victory-native or react-native-svg custom)
 - [x] MS-22.2 Spending by envelope pie/donut chart
 - [x] MS-22.3 PeriodSummaryCard visual upgrade (mini chart enhancement for existing This Month card)
@@ -395,6 +521,7 @@
 - [x] MS-22.6 InsightCard component + placement ("Money Shepherd says...")
 
 ### Phase 22 Smoke Check
+
 - [x] Pie chart shows spending breakdown by envelope
 - [x] Period summary card shows income/expense/net
 - [x] Trend chart shows monthly trajectory
@@ -406,12 +533,14 @@
 ## Phase 24: Biometric Login (Face ID / Touch ID)
 
 ### Recommended build order
+
 - [x] MS-23.1 Add expo-local-authentication (install, helper module, iOS config)
 - [x] MS-23.2 Biometric unlock flow (auto-prompt on unlock screen, PIN fallback)
 - [x] MS-23.3 Biometric opt-in during setup (offer after PIN creation)
 - [x] MS-23.4 Settings toggle for biometric (enable/disable in settings)
 
 ### Phase 24 Smoke Check
+
 - [ ] Face ID / Touch ID prompts on app unlock
 - [ ] Failed biometric falls back to PIN
 - [ ] Biometric can be toggled on/off in settings
@@ -421,6 +550,7 @@
 ## Phase 25: Envelope Groups (collapsible categories)
 
 ### Recommended build order
+
 - [x] MS-25.1 Domain: EnvelopeGroup model + grouping logic
 - [x] MS-25.2 Engine/commands: create, rename, delete, reorder groups
 - [x] MS-25.3 Envelopes tab: collapsible group sections
@@ -428,6 +558,7 @@
 - [x] MS-25.5 Dashboard: grouped envelope preview
 
 ### Phase 25 Smoke Check
+
 - [x] Groups appear as collapsible sections on Envelopes tab
 - [x] Can create, rename, delete a group
 - [x] Envelopes can be moved between groups
@@ -438,6 +569,7 @@
 ## Phase 26: Dark Mode (full theme system)
 
 ### Recommended build order
+
 - [x] MS-26.1 Theme system: light/dark token sets + ThemeProvider
 - [x] MS-26.2 Migrate screens to theme context (replace static Color imports)
 - [x] MS-26.3 Settings: theme toggle (Light / Dark / System)
@@ -445,6 +577,7 @@
 - [x] MS-26.5 Dark mode polish: shadows, borders, status bar, splash
 
 ### Phase 26 Smoke Check
+
 - [x] Dark mode renders correctly on all screens
 - [x] Theme toggle works in settings (Light / Dark / System)
 - [x] Charts readable in dark mode
@@ -458,12 +591,14 @@
 > **Build order note:** Do this phase last — after biometric, envelope groups, and dark mode are polished. This is the "go live" moment.
 
 ### Recommended build order
+
 - [x] MS-24.1 Migrate Plaid tokens to SecureStore (encrypted at rest)
 - [x] MS-24.2 Production Plaid environment config (switch from sandbox, update Cloud Functions)
 - [ ] MS-24.3 Production Plaid Link integration test (connect real bank, verify sync)
 - [ ] MS-24.4 Multi-user bank onboarding documentation (how both users connect)
 
 ### Phase 27 Smoke Check
+
 - [ ] Plaid tokens stored in SecureStore (not AsyncStorage)
 - [ ] Real bank connected via production Plaid Link
 - [ ] Transactions from real bank sync into app
@@ -517,6 +652,7 @@
 > **Goal:** After connecting a bank, AI analyzes spending, auto-creates envelopes, sets budgets, and categorizes transactions — all with user preview/confirm. Uses OpenAI GPT-4o-mini via Cloud Functions. $5/month budget cap with full usage monitoring.
 
 ### Recommended build order
+
 - [ ] MS-28.1 OpenAI Cloud Function setup (SDK, secrets, system prompt)
 - [ ] MS-28.1b API usage monitoring + cost controls ($5/mo cap, rate limits, Settings UI)
 - [ ] MS-28.2 Context builder (AppState → AI summary, pure function + tests)
@@ -528,6 +664,7 @@
 - [ ] MS-28.8 Auto-assign preview + bulk confirm in Inbox
 
 ### Architecture Notes
+
 - LLM: OpenAI GPT-4o-mini (~$0.03/mo est.) via Firebase Cloud Functions
 - API key in Firebase secrets (same pattern as Plaid)
 - All AI actions: Preview → Confirm → Engine execute (no silent mutations)
@@ -538,6 +675,7 @@
 - Usage monitoring: Firestore log, per-function breakdown, Settings UI dashboard
 
 ### Phase 28 Smoke Check
+
 - [ ] Connect bank → "Set Up Your Budget" wizard appears
 - [ ] AI suggests envelopes based on real spending (giving first)
 - [ ] Can edit/remove suggestions before creating
@@ -555,12 +693,14 @@
 > **Goal:** Monthly spending reviews, budget adjustment suggestions, enhanced dashboard insights, anomaly alerts.
 
 ### Recommended build order
+
 - [ ] MS-29.1 Monthly review Cloud Function (spending summary + adjustment suggestions)
 - [ ] MS-29.2 Budget adjustment UI (monthly review card + one-tap adjust)
 - [ ] MS-29.3 AI-enhanced insights (blend AI + rule-based on dashboard)
 - [ ] MS-29.4 Spending anomaly alerts (unusual charges, spending spikes)
 
 ### Phase 29 Smoke Check
+
 - [ ] Start of month → monthly review card appears on dashboard
 - [ ] Review shows per-envelope highlights (over/under budget)
 - [ ] Budget adjustments can be previewed and applied in one tap
@@ -574,6 +714,7 @@
 > **Goal:** Chat interface where users ask financial questions and the AI can suggest + execute budget actions, with full conversation history.
 
 ### Recommended build order
+
 - [ ] MS-30.1 Chat UI component (bubbles, markdown, action cards)
 - [ ] MS-30.2 Conversational Cloud Function (multi-turn, budget-aware)
 - [ ] MS-30.3 Action execution from chat (preview → confirm → engine)
@@ -581,6 +722,7 @@
 - [ ] MS-30.5 Chat history list UI (past conversations, read-only view, swipe to delete)
 
 ### Phase 30 Smoke Check
+
 - [ ] Tap "Ask Money Shepherd" → chat screen opens
 - [ ] Ask "How am I doing this month?" → get spending summary response
 - [ ] Ask "Create a Vacation savings envelope for $2000" → action card appears → confirm → envelope created
@@ -591,3 +733,177 @@
 - [ ] AI unavailable → graceful error message, no crash
 
 ---
+
+---
+
+<!--
+## Phase 0: Repo + Monorepo baseline (workspace + tooling)
+
+### Recommended build order (do not reorder unless blocked)
+- [ ] MS-0.1 Initialize repo + workspace layout (`packages/domain`, `apps/mobile`, `docs/`)
+- [ ] MS-0.2 Root package scripts (install, test, lint, dev:mobile)
+- [ ] MS-0.3 TypeScript baseline (root tsconfig + package tsconfigs)
+- [ ] MS-0.4 Linting/formatting baseline (ESLint/Prettier) + consistent scripts
+- [ ] MS-0.5 Git hygiene: root `.gitignore` + env file strategy (`apps/mobile/.env*` ignored)
+
+### Phase 0 Smoke Check
+- [ ] `npm install` works at repo root
+- [ ] `npm test` runs (even if minimal / placeholder)
+- [ ] `npm run dev:mobile` boots Expo or at least starts without errors
+
+### Blockers / Notes
+- Workspace protocol (“workspace:*”) requires npm workspaces or equivalent configured correctly.
+
+---
+
+## Phase 1: Domain package scaffolding (pure logic)
+
+### Recommended build order
+- [ ] MS-1.1 Create domain package entrypoints + exports (`packages/domain/src/index.ts`)
+- [ ] MS-1.2 Money value object (cents-only) + tests
+- [ ] MS-1.3 Account + Transaction models (minimal fields) + tests
+- [ ] MS-1.4 Budget + Envelope models (minimal fields)
+
+### Phase 1 Smoke Check
+- [ ] Domain tests pass
+- [ ] Domain package can be imported from mobile (`@money-shepherd/domain`) without TS errors
+
+---
+
+## Phase 2: Core domain behavior (ledger + inbox + budget logic)
+
+### Recommended build order
+- [ ] MS-2.1 Apply transactions to accounts (ledger) + tests (idempotent)
+- [ ] MS-2.2 Inbox build logic (unassigned transaction IDs + assignments map)
+- [ ] MS-2.3 Apply transactions to budget using assignments as truth + tests
+- [ ] MS-2.4 Domain commands: create envelope, assign transaction, allocate to envelope + tests
+
+### Phase 2 Smoke Check
+- [ ] “Groceries goes down after assigning a negative transaction” scenario passes in tests
+
+---
+
+## Phase 3: Mobile app scaffold (Expo + Router + basic screens)
+
+### Recommended build order
+- [ ] MS-3.1 Create Expo app under `apps/mobile` (Expo Router tabs)
+- [ ] MS-3.2 Basic screen skeletons (Dashboard, Transactions, Envelopes, Inbox, Settings)
+- [ ] MS-3.3 Zustand store scaffold + engine wiring placeholder (no sync yet)
+
+### Phase 3 Smoke Check
+- [ ] App boots in simulator with placeholder screens reachable via tabs
+
+---
+
+## Phase 4: Local-first state + Engine foundation
+
+### Recommended build order
+- [ ] MS-4.1 Define AppStateV1 shape (versioned)
+- [ ] MS-4.2 Local storage module (load/save/clear AppState)
+- [ ] MS-4.3 Engine skeleton: getState/seed/recompute/reset (local-only first)
+- [ ] MS-4.4 Minimal “smoke UI” to trigger engine actions (dev buttons ok)
+
+### Phase 4 Smoke Check
+- [ ] Seed works (you see initial accounts/budget state)
+- [ ] App relaunch persists local state (no reset)
+
+---
+
+## Phase 5: Firebase foundation (Auth + Firestore + rules)
+
+### Recommended build order
+- [ ] MS-5.1 Firebase project created + env vars wired in mobile
+- [ ] MS-5.2 Anonymous Auth enabled + working in app
+- [ ] MS-5.3 Firestore rules baseline for MVP (auth required)
+- [ ] MS-5.4 Firestore connectivity sanity (read/write a doc in dev)
+
+### Phase 5 Smoke Check
+- [ ] App gets an anon UID (logged once)
+- [ ] Firestore read/write succeeds (no permission-denied)
+
+---
+
+## Phase 6: Remote repo + sync contract (push/pull + rev)
+
+### Recommended build order
+- [ ] MS-6.1 Define Remote doc shape: `{ rev, state, updatedAt, updatedBy }`
+- [ ] MS-6.2 HouseholdStateRepo: pull (null if missing)
+- [ ] MS-6.3 HouseholdStateRepo: push with expectedRev + conflict error
+- [ ] MS-6.4 Conflict strategy MVP defined (remote-wins or overwrite local)
+
+### Phase 6 Smoke Check
+- [ ] First push creates doc with rev=1
+- [ ] Second push increments rev
+- [ ] Wrong expectedRev triggers conflict path
+
+---
+
+## Phase 7: SyncMeta + household identity (local pointer)
+
+### Recommended build order
+- [ ] MS-7.1 SyncMeta storage (householdId, rev, userId)
+- [ ] MS-7.2 Tie engine to SyncMeta: when present → bootstrap pulls remote
+- [ ] MS-7.3 On recompute: push to remote using syncMeta.rev, update rev on success
+
+### Phase 7 Smoke Check
+- [ ] When syncMeta exists, app bootstraps from remote if present
+- [ ] When remote missing, app seeds then pushes
+
+---
+
+## Phase 8: Domain + Engine integration hardening (idempotency + no duplicates)
+
+### Recommended build order
+- [ ] MS-8.1 Idempotency guards maintained (appliedTransactionIds)
+- [ ] MS-8.2 Merge strategy for imported transactions (no duplicates)
+- [ ] MS-8.3 Minimal tests for merge/idempotency behavior
+
+### Phase 8 Smoke Check
+- [ ] Running recompute multiple times does not double-apply money
+
+---
+
+## Phase 9: Minimal UI smoke flows (pre-Phase 13)
+
+### Recommended build order
+- [ ] MS-9.1 “Dev home” screen triggers: add tx, reset, seed
+- [ ] MS-9.2 Confirm derived UI fields show expected values (availableToAssign, tx counts)
+
+### Phase 9 Smoke Check
+- [ ] You can add a manual transaction and see counts update in UI
+
+---
+
+## Phase 10: TypeScript + workspace cleanup (stability)
+
+### Recommended build order
+- [ ] MS-10.1 Fix workspace imports/exports (no “cannot find module”)
+- [ ] MS-10.2 TS config aligns with ESM/CJS (Jest config stable)
+- [ ] MS-10.3 CI sanity (optional): run tests/lint in GitHub Actions
+
+### Phase 10 Smoke Check
+- [ ] Fresh clone → install → tests → app boot works
+
+---
+
+## Phase 11: Pre-setup experience (guard rails before Phase 13)
+
+### Recommended build order
+- [ ] MS-11.1 If syncMeta missing → show Setup required state (placeholder ok)
+- [ ] MS-11.2 If Firebase fails → show friendly error state (no crash)
+
+### Phase 11 Smoke Check
+- [ ] Missing setup doesn’t crash; user sees next step
+
+---
+
+## Phase 12: Final pre-Phase 13 checklist (ready for real onboarding)
+
+### Recommended build order
+- [ ] MS-12.1 Confirm household doc path is stable (`households/{householdId}`)
+- [ ] MS-12.2 Confirm seed uses householdId consistently
+- [ ] MS-12.3 Confirm Firebase rules align with anon auth usage
+
+### Phase 12 Smoke Check
+- [ ] No permission-denied in normal dev flow
+- [ ] Engine bootstrap is callable and actually called -->
