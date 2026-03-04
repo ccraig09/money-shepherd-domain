@@ -110,6 +110,18 @@ export async function syncTransactions(
   return result.data;
 }
 
+/**
+ * Revokes a Plaid item server-side via the removeItem Cloud Function.
+ * Must be called before deleting the local access token.
+ */
+export async function removeItem(accessToken: string): Promise<void> {
+  const fn = httpsCallable<{ accessToken: string }, { removed: boolean }>(
+    functions,
+    "removeItem"
+  );
+  await fn({ accessToken });
+}
+
 export interface PlaidLinkCallbacks {
   onSuccess: (publicToken: string, metadata: LinkSuccess["metadata"]) => void;
   onExit: (error: LinkExit["error"] | null) => void;

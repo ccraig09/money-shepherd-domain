@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import { loadSyncMeta, type SyncMeta } from "../../src/infra/local/syncMeta";
 import { plaidConfigured } from "../../src/infra/plaid/config";
-import { requestLinkToken, openPlaidLink, exchangePublicToken, fetchAccounts } from "../../src/infra/plaid/plaidClient";
+import { requestLinkToken, openPlaidLink, exchangePublicToken, fetchAccounts, removeItem } from "../../src/infra/plaid/plaidClient";
 import {
   addPlaidToken,
   loadPlaidTokens,
@@ -116,7 +116,7 @@ export default function ConnectAccountsScreen() {
     }
   }
 
-  async function handleDisconnect(userId: string, itemId: string, institutionName: string) {
+  async function handleDisconnect(userId: string, itemId: string, accessToken: string, institutionName: string) {
     Alert.alert(
       `Disconnect ${institutionName}?`,
       "This will remove the stored connection. You can reconnect later.",
@@ -126,6 +126,12 @@ export default function ConnectAccountsScreen() {
           text: "Disconnect",
           style: "destructive",
           onPress: async () => {
+            // Revoke access server-side first; if Plaid call fails, still remove locally.
+            try {
+              await removeItem(accessToken);
+            } catch {
+              console.warn("[Plaid] removeItem failed — removing local token anyway");
+            }
             await removePlaidToken(userId, itemId);
             const updated = await loadPlaidTokens(userId);
             setTokens((prev) => ({ ...prev, [userId]: updated }));
@@ -161,7 +167,7 @@ export default function ConnectAccountsScreen() {
               isConnecting={connecting === user.id}
               connectedBanks={userTokens}
               onConnect={() => handleConnect(user.id)}
-              onDisconnect={(itemId, name) => handleDisconnect(user.id, itemId, name)}
+              onDisconnect={(itemId, accessToken, name) => handleDisconnect(user.id, itemId, accessToken, name)}
             />
           );
         })}
@@ -192,7 +198,7 @@ function UserCard({
   isConnecting: boolean;
   connectedBanks: PlaidTokenData[];
   onConnect: () => void;
-  onDisconnect: (itemId: string, institutionName: string) => void;
+  onDisconnect: (itemId: string, accessToken: string, institutionName: string) => void;
 }) {
   const hasConnections = connectedBanks.length > 0;
   const disabled = !plaidConfigured || isConnecting;
@@ -224,7 +230,7 @@ function UserCard({
             <View key={bank.itemId} style={styles.bankRow}>
               <Text style={styles.institutionLabel}>{bank.institutionName}</Text>
               <Pressable
-                onPress={() => onDisconnect(bank.itemId, bank.institutionName)}
+                onPress={() => onDisconnect(bank.itemId, bank.accessToken, bank.institutionName)}
                 hitSlop={8}
               >
                 <Text style={styles.removeLink}>Remove</Text>

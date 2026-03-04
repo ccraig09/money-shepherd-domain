@@ -182,6 +182,44 @@ export const getAccounts = onCall<
   }
 );
 
+interface RemoveItemRequest {
+  accessToken: string;
+}
+
+interface RemoveItemResponse {
+  removed: boolean;
+}
+
+/**
+ * Revokes a Plaid item server-side via /item/remove.
+ * Call this before deleting the local access token when a user disconnects a bank.
+ */
+export const removeItem = onCall<
+  RemoveItemRequest,
+  Promise<RemoveItemResponse>
+>(
+  { secrets: [PLAID_CLIENT_ID, PLAID_SECRET] },
+  async (request) => {
+    if (!request.auth) {
+      throw new HttpsError("unauthenticated", "Must be signed in.");
+    }
+
+    const { accessToken } = request.data;
+    if (!accessToken || typeof accessToken !== "string") {
+      throw new HttpsError("invalid-argument", "accessToken is required.");
+    }
+
+    const plaid = makePlaidClient(
+      PLAID_CLIENT_ID.value(),
+      PLAID_SECRET.value()
+    );
+
+    await plaid.itemRemove({ access_token: accessToken });
+
+    return { removed: true };
+  }
+);
+
 interface SyncTransactionsRequest {
   accessToken: string;
   cursor?: string;

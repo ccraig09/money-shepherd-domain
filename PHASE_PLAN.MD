@@ -627,7 +627,7 @@ Template:
 
 #### Tier 3 — Code Changes
 
-- [ ] MS-27.5.7 `/item/remove` Cloud Function (revoke Plaid access when user disconnects bank)
+- [x] MS-27.5.7 `/item/remove` Cloud Function (revoke Plaid access when user disconnects bank)
 - [ ] MS-27.5.8 Consent dialog before Plaid Link (data sharing explanation + privacy policy link)
 - [ ] MS-27.5.9 In-app privacy & data policy screen (Settings → Privacy & Data)
 - [ ] MS-27.5.10 Plaid Link `onEvent` logging (capture link_session_id + events for debugging)
@@ -645,6 +645,36 @@ Template:
 - [ ] Consent dialog shown before Plaid Link opens
 - [ ] Privacy & Data screen accessible from Settings
 - [ ] All 12 attestations checked off in Plaid dashboard
+
+---
+
+## Phase 27.7: Cross-Device Plaid Connection Visibility
+
+> **Goal:** When one household member connects a bank on their device, the other device should see that the bank is connected — without syncing the sensitive access token. A lightweight "connection manifest" is written to Firestore so both devices know which banks are linked for each user.
+
+### Background
+
+Plaid access tokens are stored in `expo-secure-store` (device keychain) and never leave the device. This means the partner's device shows "Not connected" even though banks are connected on the other phone. This phase syncs a metadata flag (no secrets) so the UI is accurate on both devices.
+
+### Recommended build order
+
+- [ ] MS-27.7.1 Firestore connection manifest — write `plaidConnections/{itemId}` doc on connect (userId, institutionName, accountIds, connectedAt, active flag)
+- [ ] MS-27.7.2 Read connection manifest — connect-accounts screen reads Firestore flags to determine "Connected" status (fall back to local tokens for "can sync" ability)
+- [ ] MS-27.7.3 Disconnect sync — set `active: false` in Firestore when a bank is disconnected locally
+- [ ] MS-27.7.4 UI distinction — differentiate "connected on this device" (can sync) vs "connected on another device" (read-only indicator)
+
+### Architecture Notes
+
+- **No secrets cross the wire** — access tokens remain in local `SecureStore`; only institution name, account IDs, and a boolean flag sync via Firestore
+- `isLocallyConnected` (has token in SecureStore) vs `isRemotelyConnected` (Firestore flag) drives UI differences
+- Fits under existing `budgets/{budgetId}/` Firestore path
+- Disconnect must update both local `SecureStore` AND Firestore flag
+
+### Phase 27.7 Smoke Check
+
+- [ ] Connect bank on Device A → Device B shows bank as "Connected" (without local token)
+- [ ] Device B cannot trigger transaction sync for Device A's bank (no local token)
+- [ ] Disconnect on Device A → Device B shows "Not connected"
 
 ---
 
