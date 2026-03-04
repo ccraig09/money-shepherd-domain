@@ -7,7 +7,38 @@ import {
   ScrollView,
   Alert,
   ActivityIndicator,
+  Linking,
 } from "react-native";
+
+const PRIVACY_POLICY_URL = "https://ccraig09.github.io/money-shepherd-domain/privacy.html";
+
+/** Shows a consent dialog before opening Plaid Link. Resolves "continue" or "cancel". */
+function requestConsent(): Promise<"continue" | "cancel"> {
+  return new Promise((resolve) => {
+    Alert.alert(
+      "Before You Connect",
+      "Money Shepherd uses Plaid to securely access your bank account balances and transactions. Your bank credentials are never shared with us — Plaid handles authentication directly.\n\nBy continuing, you agree that Plaid may share your financial data with Money Shepherd solely for personal budgeting. All data is encrypted in transit and at rest.",
+      [
+        {
+          text: "Cancel",
+          style: "cancel",
+          onPress: () => resolve("cancel"),
+        },
+        {
+          text: "Privacy Policy",
+          onPress: () => {
+            Linking.openURL(PRIVACY_POLICY_URL);
+            resolve("cancel");
+          },
+        },
+        {
+          text: "I Understand",
+          onPress: () => resolve("continue"),
+        },
+      ]
+    );
+  });
+}
 import { loadSyncMeta, type SyncMeta } from "../../src/infra/local/syncMeta";
 import { plaidConfigured } from "../../src/infra/plaid/config";
 import { requestLinkToken, openPlaidLink, exchangePublicToken, fetchAccounts, removeItem } from "../../src/infra/plaid/plaidClient";
@@ -58,6 +89,8 @@ export default function ConnectAccountsScreen() {
 
   async function handleConnect(userId: string) {
     if (connecting) return;
+    const consent = await requestConsent();
+    if (consent === "cancel") return;
     setConnecting(userId);
     try {
       const linkToken = await requestLinkToken(userId);

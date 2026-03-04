@@ -628,7 +628,7 @@ Template:
 #### Tier 3 — Code Changes
 
 - [x] MS-27.5.7 `/item/remove` Cloud Function (revoke Plaid access when user disconnects bank)
-- [ ] MS-27.5.8 Consent dialog before Plaid Link (data sharing explanation + privacy policy link)
+- [x] MS-27.5.8 Consent dialog before Plaid Link (data sharing explanation + privacy policy link)
 - [ ] MS-27.5.9 In-app privacy & data policy screen (Settings → Privacy & Data)
 - [ ] MS-27.5.10 Plaid Link `onEvent` logging (capture link_session_id + events for debugging)
 
