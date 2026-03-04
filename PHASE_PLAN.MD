@@ -617,7 +617,7 @@ Template:
 
 - [x] MS-27.5.1 GitHub Pages site (privacy policy + landing page, set Website URL in Plaid App Profile)
 - [ ] MS-27.5.2 Verify 2FA on all internal services (GitHub, Firebase, Plaid, Apple Developer)
-- [ ] MS-27.5.3 App icon for Plaid dashboard (create/upload 1024x1024 PNG)
+- [x] MS-27.5.3 App icon for Plaid dashboard (create/upload 1024x1024 PNG)
 
 #### Tier 2 — Policy Documents
 
@@ -639,7 +639,7 @@ Template:
 ### Phase 27.5 Smoke Check
 
 - [ ] Privacy policy accessible at public URL
-- [ ] Website URL set in Plaid App Profile (no more "1" badge)
+- [x] Website URL set in Plaid App Profile (no more "1" badge)
 - [ ] ISP, Access Control, and Vulnerability Management policies in repo
 - [ ] Disconnect bank → Plaid item removed server-side
 - [ ] Consent dialog shown before Plaid Link opens
