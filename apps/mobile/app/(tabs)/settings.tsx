@@ -292,6 +292,16 @@ export default function SettingsScreen() {
         </View>
       )}
 
+      {/* Budget */}
+      <View style={styles.card}>
+        <Text style={styles.cardTitle}>Budget</Text>
+        <ActionButton
+          label="Reconcile Budget"
+          onPress={() => router.push("/seed-budget")}
+          disabled={isBusy || !state || state.accounts.length === 0}
+        />
+      </View>
+
       {/* Smart Assignment */}
       <View style={styles.card}>
         <Text style={styles.cardTitle}>Smart Assignment</Text>

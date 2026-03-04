@@ -367,6 +367,7 @@ Template:
 - [x] MS-19.15 Accounts overview — display individual bank account balances
 - [x] MS-19.16a Fix Plaid account balances — account type, balance initialization, cash vs debt (#129)
 - [x] MS-19.14.1 Re-seed Available when additional accounts are connected (after 19.16a)
+- [x] MS-19.14.2 Fix seed budget double-counting — income added on top of seeded bank balances (#165)
 - [x] MS-19.16 Feedback & confirmation polish (enhanced toasts: assign, note save, user switch)
 - [x] MS-19.17 Empty state & dead-end fixes (Inbox empty state, Allocate zero-balance)
 - [x] MS-19.18 Overspend warnings & source indicators (Plaid badge, overspent badge, assign warning)
@@ -733,6 +734,12 @@ Template:
 - [ ] AI unavailable → graceful error message, no crash
 
 ---
+
+## Future UX Backlog (unscheduled)
+
+- [ ] Sticky date headers in Transactions list (#166)
+- [ ] Remove disconnected/stale accounts — sandbox cleanup, account management (#167)
+- [ ] Available to Assign explainer — tap to see breakdown (#168)
 
 ---
 

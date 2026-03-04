@@ -656,7 +656,7 @@ export function createEngine(): Engine {
     return recompute(next);
   }
 
-  async function seedBudget(args: { totalCents: number }): Promise<RecomputeResult> {
+  async function seedBudget(args: { totalCents: number; accountIds?: string[] }): Promise<RecomputeResult> {
     const state = await getState();
     const next = seedBudgetFromBalances(state, args);
     return recompute(next);

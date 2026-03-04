@@ -461,6 +461,12 @@ export function unassignTransaction(
  * Sets Available to the provided totalCents (caller computes any delta).
  * Tracks which accounts have been seeded via `seededAccountIds` to support re-seeding
  * when additional accounts are connected.
+ *
+ * Also marks all income transactions as already applied to the budget.
+ * Bank balances already reflect historical income deposits — without this,
+ * recompute() would re-add income on top of the seeded balance (double-counting).
+ * Only income (positive amount) is marked; expenses stay unapplied so future
+ * envelope assignments can deduct correctly.
  */
 export function seedBudgetFromBalances(
   state: AppStateV1,
@@ -470,6 +476,14 @@ export function seedBudgetFromBalances(
   const incoming = args.accountIds ?? [];
   const merged = [...new Set([...existing, ...incoming])];
 
+  // Mark income transactions as already applied — bank balances include them.
+  const preAppliedIds = new Set(state.appliedBudgetTransactionIds);
+  for (const tx of state.transactions) {
+    if (tx.amount.cents > 0) {
+      preAppliedIds.add(tx.id);
+    }
+  }
+
   return {
     ...state,
     budget: {
@@ -478,6 +492,7 @@ export function seedBudgetFromBalances(
     },
     budgetSeeded: true,
     seededAccountIds: merged,
+    appliedBudgetTransactionIds: Array.from(preAppliedIds),
     updatedAt: nowIso(),
   };
 }

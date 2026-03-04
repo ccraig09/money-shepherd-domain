@@ -1,4 +1,4 @@
-import { Money } from "@money-shepherd/domain";
+import { Money, applyTransactionsToBudget } from "@money-shepherd/domain";
 import type { AppStateV1 } from "../appState";
 import { createEnvelope, renameEnvelope, deleteEnvelope, setTransactionNote, seedBudgetFromBalances, assignTransaction, addAssignmentRule, removeAssignmentRule, reorderAssignmentRules } from "../commands";
 
@@ -356,6 +356,62 @@ describe("seedBudgetFromBalances", () => {
     state.seededAccountIds = ["plaid-acct-1"];
     const next = seedBudgetFromBalances(state, { totalCents: 500000 });
     expect(next.seededAccountIds).toEqual(["plaid-acct-1"]);
+  });
+
+  it("marks income transaction IDs as applied to budget", () => {
+    const state = makeState();
+    state.transactions = [
+      { id: "tx-income-1", accountId: "acc-1", amount: Money.fromCents(150000), description: "Paycheck", postedAt: "2026-02-01T00:00:00.000Z" },
+      { id: "tx-income-2", accountId: "acc-1", amount: Money.fromCents(50000), description: "Bonus", postedAt: "2026-02-15T00:00:00.000Z" },
+    ];
+    const next = seedBudgetFromBalances(state, { totalCents: 500000 });
+    expect(next.appliedBudgetTransactionIds).toContain("tx-income-1");
+    expect(next.appliedBudgetTransactionIds).toContain("tx-income-2");
+  });
+
+  it("does NOT mark expense transaction IDs as applied", () => {
+    const state = makeState();
+    state.transactions = [
+      { id: "tx-income-1", accountId: "acc-1", amount: Money.fromCents(150000), description: "Paycheck", postedAt: "2026-02-01T00:00:00.000Z" },
+      { id: "tx-expense-1", accountId: "acc-1", amount: Money.fromCents(-5000), description: "Groceries", postedAt: "2026-02-05T00:00:00.000Z" },
+      { id: "tx-expense-2", accountId: "acc-1", amount: Money.fromCents(-2500), description: "Coffee", postedAt: "2026-02-06T00:00:00.000Z" },
+    ];
+    const next = seedBudgetFromBalances(state, { totalCents: 500000 });
+    expect(next.appliedBudgetTransactionIds).toContain("tx-income-1");
+    expect(next.appliedBudgetTransactionIds).not.toContain("tx-expense-1");
+    expect(next.appliedBudgetTransactionIds).not.toContain("tx-expense-2");
+  });
+
+  it("preserves existing appliedBudgetTransactionIds on merge", () => {
+    const state = makeState();
+    state.appliedBudgetTransactionIds = ["tx-old-1", "tx-old-2"];
+    state.transactions = [
+      { id: "tx-income-new", accountId: "acc-1", amount: Money.fromCents(100000), description: "Paycheck", postedAt: "2026-03-01T00:00:00.000Z" },
+    ];
+    const next = seedBudgetFromBalances(state, { totalCents: 500000 });
+    expect(next.appliedBudgetTransactionIds).toContain("tx-old-1");
+    expect(next.appliedBudgetTransactionIds).toContain("tx-old-2");
+    expect(next.appliedBudgetTransactionIds).toContain("tx-income-new");
+  });
+
+  it("prevents double-counting: seed + recompute does not re-add income", () => {
+    // Simulate: seed with bank balances, then applyTransactionsToBudget runs
+    const state = makeState();
+    state.transactions = [
+      { id: "tx-income-1", accountId: "acc-1", amount: Money.fromCents(200000), description: "Paycheck", postedAt: "2026-02-01T00:00:00.000Z" },
+    ];
+    // Seed sets Available to bank balance
+    const seeded = seedBudgetFromBalances(state, { totalCents: 500000 });
+    expect(seeded.budget.availableToAssign.cents).toBe(500000);
+
+    // Simulate recompute calling applyTransactionsToBudget
+    const result = applyTransactionsToBudget(
+      seeded.budget,
+      seeded.transactions,
+      new Set(seeded.appliedBudgetTransactionIds),
+    );
+    // Income tx was already marked as applied — should NOT be added again
+    expect(result.budget.availableToAssign.cents).toBe(500000);
   });
 });
 

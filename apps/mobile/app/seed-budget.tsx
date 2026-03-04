@@ -47,10 +47,17 @@ export default function SeedBudgetScreen() {
   const newAccountsCents = accounts.reduce((sum, a) => sum + a.balance.cents, 0);
   const accountIds = accounts.map((a) => a.id);
 
-  // First seed: show delta if user already has manual income in Available
+  // First seed: Available = bank balances minus money already in envelopes.
+  // The seed command marks historical income txs as applied so recompute
+  // won't re-add them on top (prevents double-counting).
   const availableCents = state.budget.availableToAssign.cents;
-  const hasDelta = !isReseed && availableCents > 0;
-  const deltaCents = newAccountsCents - availableCents;
+  const totalInEnvelopes = state.budget.envelopes.reduce(
+    (sum, e) => sum + e.balance.cents,
+    0,
+  );
+  const correctedCents = newAccountsCents - totalInEnvelopes;
+  const isOvercounted = !isReseed && availableCents > newAccountsCents;
+  const isOverAllocated = !isReseed && correctedCents < 0;
 
   async function handleSeed() {
     setSeeding(true);
@@ -61,12 +68,13 @@ export default function SeedBudgetScreen() {
           totalCents: availableCents + newAccountsCents,
           accountIds,
         });
-      } else if (hasDelta && deltaCents > 0) {
-        // First seed with existing manual income — seed the delta
-        await seedBudgetFromBalances({ totalCents: deltaCents, accountIds });
       } else {
-        // First seed — set Available to total bank balances
-        await seedBudgetFromBalances({ totalCents: newAccountsCents, accountIds });
+        // First seed / reset: set Available to bank balances minus envelopes.
+        // The command also marks income txs as applied (no double-counting).
+        await seedBudgetFromBalances({
+          totalCents: Math.max(0, correctedCents),
+          accountIds,
+        });
       }
       router.dismissAll();
     } catch {
@@ -81,10 +89,8 @@ export default function SeedBudgetScreen() {
     router.back();
   }
 
-  const seedAmount = isReseed
-    ? newAccountsCents
-    : hasDelta ? deltaCents : newAccountsCents;
-  const canSeed = seedAmount > 0 && !seeding;
+  const seedAmount = isReseed ? newAccountsCents : Math.max(0, correctedCents);
+  const canSeed = seedAmount >= 0 && newAccountsCents > 0 && !isOverAllocated && !seeding;
 
   return (
     <View style={styles.root}>
@@ -151,40 +157,56 @@ export default function SeedBudgetScreen() {
           <Text style={styles.totalAmount}>${formatMoney(newAccountsCents)}</Text>
         </View>
 
-        {hasDelta && (
+        {!isReseed && totalInEnvelopes > 0 && (
           <View style={styles.deltaRow}>
-            <Text style={styles.deltaLabel}>Already in Available</Text>
+            <Text style={styles.deltaLabel}>Already in Envelopes</Text>
             <Text style={styles.deltaValue}>
-              − ${formatMoney(availableCents)}
+              ${formatMoney(totalInEnvelopes)}
             </Text>
           </View>
         )}
 
-        {hasDelta && (
+        {!isReseed && totalInEnvelopes > 0 && (
           <View style={[styles.totalRow, styles.seedRow]}>
-            <Text style={styles.seedLabel}>Amount to add</Text>
+            <Text style={styles.seedLabel}>Available to Assign</Text>
             <Text style={styles.seedAmount}>
-              ${formatMoney(Math.max(0, deltaCents))}
+              ${formatMoney(Math.max(0, correctedCents))}
             </Text>
           </View>
+        )}
+
+        {isOvercounted && (
+          <Text style={styles.noteText}>
+            Your Available to Assign was higher than your bank balances because
+            income was counted alongside balances. This will reset it to match
+            your actual balance.
+          </Text>
+        )}
+
+        {isOverAllocated && (
+          <Text style={styles.warningText}>
+            You have more in envelopes (${formatMoney(totalInEnvelopes)}) than
+            your bank balances (${formatMoney(newAccountsCents)}). De-allocate
+            from envelopes before seeding.
+          </Text>
         )}
 
         <Pressable
           onPress={handleSeed}
           disabled={!canSeed}
           style={[styles.seedBtn, !canSeed && styles.seedBtnDisabled]}
-          accessibilityLabel={`${isReseed ? "Add" : "Start with"} ${formatMoney(seedAmount)} dollars`}
+          accessibilityLabel={`${isReseed ? "Add" : isOvercounted ? "Reset to" : "Start with"} ${formatMoney(seedAmount)} dollars`}
           accessibilityRole="button"
         >
           {seeding ? (
             <ActivityIndicator color={colors.textOnColor} size="small" />
           ) : (
             <Text style={styles.seedBtnText}>
-              {seedAmount > 0
-                ? isReseed
-                  ? `Add $${formatMoney(seedAmount)} to Available`
-                  : `Start with $${formatMoney(seedAmount)}`
-                : "Nothing to seed"}
+              {isReseed
+                ? `Add $${formatMoney(seedAmount)} to Available`
+                : isOvercounted
+                  ? `Reset to $${formatMoney(seedAmount)}`
+                  : `Start with $${formatMoney(seedAmount)}`}
             </Text>
           )}
         </Pressable>
@@ -321,6 +343,20 @@ const createStyles = (c: ColorTokens) => StyleSheet.create({
     fontSize: FontSize.subtitle,
     fontWeight: FontWeight.bold,
     color: c.primary,
+  },
+  noteText: {
+    fontSize: FontSize.small,
+    color: c.textMuted,
+    lineHeight: 20,
+    textAlign: "center",
+    paddingHorizontal: Spacing.sm,
+  },
+  warningText: {
+    fontSize: FontSize.small,
+    color: c.error,
+    lineHeight: 20,
+    textAlign: "center",
+    paddingHorizontal: Spacing.sm,
   },
   seedBtn: {
     backgroundColor: c.primary,
