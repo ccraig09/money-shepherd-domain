@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Privacy Policy — Money Shepherd</title>
+  <meta name="description" content="Privacy Policy for Money Shepherd, a personal envelope budgeting app." />
+  <link rel="icon" href="icon.png" type="image/png" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <header>
+    <div class="container">
+      <a href="index.html" style="display:flex;align-items:center;gap:12px;text-decoration:none;color:inherit;">
+        <img src="icon.png" alt="Money Shepherd icon" class="header-icon" />
+        <span class="header-title">Money Shepherd</span>
+      </a>
+    </div>
+  </header>
+
+  <main class="legal">
+    <div class="container">
+
+      <h1>Privacy Policy</h1>
+      <p class="effective-date">Effective date: March 3, 2026</p>
+
+      <p>Money Shepherd ("we", "us", or "the app") is a personal envelope budgeting application. We are committed to protecting your privacy. This policy explains what data we collect, how we use it, and your rights.</p>
+
+      <h2>1. Data We Collect</h2>
+
+      <p><strong>Financial data via Plaid.</strong> When you connect a bank account, we use <a href="https://plaid.com" target="_blank" rel="noopener">Plaid Inc.</a> to securely retrieve your account balances and transaction history. We do not store your bank login credentials — Plaid handles authentication directly with your financial institution.</p>
+
+      <p><strong>App data stored on your device.</strong> Your budgets, envelopes, transaction assignments, and preferences are stored locally on your device using secure on-device storage. This data never leaves your device unless you enable cloud sync.</p>
+
+      <p><strong>Anonymous authentication.</strong> If you enable multi-device sync, we use Firebase Anonymous Authentication to create a device-linked session. No email address, name, or personal identifier is required or collected.</p>
+
+      <p><strong>Synced data.</strong> When cloud sync is enabled, your budgeting data (envelopes, assignments, balances) is stored in Google Firebase Firestore and associated with your anonymous session ID. This data is encrypted in transit and at rest.</p>
+
+      <h2>2. How We Use Your Data</h2>
+
+      <ul>
+        <li><strong>Personal budgeting only.</strong> Your financial data is used solely to display your accounts, categorize transactions, and power your envelope budgets within the app.</li>
+        <li><strong>No selling or sharing.</strong> We do not sell, rent, share, or provide your financial data to any third party for marketing, analytics, or any other purpose.</li>
+        <li><strong>No advertising.</strong> Money Shepherd does not display ads and does not share data with ad networks.</li>
+        <li><strong>No profiling.</strong> We do not build behavioral profiles, credit scores, or financial assessments from your data.</li>
+      </ul>
+
+      <h2>3. Third-Party Services</h2>
+
+      <p>We use the following third-party services:</p>
+
+      <ul>
+        <li><strong><a href="https://plaid.com/legal/#end-user-privacy-policy" target="_blank" rel="noopener">Plaid</a></strong> — to securely connect to your financial institutions and retrieve transaction data. Plaid's use of your data is governed by their <a href="https://plaid.com/legal/#end-user-privacy-policy" target="_blank" rel="noopener">End User Privacy Policy</a>.</li>
+        <li><strong><a href="https://firebase.google.com/support/privacy" target="_blank" rel="noopener">Google Firebase</a></strong> — for anonymous authentication and optional cloud data sync. Firebase's data handling is governed by <a href="https://firebase.google.com/support/privacy" target="_blank" rel="noopener">Google's privacy policy</a>.</li>
+      </ul>
+
+      <p>We do not use any other third-party analytics, crash reporting, or tracking services.</p>
+
+      <h2>4. Data Retention</h2>
+
+      <ul>
+        <li><strong>On-device data</strong> is retained until you delete the app or clear app data.</li>
+        <li><strong>Cloud-synced data</strong> is retained in Firestore as long as your anonymous session is active. If you do not use the app for an extended period, Firebase may automatically clean up anonymous sessions.</li>
+        <li><strong>Plaid connection tokens</strong> are stored on-device. You can disconnect a linked bank account at any time from within the app, which revokes the Plaid access token.</li>
+      </ul>
+
+      <h2>5. Data Deletion</h2>
+
+      <p>You can delete all your data at any time:</p>
+
+      <ul>
+        <li><strong>Local data:</strong> Use the "Clear All Data" option in the app settings, or uninstall the app.</li>
+        <li><strong>Cloud data:</strong> Clearing your data from the app also removes your synced data from Firestore.</li>
+        <li><strong>Plaid connection:</strong> You can revoke Money Shepherd's access to your bank data through the app or directly through <a href="https://my.plaid.com" target="_blank" rel="noopener">Plaid's portal</a>.</li>
+      </ul>
+
+      <p>If you need assistance with data deletion, contact us at the address below.</p>
+
+      <h2>6. Security</h2>
+
+      <p>We take reasonable measures to protect your data:</p>
+
+      <ul>
+        <li>All network communication uses HTTPS/TLS encryption.</li>
+        <li>Bank credentials are handled exclusively by Plaid and are never transmitted to or stored by Money Shepherd.</li>
+        <li>Cloud-stored data is encrypted at rest by Google Firebase.</li>
+        <li>The app supports optional PIN or biometric lock for on-device access.</li>
+      </ul>
+
+      <h2>7. Children's Privacy</h2>
+
+      <p>Money Shepherd is not directed at children under 13. We do not knowingly collect personal information from children. If you believe a child has provided data through the app, please contact us so we can remove it.</p>
+
+      <h2>8. Changes to This Policy</h2>
+
+      <p>We may update this Privacy Policy from time to time. Changes will be posted on this page with an updated effective date. Continued use of the app after changes constitutes acceptance of the revised policy.</p>
+
+      <h2>9. Contact Us</h2>
+
+      <p>If you have questions about this Privacy Policy or your data, contact us at:</p>
+
+      <p><a href="mailto:support@moneyshepherd.app">support@moneyshepherd.app</a></p>
+
+    </div>
+  </main>
+
+  <footer>
+    <div class="container">
+      <nav>
+        <a href="index.html">Home</a>
+        <a href="privacy.html">Privacy Policy</a>
+        <a href="mailto:support@moneyshepherd.app">Contact Support</a>
+      </nav>
+      <p class="copyright">&copy; 2026 Money Shepherd. All rights reserved.</p>
+    </div>
+  </footer>
+
+</body>
+</html>
