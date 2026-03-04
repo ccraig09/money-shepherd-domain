@@ -39,9 +39,11 @@ function requestConsent(): Promise<"continue" | "cancel"> {
     );
   });
 }
+import { usePlaidEmitter, type LinkEvent, LinkEventName } from "react-native-plaid-link-sdk";
 import { loadSyncMeta, type SyncMeta } from "../../src/infra/local/syncMeta";
 import { plaidConfigured } from "../../src/infra/plaid/config";
 import { requestLinkToken, openPlaidLink, exchangePublicToken, fetchAccounts, removeItem } from "../../src/infra/plaid/plaidClient";
+import { log, warn } from "../../src/lib/logger";
 import {
   addPlaidToken,
   loadPlaidTokens,
@@ -73,6 +75,28 @@ export default function ConnectAccountsScreen() {
   const [tokens, setTokens] = React.useState<Record<string, PlaidTokenData[]>>({});
 
   const styles = useThemedStyles(createStyles);
+
+  // Capture Plaid Link events for debugging. Plaid support will ask for
+  // link_session_id and error_type/error_code when troubleshooting issues.
+  usePlaidEmitter((event: LinkEvent) => {
+    const { eventName, metadata } = event;
+    const payload = {
+      eventName,
+      linkSessionId: metadata.linkSessionId,
+      viewName: metadata.viewName,
+      timestamp: metadata.timestamp,
+      ...(metadata.errorType && { errorType: metadata.errorType }),
+      ...(metadata.errorCode && { errorCode: metadata.errorCode }),
+      ...(metadata.errorMessage && { errorMessage: metadata.errorMessage }),
+      ...(metadata.institutionId && { institutionId: metadata.institutionId }),
+      ...(metadata.requestId && { requestId: metadata.requestId }),
+    };
+    if (eventName === LinkEventName.ERROR) {
+      warn("Plaid:event", payload);
+    } else {
+      log("Plaid:event", payload);
+    }
+  });
 
   React.useEffect(() => {
     loadSyncMeta().then(setMeta);
