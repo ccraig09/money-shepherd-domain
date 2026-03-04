@@ -312,6 +312,16 @@ export default function SettingsScreen() {
         />
       </View>
 
+      {/* Privacy */}
+      <View style={styles.card}>
+        <Text style={styles.cardTitle}>Legal</Text>
+        <ActionButton
+          label="Privacy & Data"
+          onPress={() => router.push("/settings/privacy")}
+          disabled={isBusy}
+        />
+      </View>
+
       {/* Data */}
       <View style={styles.card}>
         <Text style={styles.cardTitle}>Data</Text>
