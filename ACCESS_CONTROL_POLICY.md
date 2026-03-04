@@ -110,7 +110,7 @@ Access reviews are conducted **quarterly** (January, April, July, October):
 
 | Date | Reviewer | Findings | Actions Taken |
 |---|---|---|---|
-| March 4, 2026 | Carlos Craig | Initial policy creation | Verified 2FA on all services |
+| March 4, 2026 | Carlos Craig | Initial policy creation; verified 2FA on GitHub, Firebase/GCP, Plaid, Apple Developer | All services confirmed with 2FA enabled |
 | _(next: June 2026)_ | | | |
 
 ---
