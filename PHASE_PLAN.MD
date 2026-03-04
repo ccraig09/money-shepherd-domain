@@ -621,9 +621,9 @@ Template:
 
 #### Tier 2 — Policy Documents
 
-- [ ] MS-27.5.4 Information Security Policy (data handling, encryption, incident response)
-- [ ] MS-27.5.5 Access Control & Identity Management Policy (access grants/revokes, review cadence)
-- [ ] MS-27.5.6 Vulnerability Management Policy (scanning, patching SLA, EOL monitoring, zero trust)
+- [x] MS-27.5.4 Information Security Policy (data handling, encryption, incident response)
+- [x] MS-27.5.5 Access Control & Identity Management Policy (access grants/revokes, review cadence)
+- [x] MS-27.5.6 Vulnerability Management Policy (scanning, patching SLA, EOL monitoring, zero trust)
 
 #### Tier 3 — Code Changes
 
@@ -640,7 +640,7 @@ Template:
 
 - [ ] Privacy policy accessible at public URL
 - [x] Website URL set in Plaid App Profile (no more "1" badge)
-- [ ] ISP, Access Control, and Vulnerability Management policies in repo
+- [x] ISP, Access Control, and Vulnerability Management policies in repo
 - [ ] Disconnect bank → Plaid item removed server-side
 - [ ] Consent dialog shown before Plaid Link opens
 - [ ] Privacy & Data screen accessible from Settings
