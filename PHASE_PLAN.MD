@@ -634,7 +634,7 @@ Template:
 
 #### Tier 4 — Attest on Dashboard
 
-- [ ] MS-27.5.11 Check off all 12 attestations on Plaid Compliance Center
+- [x] MS-27.5.11 Check off all 12 attestations on Plaid Compliance Center
 
 ### Phase 27.5 Smoke Check
 
