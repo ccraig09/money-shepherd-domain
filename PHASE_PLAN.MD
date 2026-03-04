@@ -638,13 +638,13 @@ Template:
 
 ### Phase 27.5 Smoke Check
 
-- [ ] Privacy policy accessible at public URL
+- [x] Privacy policy accessible at public URL
 - [x] Website URL set in Plaid App Profile (no more "1" badge)
 - [x] ISP, Access Control, and Vulnerability Management policies in repo
-- [ ] Disconnect bank → Plaid item removed server-side
-- [ ] Consent dialog shown before Plaid Link opens
-- [ ] Privacy & Data screen accessible from Settings
-- [ ] All 12 attestations checked off in Plaid dashboard
+- [x] Disconnect bank → Plaid item removed server-side
+- [x] Consent dialog shown before Plaid Link opens
+- [x] Privacy & Data screen accessible from Settings
+- [x] All 12 attestations checked off in Plaid dashboard
 
 ---
 
