@@ -615,7 +615,7 @@ Template:
 
 #### Tier 1 — Dashboard & Public Presence
 
-- [ ] MS-27.5.1 GitHub Pages site (privacy policy + landing page, set Website URL in Plaid App Profile)
+- [x] MS-27.5.1 GitHub Pages site (privacy policy + landing page, set Website URL in Plaid App Profile)
 - [ ] MS-27.5.2 Verify 2FA on all internal services (GitHub, Firebase, Plaid, Apple Developer)
 - [ ] MS-27.5.3 App icon for Plaid dashboard (create/upload 1024x1024 PNG)
 
