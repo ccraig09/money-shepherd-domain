@@ -1,4 +1,7 @@
 {
+  "cli": {
+    "appVersionSource": "remote"
+  },
   "expo": {
     "name": "money-shepherd-mobile",
     "slug": "money-shepherd-mobile",
@@ -10,7 +13,7 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.ccraig09admin.moneyshepherdmobile",
+      "bundleIdentifier": "com.moneyshepherd.app",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
         "NSFaceIDUsageDescription": "Money Shepherd uses Face ID to unlock your budget securely."

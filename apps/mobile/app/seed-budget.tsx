@@ -55,7 +55,10 @@ export default function SeedBudgetScreen() {
     (sum, e) => sum + e.balance.cents,
     0,
   );
+  const allDepositoryTotal = allDepository.reduce((sum, a) => sum + a.balance.cents, 0);
   const correctedCents = newAccountsCents - totalInEnvelopes;
+  // Re-seed recalculates from truth: all depository balances minus money in envelopes.
+  const reseedCorrectedCents = Math.max(0, allDepositoryTotal - totalInEnvelopes);
   const isOvercounted = !isReseed && availableCents > newAccountsCents;
   const isOverAllocated = !isReseed && correctedCents < 0;
 
@@ -63,10 +66,11 @@ export default function SeedBudgetScreen() {
     setSeeding(true);
     try {
       if (isReseed) {
-        // Re-seed: add new accounts' balances on top of existing Available
+        // Re-seed: recalculate from truth — all depository balances minus envelopes.
+        // Never add additively; always recompute to prevent inflation.
         await seedBudgetFromBalances({
-          totalCents: availableCents + newAccountsCents,
-          accountIds,
+          totalCents: reseedCorrectedCents,
+          accountIds: allDepository.map((a) => a.id),
         });
       } else {
         // First seed / reset: set Available to bank balances minus envelopes.
@@ -89,8 +93,12 @@ export default function SeedBudgetScreen() {
     router.back();
   }
 
-  const seedAmount = isReseed ? newAccountsCents : Math.max(0, correctedCents);
-  const canSeed = seedAmount >= 0 && newAccountsCents > 0 && !isOverAllocated && !seeding;
+  const seedAmount = isReseed ? reseedCorrectedCents : Math.max(0, correctedCents);
+  // Re-seed: allow if there are any depository accounts to reconcile (not just unseeded ones).
+  // First-seed: require at least some account balance to seed from.
+  const canSeed = isReseed
+    ? reseedCorrectedCents >= 0 && allDepository.length > 0 && !seeding
+    : seedAmount >= 0 && newAccountsCents > 0 && !isOverAllocated && !seeding;
 
   return (
     <View style={styles.root}>
@@ -203,7 +211,7 @@ export default function SeedBudgetScreen() {
           ) : (
             <Text style={styles.seedBtnText}>
               {isReseed
-                ? `Add $${formatMoney(seedAmount)} to Available`
+                ? `Set Available to $${formatMoney(seedAmount)}`
                 : isOvercounted
                   ? `Reset to $${formatMoney(seedAmount)}`
                   : `Start with $${formatMoney(seedAmount)}`}

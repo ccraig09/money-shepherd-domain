@@ -174,6 +174,92 @@ describe("mapPlaidAccounts", () => {
     });
   });
 
+  describe("multi-user household", () => {
+    const LOS_SHARE_SAVINGS: Account = {
+      id: "plaid-los-savings-001",
+      name: "Share Savings",
+      balance: Money.fromCents(300000),
+      accountType: "depository",
+    };
+
+    const JACKIA_SHARE_SAVINGS_PLAID: PlaidAccountInfo = {
+      plaidAccountId: "jackia-savings-999",
+      name: "Share Savings",
+      officialName: null,
+      type: "depository",
+      subtype: "savings",
+      mask: "5678",
+      balanceCurrentCents: 500000,
+      balanceAvailableCents: 500000,
+      balanceLimitCents: null,
+    };
+
+    it("does NOT reuse Los's account when Jackia connects same-named account (no userOwnedAccountIds)", () => {
+      // Without userId scoping, Jackia's "Share Savings" would match Los's existing account.
+      // With userOwnedAccountIds, it correctly creates a new account for Jackia.
+      const existingAccounts = [LOS_SHARE_SAVINGS];
+      const jackiaOwnedIds = new Set<string>(); // Jackia has no existing accounts yet
+
+      const result = mapPlaidAccounts(
+        [JACKIA_SHARE_SAVINGS_PLAID],
+        "user-jackia",
+        existingAccounts,
+        jackiaOwnedIds,
+      );
+
+      // Should create a new account for Jackia, not reuse Los's
+      expect(result.accounts).toHaveLength(2);
+      expect(result.accounts.find((a) => a.id === "plaid-jackia-savings-999")).toBeDefined();
+      expect(result.accounts.find((a) => a.id === "plaid-los-savings-001")).toBeDefined();
+      expect(result.accountIdMap["jackia-savings-999"]).toBe("plaid-jackia-savings-999");
+    });
+
+    it("reuses Los's own account when Los reconnects (same name, different Plaid ID)", () => {
+      const existingAccounts = [LOS_SHARE_SAVINGS];
+      const losOwnedIds = new Set(["plaid-los-savings-001"]);
+
+      const losReconnected: PlaidAccountInfo = {
+        ...JACKIA_SHARE_SAVINGS_PLAID,
+        plaidAccountId: "los-savings-new-id", // Los got a new Plaid ID on reconnect
+      };
+
+      const result = mapPlaidAccounts(
+        [losReconnected],
+        "user-los",
+        existingAccounts,
+        losOwnedIds,
+      );
+
+      // Should reuse Los's existing account
+      expect(result.accounts).toHaveLength(1);
+      expect(result.accounts[0].id).toBe("plaid-los-savings-001");
+      expect(result.accounts[0].balance.cents).toBe(500000); // updated from fresh Plaid data
+      expect(result.accountIdMap["los-savings-new-id"]).toBe("plaid-los-savings-001");
+    });
+
+    it("falls back to creating a new account when userOwnedAccountIds is undefined (backward compat)", () => {
+      // When called without userOwnedAccountIds (legacy callers), name matching is unrestricted.
+      // This preserves the original behavior for single-user households.
+      const existingAccounts = [LOS_SHARE_SAVINGS];
+
+      const losReconnected: PlaidAccountInfo = {
+        ...JACKIA_SHARE_SAVINGS_PLAID,
+        plaidAccountId: "los-savings-new-id",
+      };
+
+      const result = mapPlaidAccounts(
+        [losReconnected],
+        "user-los",
+        existingAccounts,
+        undefined, // no scoping — original behavior
+      );
+
+      // Name match still works when no scoping is requested
+      expect(result.accounts).toHaveLength(1);
+      expect(result.accounts[0].id).toBe("plaid-los-savings-001");
+    });
+  });
+
   describe("reconnect with different Plaid IDs", () => {
     it("reuses existing account when name matches (reconnect scenario)", () => {
       const existingAccounts: Account[] = [

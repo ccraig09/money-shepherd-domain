@@ -57,18 +57,24 @@ function toBalanceCents(balanceCurrentCents: number | null, accountType: Account
 export function mapPlaidAccounts(
   plaidAccounts: PlaidAccountInfo[],
   userId: string,
-  existingAccounts: Account[]
+  existingAccounts: Account[],
+  /** Restrict name-based reconnect matching to these account IDs (this user's own accounts). */
+  userOwnedAccountIds?: Set<string>,
 ): MapAccountsResult {
   const existingById = new Map(existingAccounts.map((a) => [a.id, a]));
   const mergedAccounts = [...existingAccounts];
   const mappings: AccountMapping[] = [];
   const accountIdMap: Record<string, string> = {};
 
-  // Build name→account index for reconnect matching (plaid-* accounts only)
+  // Build name→account index for reconnect matching (plaid-* accounts owned by this user only).
+  // Without userId scoping, two users with same-named accounts at the same institution
+  // (e.g., both have "Share Savings") would incorrectly share accounts.
   const existingByName = new Map<string, Account>();
   for (const a of existingAccounts) {
     if (a.id.startsWith("plaid-")) {
-      existingByName.set(a.name, a);
+      if (!userOwnedAccountIds || userOwnedAccountIds.has(a.id)) {
+        existingByName.set(a.name, a);
+      }
     }
   }
 

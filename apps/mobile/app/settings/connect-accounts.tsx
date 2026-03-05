@@ -138,7 +138,13 @@ export default function ConnectAccountsScreen() {
             }
 
             const currentState = await engine.getState();
-            const { accounts: mergedAccounts, accountIdMap } = mapPlaidAccounts(plaidAccounts, userId, currentState.accounts);
+            // Build the set of internal account IDs already owned by this user so
+            // name-based reconnect matching doesn't cross into the other user's accounts.
+            const existingUserTokens = await loadPlaidTokens(userId);
+            const userOwnedAccountIds = new Set(
+              existingUserTokens.flatMap((t) => Object.values(t.accountIdMap ?? {}))
+            );
+            const { accounts: mergedAccounts, accountIdMap } = mapPlaidAccounts(plaidAccounts, userId, currentState.accounts, userOwnedAccountIds);
             await addPlaidToken(userId, { accessToken, itemId, institutionName, accountIdMap });
             await engine.importPlaidAccounts({ newAccounts: mergedAccounts });
 
