@@ -665,7 +665,26 @@ export function createEngine(): Engine {
   async function importPlaidAccounts(args: {
     newAccounts: Account[];
   }): Promise<RecomputeResult> {
-    const state = await getState();
+    // Always pull the latest cloud state before merging Plaid accounts.
+    // getState() only pulls if remote.rev > local.rev, which can miss updates
+    // when both household members connect banks on separate devices at around
+    // the same time. A fresh pull ensures we merge against the true shared
+    // state, so neither user's accounts get overwritten.
+    const syncMeta = await loadSyncMeta();
+    let state: AppStateV1;
+    if (syncMeta && Features.REMOTE_SYNC) {
+      const remote = await pullFromRemote(syncMeta);
+      if (remote) {
+        state = remote.state;
+        await saveAppState(remote.state);
+        await saveSyncMeta({ ...syncMeta, rev: remote.rev });
+      } else {
+        state = await getState();
+      }
+    } else {
+      state = await getState();
+    }
+
     const existingIds = new Set(state.accounts.map((a) => a.id));
     const toAdd = args.newAccounts.filter((a) => !existingIds.has(a.id));
 

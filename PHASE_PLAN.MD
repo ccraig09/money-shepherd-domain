@@ -662,7 +662,7 @@ Pull the latest Firestore state inside `importPlaidAccounts` before merging, so 
 
 ### Recommended build order
 
-- [ ] MS-27.6.1 Pull latest cloud state before importing Plaid accounts (engine.ts `importPlaidAccounts`)
+- [x] MS-27.6.1 Pull latest cloud state before importing Plaid accounts (engine.ts `importPlaidAccounts`)
 - [ ] MS-27.6.2 Verify fix with both-users-connect scenario (manual test)
 
 ### Phase 27.6 Smoke Check
