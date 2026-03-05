@@ -648,6 +648,31 @@ Template:
 
 ---
 
+## Phase 27.6: Multi-Device Account Merge Fix
+
+> **Goal:** When two household members connect banks on separate devices, both sets of accounts must be preserved in the shared state. Currently the second device overwrites the first's accounts because `importPlaidAccounts` merges against stale local state instead of pulling the latest cloud state first.
+
+### Root Cause
+
+`engine.importPlaidAccounts()` calls `getState()` which returns the local AsyncStorage cache. If Device B hasn't synced since Device A connected, Device B's local state doesn't contain Device A's accounts. The merge adds only Device B's accounts, and `recompute()` pushes that to Firestore — overwriting Device A's data.
+
+### Fix
+
+Pull the latest Firestore state inside `importPlaidAccounts` before merging, so both devices' accounts are included in the merge base.
+
+### Recommended build order
+
+- [ ] MS-27.6.1 Pull latest cloud state before importing Plaid accounts (engine.ts `importPlaidAccounts`)
+- [ ] MS-27.6.2 Verify fix with both-users-connect scenario (manual test)
+
+### Phase 27.6 Smoke Check
+
+- [ ] Los connects bank on Device A → state syncs to Firestore
+- [ ] Jackia connects bank on Device B → both Los's and Jackia's accounts preserved
+- [ ] Budget totals reflect all household accounts combined
+
+---
+
 ## Phase 27.7: Cross-Device Plaid Connection Visibility
 
 > **Goal:** When one household member connects a bank on their device, the other device should see that the bank is connected — without syncing the sensitive access token. A lightweight "connection manifest" is written to Firestore so both devices know which banks are linked for each user.
