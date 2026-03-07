@@ -1,0 +1,1 @@
+Close the GitHub issue for the ticket(s) just completed, mark them [x] in PHASE_PLAN.MD, commit each ticket as its own git commit with a conventional commit message (feat/fix/docs + ticket ID in the body), then push to origin/main. Verify git status is clean after pushing.
