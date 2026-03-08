@@ -162,7 +162,7 @@ export const getAccounts = onCall<
       PLAID_SECRET.value()
     );
 
-    const response = await plaid.accountsGet({
+    const response = await plaid.accountsBalanceGet({
       access_token: accessToken,
     });
 

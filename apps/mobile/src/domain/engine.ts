@@ -701,13 +701,40 @@ export function createEngine(): Engine {
   async function updatePlaidBalances(args: {
     updatedAccounts: Account[];
   }): Promise<RecomputeResult> {
-    const state = await getState();
+    // Pull latest remote state before applying — same pattern as importPlaidAccounts.
+    // Without this, Device A can push stale partner balances because its local
+    // cache hasn't received Device B's recent push yet.
+    const syncMeta = await loadSyncMeta();
+    let state: AppStateV1;
+    if (syncMeta && Features.REMOTE_SYNC) {
+      const remote = await pullFromRemote(syncMeta);
+      if (remote) {
+        state = remote.state;
+        await saveAppState(remote.state);
+        await saveSyncMeta({ ...syncMeta, rev: remote.rev });
+      } else {
+        state = await getState();
+      }
+    } else {
+      state = await getState();
+    }
+
+    // Build a lookup of fresh data keyed by account ID.
+    // Only accounts whose IDs appear here will have their balance updated.
     const updatedById = new Map(args.updatedAccounts.map((a) => [a.id, a]));
 
     const accounts = state.accounts.map((existing) => {
       const fresh = updatedById.get(existing.id);
       if (!fresh) return existing;
-      return { ...existing, balance: fresh.balance, accountType: fresh.accountType };
+      // Copy balance + accountType from fresh Plaid data.
+      // Also carry over ownerUserId and institutionName if provided (backfill).
+      return {
+        ...existing,
+        balance: fresh.balance,
+        accountType: fresh.accountType,
+        ...(fresh.ownerUserId && { ownerUserId: fresh.ownerUserId }),
+        ...(fresh.institutionName && { institutionName: fresh.institutionName }),
+      };
     });
 
     const next: AppStateV1 = { ...state, accounts };
