@@ -713,7 +713,7 @@ Plaid access tokens are stored in `expo-secure-store` (device keychain) and neve
 
 - [x] MS-27.8.1 Add `ownerUserId` + `institutionName` to Account model (+ backfill on refresh)
 - [x] MS-27.8.2 Fix balance mismatch: selective merge + real-time balances
-- [ ] MS-27.8.3 Dedup existing duplicate accounts
+- [x] MS-27.8.3 Dedup existing duplicate accounts
 
 #### Tier 2 — Plaid Hardening
 

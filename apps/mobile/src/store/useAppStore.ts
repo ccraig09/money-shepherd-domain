@@ -11,6 +11,7 @@ import { syncTransactions, fetchAccounts } from "../infra/plaid/plaidClient";
 import { mapPlaidTransactions } from "../infra/plaid/mapTransaction";
 import { mapPlaidAccounts } from "../infra/plaid/mapAccounts";
 import { classifyPlaidError, makePlaidError, type PlaidErrorInfo } from "../infra/plaid/errors";
+import { hasDuplicateAccounts } from "../domain/commands";
 import { withTimeout } from "../lib/timeout";
 import { formatMoney } from "../lib/moneyFormat";
 import { Features } from "../config/features";
@@ -99,6 +100,7 @@ type AppStore = {
   seedBudgetFromBalances: (args: { totalCents: number; accountIds?: string[] }) => Promise<void>;
   markBudgetSeeded: () => Promise<void>;
   refreshFromPlaid: (opts?: { force?: boolean }) => Promise<{ imported: number; shouldSeedBudget?: boolean }>;
+  deduplicateAccounts: () => Promise<void>;
   importState: (state: AppStateV1) => Promise<void>;
   syncNow: () => Promise<void>;
 };
@@ -183,11 +185,30 @@ export const useAppStore = create<AppStore>((set, get) => ({
       syncState: syncTransition(get().syncState, { type: "sync-start" }),
     });
     try {
-      const state = await engine.getState();
+      let state = await engine.getState();
       const syncMeta = await loadSyncMeta();
       const lastRefresh = syncMeta
         ? await loadPlaidRefreshAt(syncMeta.userId)
         : null;
+
+      // Auto-dedup on boot if duplicates exist
+      if (hasDuplicateAccounts(state)) {
+        try {
+          const dedupResult = await engine.deduplicateAccounts();
+          if (dedupResult.removedCount > 0) {
+            state = dedupResult.state;
+            set({
+              toast: {
+                text: `Cleaned up ${dedupResult.removedCount} duplicate account${dedupResult.removedCount === 1 ? "" : "s"}`,
+                variant: "info",
+              },
+            });
+          }
+        } catch {
+          // Dedup is best-effort — don't block boot
+        }
+      }
+
       const now = new Date().toISOString();
       set({
         state,
@@ -931,6 +952,25 @@ export const useAppStore = create<AppStore>((set, get) => ({
       });
     } catch {
       // State already set locally — sync will catch up
+    }
+  },
+
+  deduplicateAccounts: async () => {
+    try {
+      const result = await engine.deduplicateAccounts();
+      if (result.removedCount > 0) {
+        set({
+          state: result.state,
+          toast: {
+            text: `Cleaned up ${result.removedCount} duplicate account${result.removedCount === 1 ? "" : "s"}`,
+            variant: "success",
+          },
+        });
+      } else {
+        set({ toast: { text: "No duplicates found", variant: "info" } });
+      }
+    } catch (err: any) {
+      set({ toast: { text: err?.message ?? "Failed to clean up duplicates", variant: "error" } });
     }
   },
 

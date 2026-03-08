@@ -860,3 +860,108 @@ export function moveEnvelopeToGroup(
     updatedAt: nowIso(),
   };
 }
+
+// ─── Account Dedup Commands ───────────────────────────────────
+
+/**
+ * Returns true if duplicate Plaid accounts exist in state.
+ * Groups by (name, ownerUserId) — accounts without ownerUserId group by name only.
+ */
+export function hasDuplicateAccounts(state: AppStateV1): boolean {
+  const plaidAccounts = state.accounts.filter((a) => a.id.startsWith("plaid-"));
+  const groups = new Map<string, number>();
+  for (const a of plaidAccounts) {
+    const key = `${a.name}::${a.ownerUserId ?? "unknown"}`;
+    groups.set(key, (groups.get(key) ?? 0) + 1);
+  }
+  return Array.from(groups.values()).some((count) => count > 1);
+}
+
+/**
+ * Deduplicates Plaid accounts by (name, ownerUserId).
+ * For each group with >1 account, keeps the one with the most transaction references.
+ * Reparents orphaned transactions to the keeper, updates seededAccountIds.
+ * Idempotent — returns state unchanged if no dupes found.
+ */
+export function deduplicateAccounts(state: AppStateV1): { state: AppStateV1; removedCount: number } {
+  const plaidAccounts = state.accounts.filter((a) => a.id.startsWith("plaid-"));
+  const nonPlaidAccounts = state.accounts.filter((a) => !a.id.startsWith("plaid-"));
+
+  // Group Plaid accounts by (name, ownerUserId)
+  const groups = new Map<string, typeof plaidAccounts>();
+  for (const a of plaidAccounts) {
+    const key = `${a.name}::${a.ownerUserId ?? "unknown"}`;
+    const group = groups.get(key) ?? [];
+    group.push(a);
+    groups.set(key, group);
+  }
+
+  // Count transaction references per account
+  const txRefCount = new Map<string, number>();
+  for (const tx of state.transactions) {
+    txRefCount.set(tx.accountId, (txRefCount.get(tx.accountId) ?? 0) + 1);
+  }
+
+  // For each group with dupes, pick keeper (most tx refs), collect removals
+  const keeperAccounts: typeof plaidAccounts = [];
+  const remapIds = new Map<string, string>(); // removedId → keeperId
+  let removedCount = 0;
+
+  for (const group of groups.values()) {
+    if (group.length === 1) {
+      keeperAccounts.push(group[0]);
+      continue;
+    }
+
+    // Sort by tx refs descending, then by ID stability (shorter ID first)
+    const sorted = [...group].sort((a, b) => {
+      const aRefs = txRefCount.get(a.id) ?? 0;
+      const bRefs = txRefCount.get(b.id) ?? 0;
+      if (bRefs !== aRefs) return bRefs - aRefs;
+      return a.id.length - b.id.length;
+    });
+
+    const keeper = sorted[0];
+    keeperAccounts.push(keeper);
+
+    for (let i = 1; i < sorted.length; i++) {
+      remapIds.set(sorted[i].id, keeper.id);
+      removedCount++;
+    }
+  }
+
+  if (removedCount === 0) {
+    return { state, removedCount: 0 };
+  }
+
+  // Reparent transactions
+  const nextTransactions = state.transactions.map((tx) => {
+    const newAccountId = remapIds.get(tx.accountId);
+    if (!newAccountId) return tx;
+    return { ...tx, accountId: newAccountId };
+  });
+
+  // Update seededAccountIds — replace removed IDs with keeper
+  let nextSeededIds = state.seededAccountIds;
+  if (nextSeededIds) {
+    const seededSet = new Set(nextSeededIds);
+    for (const [removedId, keeperId] of remapIds) {
+      if (seededSet.has(removedId)) {
+        seededSet.delete(removedId);
+        seededSet.add(keeperId);
+      }
+    }
+    nextSeededIds = Array.from(seededSet);
+  }
+
+  return {
+    state: {
+      ...state,
+      accounts: [...nonPlaidAccounts, ...keeperAccounts],
+      transactions: nextTransactions,
+      seededAccountIds: nextSeededIds,
+      updatedAt: nowIso(),
+    },
+    removedCount,
+  };
+}

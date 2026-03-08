@@ -6,7 +6,7 @@ import {
 import { ensureAnonAuth } from "../infra/firebase/firebaseClient";
 import { HouseholdStateRepo } from "../infra/remote/householdStateRepo";
 import { loadSyncMeta, saveSyncMeta } from "../infra/local/syncMeta";
-import { createEnvelope, renameEnvelope, deleteEnvelope, setTransactionNote, assignTransaction, unassignTransaction, editTransaction, deleteTransaction, transferBetweenEnvelopes, seedBudgetFromBalances, setEnvelopeGoal, clearEnvelopeGoal, setEnvelopeTarget, clearEnvelopeTarget, setEnvelopeType, addAssignmentRule, removeAssignmentRule, reorderAssignmentRules, createEnvelopeGroup, renameEnvelopeGroup, deleteEnvelopeGroup, reorderEnvelopeGroups, moveEnvelopeToGroup } from "./commands";
+import { createEnvelope, renameEnvelope, deleteEnvelope, setTransactionNote, assignTransaction, unassignTransaction, editTransaction, deleteTransaction, transferBetweenEnvelopes, seedBudgetFromBalances, setEnvelopeGoal, clearEnvelopeGoal, setEnvelopeTarget, clearEnvelopeTarget, setEnvelopeType, addAssignmentRule, removeAssignmentRule, reorderAssignmentRules, createEnvelopeGroup, renameEnvelopeGroup, deleteEnvelopeGroup, reorderEnvelopeGroups, moveEnvelopeToGroup, deduplicateAccounts } from "./commands";
 import { allocateToEnvelope } from "./allocate";
 import type { AppStateV1 } from "./appState";
 import { APP_STATE_VERSION } from "./appState";
@@ -117,6 +117,9 @@ export type Engine = {
 
   /** Import a validated state (from export), overwriting local, then recompute + sync. */
   importState(state: AppStateV1): Promise<RecomputeResult>;
+
+  /** Deduplicate Plaid accounts by (name, ownerUserId). Returns count of removed duplicates. */
+  deduplicateAccounts(): Promise<{ state: AppStateV1; removedCount: number }>;
 
   /** Pull remote then push local state to remote (bypasses debounce). */
   syncNow(): Promise<SyncNowResult>;
@@ -546,6 +549,14 @@ export function createEngine(): Engine {
     return recompute(state);
   }
 
+  async function deduplicateAccountsAction(): Promise<{ state: AppStateV1; removedCount: number }> {
+    const state = await getState();
+    const result = deduplicateAccounts(state);
+    if (result.removedCount === 0) return result;
+    const recomputed = await recompute(result.state);
+    return { state: recomputed.state, removedCount: result.removedCount };
+  }
+
   async function syncNow(): Promise<SyncNowResult> {
     const syncMeta = await loadSyncMeta();
     if (!syncMeta) return { pulledRemote: false };
@@ -788,6 +799,7 @@ export function createEngine(): Engine {
     updatePlaidBalances,
     importPlaidTransactions,
     importState,
+    deduplicateAccounts: deduplicateAccountsAction,
     syncNow,
     onSyncResult: null,
   };

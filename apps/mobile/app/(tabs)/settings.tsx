@@ -15,6 +15,7 @@ import { useRouter } from "expo-router";
 import { loadSyncMeta, type SyncMeta } from "../../src/infra/local/syncMeta";
 import { clearPin } from "../../src/infra/local/pin";
 import { useAppStore } from "../../src/store/useAppStore";
+import { hasDuplicateAccounts } from "../../src/domain/commands";
 import { buildExportPayload } from "../../src/domain/exportData";
 import type { SyncStatus } from "../../src/domain/syncStatus";
 import { Spacing, Radius, FontSize, FontWeight, type ColorTokens } from "../../src/ui/tokens";
@@ -40,6 +41,9 @@ export default function SettingsScreen() {
   const lastSyncAt = useAppStore((s) => s.lastSyncAt);
   const syncState = useAppStore((s) => s.syncState);
   const syncNow = useAppStore((s) => s.syncNow);
+  const dedupAccounts = useAppStore((s) => s.deduplicateAccounts);
+
+  const hasDupes = state ? hasDuplicateAccounts(state) : false;
 
   const [meta, setMeta] = React.useState<SyncMeta | null>(null);
   const [isBusy, setIsBusy] = React.useState(false);
@@ -336,6 +340,16 @@ export default function SettingsScreen() {
           onPress={() => router.push("/settings/import")}
           disabled={isBusy}
         />
+        {hasDupes && (
+          <>
+            <Divider />
+            <ActionButton
+              label="Clean Up Duplicates"
+              onPress={dedupAccounts}
+              disabled={isBusy}
+            />
+          </>
+        )}
       </View>
 
       {/* Actions */}
