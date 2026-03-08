@@ -144,7 +144,7 @@ export default function ConnectAccountsScreen() {
             const userOwnedAccountIds = new Set(
               existingUserTokens.flatMap((t) => Object.values(t.accountIdMap ?? {}))
             );
-            const { accounts: mergedAccounts, accountIdMap } = mapPlaidAccounts(plaidAccounts, userId, currentState.accounts, userOwnedAccountIds);
+            const { accounts: mergedAccounts, accountIdMap } = mapPlaidAccounts(plaidAccounts, userId, currentState.accounts, userOwnedAccountIds, institutionName);
             await addPlaidToken(userId, { accessToken, itemId, institutionName, accountIdMap });
             await engine.importPlaidAccounts({ newAccounts: mergedAccounts });
 

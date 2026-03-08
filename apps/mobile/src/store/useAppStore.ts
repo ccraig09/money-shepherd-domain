@@ -1042,6 +1042,8 @@ export const useAppStore = create<AppStore>((set, get) => ({
               plaidAccounts,
               userId,
               result.state.accounts,
+              undefined,
+              token.institutionName,
             );
             result = await engine.updatePlaidBalances({ updatedAccounts: refreshed });
           } catch {

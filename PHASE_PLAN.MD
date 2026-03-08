@@ -703,6 +703,45 @@ Plaid access tokens are stored in `expo-secure-store` (device keychain) and neve
 
 ---
 
+## Phase 27.8 [EVOLUTION | Track G]: Multi-Device Data Integrity, Plaid Hardening & Account UX
+
+> **Goal:** Fix balance mismatches, dedup accounts, persist Plaid sync cursors, handle pending transactions, add ownership tracking, grouped account display, connection manifest, and auto-sync. Final comprehensive Plaid phase.
+
+### Recommended build order
+
+#### Tier 1 — Data Integrity
+
+- [x] MS-27.8.1 Add `ownerUserId` + `institutionName` to Account model (+ backfill on refresh)
+- [ ] MS-27.8.2 Fix balance mismatch: selective merge + real-time balances
+- [ ] MS-27.8.3 Dedup existing duplicate accounts
+
+#### Tier 2 — Plaid Hardening
+
+- [ ] MS-27.8.4 Persist Plaid sync cursor + handle pending transaction lifecycle
+- [ ] MS-27.8.5 Pending transaction UI + transaction removal handling
+
+#### Tier 3 — Sync Reliability
+
+- [ ] MS-27.8.6 Auto-sync on foreground + pull-to-refresh on Dashboard
+
+#### Tier 4 — UX Improvements
+
+- [ ] MS-27.8.7 Group accounts by owner + collapsible sections
+- [ ] MS-27.8.8 Manual accounts as "Cash Wallets" + create/rename flow
+- [ ] MS-27.8.9 Cross-device Plaid refresh awareness
+- [ ] MS-27.8.10 Connection manifest (absorbed Phase 27.7)
+
+### Phase 27.8 Smoke Check
+
+- [ ] Both devices show same balances after sync
+- [ ] No duplicate accounts
+- [ ] Pending transactions visible with badge
+- [ ] Accounts grouped by owner (Los / Jackia)
+- [ ] Partner's connected banks visible on Connect Accounts screen
+- [ ] Auto-sync on app foreground
+
+---
+
 ## Phase 28: AI Advisor — Foundation + Guided Setup
 
 > **Goal:** After connecting a bank, AI analyzes spending, auto-creates envelopes, sets budgets, and categorizes transactions — all with user preview/confirm. Uses OpenAI GPT-4o-mini via Cloud Functions. $5/month budget cap with full usage monitoring.

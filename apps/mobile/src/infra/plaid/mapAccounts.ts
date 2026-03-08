@@ -60,6 +60,8 @@ export function mapPlaidAccounts(
   existingAccounts: Account[],
   /** Restrict name-based reconnect matching to these account IDs (this user's own accounts). */
   userOwnedAccountIds?: Set<string>,
+  /** Institution name from Plaid Link metadata (e.g. "Navy Federal"). */
+  institutionName?: string,
 ): MapAccountsResult {
   const existingById = new Map(existingAccounts.map((a) => [a.id, a]));
   const mergedAccounts = [...existingAccounts];
@@ -95,6 +97,8 @@ export function mapPlaidAccounts(
           ...mergedAccounts[idx],
           balance: Money.fromCents(balanceCents),
           accountType,
+          ownerUserId: userId,
+          ...(institutionName && { institutionName }),
         };
       }
     } else {
@@ -108,6 +112,8 @@ export function mapPlaidAccounts(
             ...mergedAccounts[idx],
             balance: Money.fromCents(balanceCents),
             accountType,
+            ownerUserId: userId,
+            ...(institutionName && { institutionName }),
           };
         }
       } else {
@@ -118,6 +124,8 @@ export function mapPlaidAccounts(
           name: displayName,
           balance: Money.fromCents(balanceCents),
           accountType,
+          ownerUserId: userId,
+          ...(institutionName && { institutionName }),
         });
         existingById.set(resolvedId, mergedAccounts[mergedAccounts.length - 1]);
       }

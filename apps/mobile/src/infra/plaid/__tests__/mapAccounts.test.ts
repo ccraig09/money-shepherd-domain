@@ -73,12 +73,14 @@ describe("mapPlaidAccounts", () => {
       name: "Plaid Gold Checking",
       balance: Money.fromCents(500000),
       accountType: "depository",
+      ownerUserId: "user-los",
     });
     expect(result.accounts[1]).toEqual({
       id: "plaid-def456",
       name: "Plaid Saving",
       balance: Money.fromCents(200000),
       accountType: "depository",
+      ownerUserId: "user-los",
     });
   });
 
@@ -257,6 +259,58 @@ describe("mapPlaidAccounts", () => {
       // Name match still works when no scoping is requested
       expect(result.accounts).toHaveLength(1);
       expect(result.accounts[0].id).toBe("plaid-los-savings-001");
+    });
+  });
+
+  describe("ownerUserId and institutionName", () => {
+    it("sets ownerUserId on new accounts", () => {
+      const result = mapPlaidAccounts([CHECKING], "user-los", []);
+      expect(result.accounts[0].ownerUserId).toBe("user-los");
+    });
+
+    it("sets ownerUserId when updating existing account balance", () => {
+      const existing: Account[] = [
+        { id: "plaid-abc123", name: "Plaid Gold Checking", balance: Money.fromCents(0), accountType: "depository" },
+      ];
+      const result = mapPlaidAccounts([CHECKING], "user-los", existing);
+      expect(result.accounts[0].ownerUserId).toBe("user-los");
+    });
+
+    it("sets institutionName when provided", () => {
+      const result = mapPlaidAccounts([CHECKING], "user-los", [], undefined, "Navy Federal");
+      expect(result.accounts[0].institutionName).toBe("Navy Federal");
+    });
+
+    it("does not set institutionName when not provided", () => {
+      const result = mapPlaidAccounts([CHECKING], "user-los", []);
+      expect(result.accounts[0].institutionName).toBeUndefined();
+    });
+
+    it("sets institutionName on existing accounts during balance update", () => {
+      const existing: Account[] = [
+        { id: "plaid-abc123", name: "Plaid Gold Checking", balance: Money.fromCents(0), accountType: "depository" },
+      ];
+      const result = mapPlaidAccounts([CHECKING], "user-los", existing, undefined, "SoFi");
+      expect(result.accounts[0].institutionName).toBe("SoFi");
+      expect(result.accounts[0].ownerUserId).toBe("user-los");
+    });
+
+    it("sets both fields on reconnect (name-matched) accounts", () => {
+      const existing: Account[] = [
+        { id: "plaid-old-id", name: "Plaid Gold Checking", balance: Money.fromCents(0), accountType: "depository" },
+      ];
+      const reconnected: PlaidAccountInfo = { ...CHECKING, plaidAccountId: "new-id" };
+      const result = mapPlaidAccounts([reconnected], "user-los", existing, undefined, "Navy Federal");
+      expect(result.accounts[0].ownerUserId).toBe("user-los");
+      expect(result.accounts[0].institutionName).toBe("Navy Federal");
+    });
+
+    it("does not touch non-Plaid manual accounts", () => {
+      const manual: Account = { id: "acc-los", name: "Cash", balance: Money.fromCents(0) };
+      const result = mapPlaidAccounts([CHECKING], "user-los", [manual], undefined, "SoFi");
+      expect(result.accounts[0]).toEqual(manual); // manual untouched
+      expect(result.accounts[1].ownerUserId).toBe("user-los");
+      expect(result.accounts[1].institutionName).toBe("SoFi");
     });
   });
 
