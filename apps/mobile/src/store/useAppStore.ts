@@ -5,7 +5,7 @@ import { initialSyncState, syncTransition, type SyncState } from "../domain/sync
 import { classifySyncError } from "../infra/remote/syncErrors";
 import { clearSyncMeta, loadSyncMeta, saveSyncMeta } from "../infra/local/syncMeta";
 import { clearPin } from "../infra/local/pin";
-import { loadPlaidTokens, clearAllPlaidTokens } from "../infra/local/secureTokens";
+import { loadPlaidTokens, clearAllPlaidTokens, updateTokenCursor } from "../infra/local/secureTokens";
 import { savePlaidRefreshAt, loadPlaidRefreshAt, clearPlaidRefreshAt } from "../infra/local/plaidMeta";
 import { syncTransactions, fetchAccounts } from "../infra/plaid/plaidClient";
 import { mapPlaidTransactions } from "../infra/plaid/mapTransaction";
@@ -1024,28 +1024,56 @@ export const useAppStore = create<AppStore>((set, get) => ({
     try {
       const USER_IDS = ["user-los", "user-jackia"];
       const allNewTransactions: import("@money-shepherd/domain").Transaction[] = [];
+      const allRemovedIds: string[] = [];
       let hasTokens = false;
 
       for (const userId of USER_IDS) {
         const tokens = await loadPlaidTokens(userId);
         if (tokens.length > 0) hasTokens = true;
         for (const token of tokens) {
-          const syncResult = await withTimeout(
-            syncTransactions(token.accessToken),
-            PLAID_SYNC_TIMEOUT_MS,
-            "Plaid sync",
-          );
           // Build account mapping from plaidAccountId -> internalAccountId
           const accountMap: Record<string, string> = {};
           if (token.accountIdMap) {
             Object.assign(accountMap, token.accountIdMap);
           }
 
-          const mapped = mapPlaidTransactions(
-            [...syncResult.added, ...syncResult.modified],
-            accountMap
-          );
-          allNewTransactions.push(...mapped);
+          // Paginated sync with cursor
+          let cursor = token.syncCursor;
+          let hasMore = true;
+          let pageCount = 0;
+          const isInitialSync = !token.syncCursor;
+
+          while (hasMore) {
+            const syncResult = await withTimeout(
+              syncTransactions(token.accessToken, cursor),
+              PLAID_SYNC_TIMEOUT_MS,
+              "Plaid sync",
+            );
+            pageCount++;
+
+            // Import transactions: all pages on incremental sync,
+            // first page only on initial sync (matches pre-pagination behavior)
+            if (!isInitialSync || pageCount === 1) {
+              const mapped = mapPlaidTransactions(
+                [...syncResult.added, ...syncResult.modified],
+                accountMap,
+              );
+              allNewTransactions.push(...mapped);
+
+              // Collect removed transaction IDs (map to internal ID format)
+              for (const plaidTxId of syncResult.removed) {
+                allRemovedIds.push(`plaid-tx-${plaidTxId}`);
+              }
+            }
+
+            cursor = syncResult.nextCursor;
+            hasMore = syncResult.hasMore;
+          }
+
+          // Persist cursor for next incremental sync
+          if (cursor) {
+            await updateTokenCursor(userId, token.itemId, cursor);
+          }
         }
       }
 
@@ -1070,6 +1098,11 @@ export const useAppStore = create<AppStore>((set, get) => ({
       const before = state.transactions.length;
       let result = await engine.importPlaidTransactions({ transactions: allNewTransactions });
       const imported = result.state.transactions.length - before;
+
+      // Remove transactions that Plaid reports as deleted/replaced
+      if (allRemovedIds.length > 0) {
+        result = await engine.removePlaidTransactions({ transactionIds: allRemovedIds });
+      }
 
       // Refresh Plaid account balances from the API ("Plaid balance is truth").
       // This updates balances for all connected Plaid accounts with fresh data.

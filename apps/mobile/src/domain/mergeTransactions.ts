@@ -24,12 +24,15 @@ export function mergeTransactions(
   const existingIds = new Set(existing.map((t) => t.id));
   const existingFingerprints = new Set(existing.map(fingerprint));
 
+  const incomingFingerprints = new Set<string>();
+
   const newOnly = incoming.filter((t) => {
     if (existingIds.has(t.id)) return false;
     // Secondary dedup: only for Plaid transactions
-    if (t.id.startsWith("plaid-tx-") && existingFingerprints.has(fingerprint(t))) {
-      return false;
-    }
+    const fp = fingerprint(t);
+    if (t.id.startsWith("plaid-tx-") && existingFingerprints.has(fp)) return false;
+    if (t.id.startsWith("plaid-tx-") && incomingFingerprints.has(fp)) return false;
+    incomingFingerprints.add(fp);
     return true;
   });
 

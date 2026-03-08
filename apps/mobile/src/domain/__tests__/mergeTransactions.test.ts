@@ -114,6 +114,16 @@ describe("mergeTransactions", () => {
       expect(result).toHaveLength(2);
     });
 
+    it("filters within-batch duplicates by fingerprint", () => {
+      const incoming = [
+        makeTx("plaid-tx-item-A-001", "2024-01-15T00:00:00.000Z", -2500),
+        makeTx("plaid-tx-item-B-001", "2024-01-15T00:00:00.000Z", -2500),
+      ];
+      const result = mergeTransactions([], incoming);
+      expect(result).toHaveLength(1);
+      expect(result[0].id).toBe("plaid-tx-item-A-001");
+    });
+
     it("allows plaid-tx with same date but different amount", () => {
       const existing = [
         makeTx("plaid-tx-old-001", "2024-01-15T00:00:00.000Z", -2500),

@@ -717,7 +717,8 @@ Plaid access tokens are stored in `expo-secure-store` (device keychain) and neve
 
 #### Tier 2 — Plaid Hardening
 
-- [ ] MS-27.8.4 Persist Plaid sync cursor + handle pending transaction lifecycle
+- [x] MS-27.8.4 Persist Plaid sync cursor + handle pending transaction lifecycle
+- [ ] MS-27.8.4.1 Fix pagination regression — cap initial sync + within-batch dedup
 - [ ] MS-27.8.5 Pending transaction UI + transaction removal handling
 
 #### Tier 3 — Sync Reliability
