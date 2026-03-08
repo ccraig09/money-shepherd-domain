@@ -9,6 +9,7 @@ import { StatusBar } from "expo-status-bar";
 import "react-native-reanimated";
 import React from "react";
 import {
+  AppState,
   View,
   Text,
   ActivityIndicator,
@@ -65,6 +66,17 @@ function RootLayoutInner() {
       SplashScreen.hideAsync();
     }
   }, [guardState]);
+
+  // Auto-sync when app returns to foreground
+  React.useEffect(() => {
+    const sub = AppState.addEventListener("change", (nextState) => {
+      if (nextState === "active" && useAppStore.getState().guardState === "ready") {
+        useAppStore.getState().refreshFromPlaid({ silent: true });
+        useAppStore.getState().syncNow();
+      }
+    });
+    return () => sub.remove();
+  }, []);
 
   // Keep native splash visible while deciding
   if (guardState === "checking") return null;

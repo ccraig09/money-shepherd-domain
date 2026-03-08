@@ -99,7 +99,7 @@ type AppStore = {
   }) => Promise<void>;
   seedBudgetFromBalances: (args: { totalCents: number; accountIds?: string[] }) => Promise<void>;
   markBudgetSeeded: () => Promise<void>;
-  refreshFromPlaid: (opts?: { force?: boolean }) => Promise<{ imported: number; shouldSeedBudget?: boolean }>;
+  refreshFromPlaid: (opts?: { force?: boolean; silent?: boolean }) => Promise<{ imported: number; shouldSeedBudget?: boolean }>;
   deduplicateAccounts: () => Promise<void>;
   importState: (state: AppStateV1) => Promise<void>;
   syncNow: () => Promise<void>;
@@ -1020,7 +1020,13 @@ export const useAppStore = create<AppStore>((set, get) => ({
       }
     }
 
-    set({ status: "loading", errorMessage: null, plaidSyncError: null, syncState: syncTransition(get().syncState, { type: "sync-start" }) });
+    const isSilent = opts?.force || opts?.silent;
+    // Only show full-screen loading overlay on boot sync, not pull-to-refresh or foreground sync
+    if (!isSilent) {
+      set({ status: "loading", errorMessage: null, plaidSyncError: null, syncState: syncTransition(get().syncState, { type: "sync-start" }) });
+    } else {
+      set({ errorMessage: null, plaidSyncError: null, syncState: syncTransition(get().syncState, { type: "sync-start" }) });
+    }
     try {
       const USER_IDS = ["user-los", "user-jackia"];
       const allNewTransactions: import("@money-shepherd/domain").Transaction[] = [];
@@ -1155,7 +1161,8 @@ export const useAppStore = create<AppStore>((set, get) => ({
     } catch (err: unknown) {
       const info = classifyPlaidError(err);
       set({
-        status: "error",
+        // Don't show full-screen error overlay on pull-to-refresh or foreground sync
+        ...(isSilent ? {} : { status: "error" as const }),
         errorMessage: info.message,
         plaidSyncError: info,
         syncState: syncTransition(get().syncState, { type: "sync-error", error: info.message }),

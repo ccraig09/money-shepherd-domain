@@ -5,6 +5,7 @@ import {
   Pressable,
   StyleSheet,
   ScrollView,
+  RefreshControl,
 } from "react-native";
 import { router } from "expo-router";
 import { useAppStore } from "../../src/store/useAppStore";
@@ -20,7 +21,7 @@ import { HelpTooltip } from "../../src/ui/components/HelpTooltip";
 import { InsightCard } from "../../src/ui/components/InsightCard";
 import { SpendingDonutCard, MonthlyTrendCard } from "../../src/ui/components/charts";
 import { Spacing, Radius, FontSize, FontWeight, type ColorTokens } from "../../src/ui/tokens";
-import { useThemedStyles } from "@/src/ui/ThemeProvider";
+import { useTheme, useThemedStyles } from "@/src/ui/ThemeProvider";
 import { getThisMonthSummary, getMonthlyTrend } from "../../src/lib/periodSummary";
 import { getCurrentPeriod, getFundingInPeriod, getSpendingInPeriod, generateInsights, groupEnvelopes } from "@money-shepherd/domain";
 import type { InsightType } from "@money-shepherd/domain";
@@ -28,6 +29,7 @@ import type { InsightType } from "@money-shepherd/domain";
 const SEVERITY_PRIORITY: Record<string, number> = { warning: 0, info: 1, success: 2 };
 
 export default function DashboardScreen() {
+  const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
   const state = useAppStore((s) => s.state);
 
@@ -123,6 +125,18 @@ export default function DashboardScreen() {
     setDismissedTypes((prev) => new Set(prev).add(topInsight.type));
   }, [topInsight]);
 
+  const [refreshing, setRefreshing] = useState(false);
+  const refreshFromPlaid = useAppStore((s) => s.refreshFromPlaid);
+  const syncNow = useAppStore((s) => s.syncNow);
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await Promise.all([refreshFromPlaid({ force: true }), syncNow()]);
+    } finally {
+      setRefreshing(false);
+    }
+  }, [refreshFromPlaid, syncNow]);
+
   const hasGroups = (state?.envelopeGroups ?? []).length > 0;
   const groupedPreview = useMemo(() => {
     if (!state || !hasGroups) return [];
@@ -151,6 +165,13 @@ export default function DashboardScreen() {
       style={styles.root}
       contentContainerStyle={styles.content}
       showsVerticalScrollIndicator={false}
+      refreshControl={
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+          tintColor={colors.primary}
+        />
+      }
     >
       {/* Header */}
       <View style={styles.header}>
