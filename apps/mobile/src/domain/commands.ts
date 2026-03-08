@@ -867,6 +867,46 @@ export function moveEnvelopeToGroup(
  * Returns true if duplicate Plaid accounts exist in state.
  * Groups by (name, ownerUserId) — accounts without ownerUserId group by name only.
  */
+/**
+ * Removes transactions by ID (used when Plaid reports transactions as removed).
+ * Also cleans up inbox references and assignment records for removed transactions.
+ */
+export function removePlaidTransactions(
+  state: AppStateV1,
+  args: { transactionIds: string[] },
+): AppStateV1 {
+  if (args.transactionIds.length === 0) return state;
+
+  const removeSet = new Set(args.transactionIds);
+  const nextTransactions = state.transactions.filter((tx) => !removeSet.has(tx.id));
+
+  // Nothing actually removed — short-circuit
+  if (nextTransactions.length === state.transactions.length) return state;
+
+  // Clean inbox: remove from unassigned list + assignment records
+  const nextUnassigned = state.inbox.unassignedTransactionIds.filter((id) => !removeSet.has(id));
+  const nextAssignments = { ...state.inbox.assignmentsByTransactionId };
+  for (const id of args.transactionIds) {
+    delete nextAssignments[id];
+  }
+
+  // Clean applied-ID lists
+  const nextAppliedAccount = state.appliedAccountTransactionIds.filter((id) => !removeSet.has(id));
+  const nextAppliedBudget = state.appliedBudgetTransactionIds.filter((id) => !removeSet.has(id));
+
+  return {
+    ...state,
+    transactions: nextTransactions,
+    inbox: {
+      unassignedTransactionIds: nextUnassigned,
+      assignmentsByTransactionId: nextAssignments,
+    },
+    appliedAccountTransactionIds: nextAppliedAccount,
+    appliedBudgetTransactionIds: nextAppliedBudget,
+    updatedAt: nowIso(),
+  };
+}
+
 export function hasDuplicateAccounts(state: AppStateV1): boolean {
   const plaidAccounts = state.accounts.filter((a) => a.id.startsWith("plaid-"));
   const groups = new Map<string, number>();

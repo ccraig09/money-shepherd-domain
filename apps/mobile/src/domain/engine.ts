@@ -6,7 +6,7 @@ import {
 import { ensureAnonAuth } from "../infra/firebase/firebaseClient";
 import { HouseholdStateRepo } from "../infra/remote/householdStateRepo";
 import { loadSyncMeta, saveSyncMeta } from "../infra/local/syncMeta";
-import { createEnvelope, renameEnvelope, deleteEnvelope, setTransactionNote, assignTransaction, unassignTransaction, editTransaction, deleteTransaction, transferBetweenEnvelopes, seedBudgetFromBalances, setEnvelopeGoal, clearEnvelopeGoal, setEnvelopeTarget, clearEnvelopeTarget, setEnvelopeType, addAssignmentRule, removeAssignmentRule, reorderAssignmentRules, createEnvelopeGroup, renameEnvelopeGroup, deleteEnvelopeGroup, reorderEnvelopeGroups, moveEnvelopeToGroup, deduplicateAccounts } from "./commands";
+import { createEnvelope, renameEnvelope, deleteEnvelope, setTransactionNote, assignTransaction, unassignTransaction, editTransaction, deleteTransaction, transferBetweenEnvelopes, seedBudgetFromBalances, setEnvelopeGoal, clearEnvelopeGoal, setEnvelopeTarget, clearEnvelopeTarget, setEnvelopeType, addAssignmentRule, removeAssignmentRule, reorderAssignmentRules, createEnvelopeGroup, renameEnvelopeGroup, deleteEnvelopeGroup, reorderEnvelopeGroups, moveEnvelopeToGroup, deduplicateAccounts, removePlaidTransactions } from "./commands";
 import { allocateToEnvelope } from "./allocate";
 import type { AppStateV1 } from "./appState";
 import { APP_STATE_VERSION } from "./appState";
@@ -113,6 +113,11 @@ export type Engine = {
 
   importPlaidTransactions(args: {
     transactions: import("@money-shepherd/domain").Transaction[];
+  }): Promise<RecomputeResult>;
+
+  /** Remove transactions reported as removed by Plaid (pending → posted or deleted). */
+  removePlaidTransactions(args: {
+    transactionIds: string[];
   }): Promise<RecomputeResult>;
 
   /** Import a validated state (from export), overwriting local, then recompute + sync. */
@@ -752,6 +757,15 @@ export function createEngine(): Engine {
     return recompute(next);
   }
 
+  async function removePlaidTransactionsAction(args: {
+    transactionIds: string[];
+  }): Promise<RecomputeResult> {
+    const state = await getState();
+    const next = removePlaidTransactions(state, args);
+    if (next === state) return { state, syncOutcome: "local-only" };
+    return recompute(next);
+  }
+
   async function importPlaidTransactions(args: {
     transactions: import("@money-shepherd/domain").Transaction[];
   }): Promise<RecomputeResult> {
@@ -798,6 +812,7 @@ export function createEngine(): Engine {
     importPlaidAccounts,
     updatePlaidBalances,
     importPlaidTransactions,
+    removePlaidTransactions: removePlaidTransactionsAction,
     importState,
     deduplicateAccounts: deduplicateAccountsAction,
     syncNow,

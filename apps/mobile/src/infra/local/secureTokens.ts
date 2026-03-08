@@ -14,6 +14,8 @@ export interface PlaidTokenData {
   accountIds?: string[];
   /** Maps plaidAccountId → internalAccountId (survives reconnects) */
   accountIdMap?: Record<string, string>;
+  /** Plaid /transactions/sync cursor — enables incremental sync */
+  syncCursor?: string;
 }
 
 function indexKey(userId: string): string {
@@ -125,4 +127,17 @@ export async function clearAllPlaidTokens(userId: string): Promise<void> {
     }
   }
   await SecureStore.deleteItemAsync(indexKey(userId));
+}
+
+/** Update the sync cursor for a specific Plaid item (persists to SecureStore). */
+export async function updateTokenCursor(
+  userId: string,
+  itemId: string,
+  cursor: string,
+): Promise<void> {
+  const raw = await SecureStore.getItemAsync(tokenKey(userId, itemId));
+  if (!raw) return;
+  const token: PlaidTokenData = JSON.parse(raw);
+  token.syncCursor = cursor;
+  await SecureStore.setItemAsync(tokenKey(userId, itemId), JSON.stringify(token));
 }
