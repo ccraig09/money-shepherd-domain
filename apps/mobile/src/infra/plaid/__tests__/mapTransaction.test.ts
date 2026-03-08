@@ -102,6 +102,22 @@ describe("mapPlaidTransaction", () => {
       expect(tx.accountId).toBe("plaid-unmapped-acc");
     });
   });
+  describe("pending status", () => {
+    it("sets isPending true when Plaid pending is true", () => {
+      const tx = mapPlaidTransaction(makePlaidTx({ pending: true }), ACCOUNT_MAP);
+      expect(tx.isPending).toBe(true);
+    });
+
+    it("does not set isPending when Plaid pending is false", () => {
+      const tx = mapPlaidTransaction(makePlaidTx({ pending: false }), ACCOUNT_MAP);
+      expect(tx.isPending).toBeUndefined();
+    });
+
+    it("does not set isPending when pending field is absent", () => {
+      const tx = mapPlaidTransaction(makePlaidTx(), ACCOUNT_MAP);
+      expect(tx.isPending).toBeUndefined();
+    });
+  });
 });
 
 describe("mapPlaidTransactions", () => {

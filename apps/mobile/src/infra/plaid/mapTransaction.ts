@@ -8,6 +8,7 @@ export interface PlaidTransaction {
   date: string;
   merchant_name: string | null;
   name: string | null;
+  pending?: boolean;
 }
 
 /**
@@ -40,6 +41,7 @@ export function mapPlaidTransaction(
     amount: Money.fromCents(cents),
     description,
     postedAt,
+    ...(plaidTx.pending && { isPending: true }),
   };
 }
 

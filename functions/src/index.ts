@@ -232,6 +232,7 @@ interface PlaidTransactionResult {
   date: string;
   merchant_name: string | null;
   name: string | null;
+  pending: boolean;
 }
 
 interface SyncTransactionsResponse {
@@ -278,6 +279,7 @@ export const syncTransactions = onCall<
       date: string;
       merchant_name?: string | null;
       name: string;
+      pending: boolean;
     }): PlaidTransactionResult => ({
       transaction_id: t.transaction_id,
       account_id: t.account_id,
@@ -285,6 +287,7 @@ export const syncTransactions = onCall<
       date: t.date,
       merchant_name: t.merchant_name ?? null,
       name: t.name ?? null,
+      pending: t.pending,
     });
 
     return {

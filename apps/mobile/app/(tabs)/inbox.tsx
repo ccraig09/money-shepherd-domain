@@ -177,7 +177,12 @@ export default function InboxScreen() {
                     <Text style={styles.rowDescription} numberOfLines={1}>
                       {desc}
                     </Text>
-                    {item.id.startsWith("plaid-") && (
+                    {item.isPending && (
+                      <View style={styles.pendingBadge} accessibilityLabel="Pending transaction">
+                        <Text style={styles.pendingBadgeText}>Pending</Text>
+                      </View>
+                    )}
+                    {item.id.startsWith("plaid-") && !item.isPending && (
                       <View style={styles.bankBadge} accessibilityLabel="Bank transaction">
                         <Text style={styles.bankBadgeText}>Bank</Text>
                       </View>
@@ -310,6 +315,16 @@ const createStyles = (c: ColorTokens) => StyleSheet.create({
   rowMain: { flex: 1, gap: Spacing.xs, paddingRight: Spacing.sm },
   descRow: { flexDirection: "row", alignItems: "center", gap: Spacing.xs },
   rowDescription: { fontSize: FontSize.body, fontWeight: FontWeight.medium, color: c.textDark, flexShrink: 1 },
+  pendingBadge: {
+    paddingHorizontal: 5,
+    paddingVertical: 1,
+    borderRadius: Radius.sm,
+    backgroundColor: c.surfaceLight,
+    borderWidth: 1,
+    borderColor: c.borderLight,
+    borderStyle: "dashed" as const,
+  },
+  pendingBadgeText: { fontSize: 10, fontWeight: FontWeight.semibold, color: c.textMuted },
   bankBadge: {
     paddingHorizontal: 5,
     paddingVertical: 1,

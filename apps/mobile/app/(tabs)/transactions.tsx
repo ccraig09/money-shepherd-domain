@@ -230,7 +230,12 @@ export default function TransactionsScreen() {
                     {hasNote && (
                       <View style={styles.noteDot} accessibilityLabel="Has note" />
                     )}
-                    {item.id.startsWith("plaid-") && (
+                    {item.isPending && (
+                      <View style={styles.pendingBadge} accessibilityLabel="Pending transaction">
+                        <Text style={styles.pendingBadgeText}>Pending</Text>
+                      </View>
+                    )}
+                    {item.id.startsWith("plaid-") && !item.isPending && (
                       <View style={styles.bankBadge} accessibilityLabel="Bank transaction">
                         <Text style={styles.bankBadgeText}>Bank</Text>
                       </View>
@@ -261,6 +266,7 @@ export default function TransactionsScreen() {
                   style={[
                     styles.rowAmount,
                     isExpense ? styles.expense : styles.income,
+                    item.isPending && styles.pendingAmount,
                   ]}
                 >
                   {isExpense ? "-" : "+"}${formatMoney(Math.abs(item.amount.cents))}
@@ -394,6 +400,17 @@ const createStyles = (c: ColorTokens) => StyleSheet.create({
   metaRow: { flexDirection: "row", alignItems: "center" },
   rowAccountName: { fontSize: FontSize.caption, color: c.textMuted, flexShrink: 1 },
   metaAttribution: { fontSize: FontSize.caption, color: c.textMuted, flexShrink: 0 },
+  pendingBadge: {
+    paddingHorizontal: 5,
+    paddingVertical: 1,
+    borderRadius: Radius.sm,
+    backgroundColor: c.surfaceLight,
+    borderWidth: 1,
+    borderColor: c.borderLight,
+    borderStyle: "dashed" as const,
+  },
+  pendingBadgeText: { fontSize: 10, fontWeight: FontWeight.semibold, color: c.textMuted },
+  pendingAmount: { opacity: 0.5 },
   bankBadge: {
     paddingHorizontal: 5,
     paddingVertical: 1,
