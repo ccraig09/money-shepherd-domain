@@ -10,7 +10,6 @@ import {
 } from "react-native";
 import { router } from "expo-router";
 import { useAppStore } from "../src/store/useAppStore";
-import { formatMoney } from "../src/lib/moneyFormat";
 import { Card } from "../src/ui/components/Card";
 import { Spacing, Radius, FontSize, FontWeight, type ColorTokens } from "../src/ui/tokens";
 import { useThemedStyles, useTheme } from "@/src/ui/ThemeProvider";
@@ -24,6 +23,7 @@ type Suggestion = {
 };
 
 type WizardState =
+  | { phase: "confirm" }
   | { phase: "loading" }
   | { phase: "error"; message: string }
   | { phase: "suggestions"; suggestions: Suggestion[] }
@@ -50,26 +50,23 @@ export default function AiSetupWizardScreen() {
   const createEnvelope = useAppStore((s) => s.createEnvelope);
   const setEnvelopeGoal = useAppStore((s) => s.setEnvelopeGoal);
 
-  const [wizardState, setWizardState] = React.useState<WizardState>({ phase: "loading" });
+  const [wizardState, setWizardState] = React.useState<WizardState>({ phase: "confirm" });
   const [editableSuggestions, setEditableSuggestions] = React.useState<Suggestion[]>([]);
 
-  React.useEffect(() => {
-    let cancelled = false;
+  function handleAnalyze() {
+    setWizardState({ phase: "loading" });
     analyzeSpending()
       .then((result) => {
-        if (cancelled) return;
         const suggestions = result.suggestions as Suggestion[];
         setEditableSuggestions(suggestions);
         setWizardState({ phase: "suggestions", suggestions });
       })
       .catch((err: unknown) => {
-        if (cancelled) return;
         const msg =
           err instanceof Error ? err.message : "Could not load AI suggestions.";
         setWizardState({ phase: "error", message: msg });
       });
-    return () => { cancelled = true; };
-  }, [analyzeSpending]);
+  }
 
   function updateName(index: number, name: string) {
     setEditableSuggestions((prev) =>
@@ -129,6 +126,41 @@ export default function AiSetupWizardScreen() {
 
   function handleSkip() {
     router.dismissAll();
+  }
+
+  // ── Confirm ──────────────────────────────────────────────────────────────
+  if (wizardState.phase === "confirm") {
+    return (
+      <View style={styles.root}>
+        <View style={styles.header}>
+          <Text style={styles.sparkle}>✦</Text>
+          <Text style={styles.title}>AI Budget Setup</Text>
+          <Text style={styles.subtitle}>
+            Claude will analyze your spending patterns and suggest up to 7
+            personalized budget envelopes. This uses a small amount of your
+            monthly AI budget (~$0.03).
+          </Text>
+        </View>
+        <View style={styles.footer}>
+          <Pressable
+            onPress={handleAnalyze}
+            style={styles.primaryBtn}
+            accessibilityRole="button"
+            accessibilityLabel="Analyze my spending"
+          >
+            <Text style={styles.primaryBtnText}>✦ Analyze My Spending</Text>
+          </Pressable>
+          <Pressable
+            onPress={handleSkip}
+            style={styles.skipBtn}
+            accessibilityRole="button"
+            accessibilityLabel="Skip for now"
+          >
+            <Text style={styles.skipText}>Skip for now</Text>
+          </Pressable>
+        </View>
+      </View>
+    );
   }
 
   // ── Loading ──────────────────────────────────────────────────────────────

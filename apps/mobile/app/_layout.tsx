@@ -174,6 +174,10 @@ function RootLayoutInner() {
             name="settings/assignment-rules"
             options={{ title: "Assignment Rules", headerBackTitle: "Settings" }}
           />
+          <Stack.Screen
+            name="ai-setup-wizard"
+            options={{ title: "AI Budget Setup", headerBackTitle: "Settings" }}
+          />
         </Stack>
 
         {isReady && (status === "loading" || status === "idle") && (
