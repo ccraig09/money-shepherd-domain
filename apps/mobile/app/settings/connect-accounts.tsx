@@ -52,6 +52,7 @@ import {
 } from "../../src/infra/local/secureTokens";
 import { mapPlaidAccounts } from "../../src/infra/plaid/mapAccounts";
 import { classifyPlaidError } from "../../src/infra/plaid/errors";
+import { writeConnection, readConnections, deactivateConnection, type PlaidConnectionDoc } from "../../src/infra/remote/connectionManifest";
 import { createEngine } from "../../src/domain/engine";
 import { useAppStore } from "../../src/store/useAppStore";
 import { Spacing, Radius, FontSize, FontWeight, type ColorTokens } from "../../src/ui/tokens";
@@ -73,6 +74,7 @@ export default function ConnectAccountsScreen() {
   const [meta, setMeta] = React.useState<SyncMeta | null>(null);
   const [connecting, setConnecting] = React.useState<string | null>(null);
   const [tokens, setTokens] = React.useState<Record<string, PlaidTokenData[]>>({});
+  const [remoteConnections, setRemoteConnections] = React.useState<PlaidConnectionDoc[]>([]);
 
   const styles = useThemedStyles(createStyles);
 
@@ -99,7 +101,14 @@ export default function ConnectAccountsScreen() {
   });
 
   React.useEffect(() => {
-    loadSyncMeta().then(setMeta);
+    loadSyncMeta().then((m) => {
+      setMeta(m);
+      if (m?.householdId) {
+        readConnections(m.householdId)
+          .then(setRemoteConnections)
+          .catch(() => {}); // best-effort
+      }
+    });
     loadAllTokens();
   }, []);
 
@@ -147,6 +156,16 @@ export default function ConnectAccountsScreen() {
             const { accounts: mergedAccounts, accountIdMap } = mapPlaidAccounts(plaidAccounts, userId, currentState.accounts, userOwnedAccountIds, institutionName);
             await addPlaidToken(userId, { accessToken, itemId, institutionName, accountIdMap });
             await engine.importPlaidAccounts({ newAccounts: mergedAccounts });
+
+            // Write connection manifest to Firestore (cross-device visibility)
+            if (meta?.householdId) {
+              writeConnection(meta.householdId, {
+                itemId,
+                userId,
+                institutionName,
+                accountIds: Object.values(accountIdMap),
+              }).catch(() => {}); // best-effort
+            }
 
             // Refresh token list
             const updated = await loadPlaidTokens(userId);
@@ -198,6 +217,11 @@ export default function ConnectAccountsScreen() {
             await removePlaidToken(userId, itemId);
             const updated = await loadPlaidTokens(userId);
             setTokens((prev) => ({ ...prev, [userId]: updated }));
+
+            // Deactivate in Firestore (cross-device visibility)
+            if (meta?.householdId) {
+              deactivateConnection(meta.householdId, itemId).catch(() => {});
+            }
           },
         },
       ]
@@ -222,15 +246,21 @@ export default function ConnectAccountsScreen() {
         .map((user) => {
           const isCurrentUser = meta?.userId === user.id;
           const userTokens = tokens[user.id] ?? [];
-          return (
+          return isCurrentUser ? (
             <UserCard
               key={user.id}
               user={user}
-              isCurrentUser={isCurrentUser}
               isConnecting={connecting === user.id}
               connectedBanks={userTokens}
               onConnect={() => handleConnect(user.id)}
               onDisconnect={(itemId, accessToken, name) => handleDisconnect(user.id, itemId, accessToken, name)}
+            />
+          ) : (
+            <PartnerCard
+              key={user.id}
+              user={user}
+              localBanks={userTokens}
+              remoteBanks={remoteConnections.filter((c) => c.userId === user.id)}
             />
           );
         })}
@@ -250,14 +280,12 @@ export default function ConnectAccountsScreen() {
 
 function UserCard({
   user,
-  isCurrentUser,
   isConnecting,
   connectedBanks,
   onConnect,
   onDisconnect,
 }: {
   user: UserEntry;
-  isCurrentUser: boolean;
   isConnecting: boolean;
   connectedBanks: PlaidTokenData[];
   onConnect: () => void;
@@ -269,20 +297,13 @@ function UserCard({
   const { colors } = useTheme();
 
   return (
-    <View style={[styles.card, isCurrentUser && styles.cardActive]}>
+    <View style={[styles.card, styles.cardActive]}>
       <View style={styles.cardHeader}>
         <View>
           <Text style={styles.userName}>
-            {user.label}{isCurrentUser ? " (You)" : ""}
+            {user.label} (You)
           </Text>
-          {isCurrentUser && (
-            <Text style={styles.currentBadge}>This device</Text>
-          )}
-          {!isCurrentUser && !hasConnections && (
-            <Text style={styles.partnerHint}>
-              {user.label} can connect from their device, or log in here
-            </Text>
-          )}
+          <Text style={styles.currentBadge}>This device</Text>
         </View>
         <StatusPill connected={hasConnections} />
       </View>
@@ -307,7 +328,7 @@ function UserCard({
 
       <Pressable
         style={({ pressed }) => [
-          isCurrentUser ? styles.connectBtn : styles.connectBtnSecondary,
+          styles.connectBtn,
           pressed && styles.connectBtnPressed,
           disabled && styles.connectBtnDisabled,
         ]}
@@ -315,18 +336,70 @@ function UserCard({
         disabled={disabled}
       >
         {isConnecting ? (
-          <ActivityIndicator color={isCurrentUser ? colors.textDisabled : colors.primary} size="small" />
+          <ActivityIndicator color={colors.textDisabled} size="small" />
         ) : (
           <Text
             style={[
-              isCurrentUser ? styles.connectBtnText : styles.connectBtnTextSecondary,
+              styles.connectBtnText,
               disabled && styles.connectBtnTextDisabled,
             ]}
           >
-            {hasConnections ? "Add Another Bank" : `Connect ${isCurrentUser ? "Your" : user.label + "'s"} Bank`}
+            {hasConnections ? "Add Another Bank" : "Connect Your Bank"}
           </Text>
         )}
       </Pressable>
+    </View>
+  );
+}
+
+function PartnerCard({
+  user,
+  localBanks,
+  remoteBanks,
+}: {
+  user: UserEntry;
+  localBanks: PlaidTokenData[];
+  remoteBanks: PlaidConnectionDoc[];
+}) {
+  const styles = useThemedStyles(createStyles);
+
+  // Merge local + remote, dedup by itemId. Local tokens take priority.
+  const localIds = new Set(localBanks.map((b) => b.itemId));
+  const merged: Array<{ itemId: string; institutionName: string; source: "local" | "remote" }> = [
+    ...localBanks.map((b) => ({ itemId: b.itemId, institutionName: b.institutionName, source: "local" as const })),
+    ...remoteBanks
+      .filter((r) => !localIds.has(r.itemId))
+      .map((r) => ({ itemId: r.itemId, institutionName: r.institutionName, source: "remote" as const })),
+  ];
+
+  const hasConnections = merged.length > 0;
+
+  return (
+    <View style={styles.card}>
+      <View style={styles.cardHeader}>
+        <View>
+          <Text style={styles.userName}>{user.label}</Text>
+          <Text style={styles.partnerHint}>
+            {hasConnections
+              ? `Connected on ${user.label}'s device`
+              : "No banks connected yet"}
+          </Text>
+        </View>
+        <StatusPill connected={hasConnections} />
+      </View>
+
+      {hasConnections && (
+        <View style={styles.bankList}>
+          {merged.map((bank) => (
+            <View key={bank.itemId} style={styles.bankRow}>
+              <Text style={styles.institutionLabel}>{bank.institutionName}</Text>
+              {bank.source === "remote" && (
+                <Text style={styles.remoteHint}>other device</Text>
+              )}
+            </View>
+          ))}
+        </View>
+      )}
     </View>
   );
 }
@@ -414,6 +487,11 @@ const createStyles = (c: ColorTokens) => StyleSheet.create({
     fontSize: FontSize.caption,
     color: c.error,
     fontWeight: FontWeight.semibold,
+  },
+  remoteHint: {
+    fontSize: FontSize.caption,
+    color: c.textMuted,
+    fontStyle: "italic" as const,
   },
   divider: { height: 1, backgroundColor: c.borderLight, marginBottom: Spacing.md },
   connectBtn: {

@@ -683,10 +683,10 @@ Plaid access tokens are stored in `expo-secure-store` (device keychain) and neve
 
 ### Recommended build order
 
-- [ ] MS-27.7.1 Firestore connection manifest — write `plaidConnections/{itemId}` doc on connect (userId, institutionName, accountIds, connectedAt, active flag)
-- [ ] MS-27.7.2 Read connection manifest — connect-accounts screen reads Firestore flags to determine "Connected" status (fall back to local tokens for "can sync" ability)
-- [ ] MS-27.7.3 Disconnect sync — set `active: false` in Firestore when a bank is disconnected locally
-- [ ] MS-27.7.4 UI distinction — differentiate "connected on this device" (can sync) vs "connected on another device" (read-only indicator)
+- [x] MS-27.7.1 Firestore connection manifest — write `plaidConnections/{itemId}` doc on connect (userId, institutionName, accountIds, connectedAt, active flag)
+- [x] MS-27.7.2 Read connection manifest — connect-accounts screen reads Firestore flags to determine "Connected" status (fall back to local tokens for "can sync" ability)
+- [x] MS-27.7.3 Disconnect sync — set `active: false` in Firestore when a bank is disconnected locally
+- [x] MS-27.7.4 UI distinction — differentiate "connected on this device" (can sync) vs "connected on another device" (read-only indicator)
 
 ### Architecture Notes
 
@@ -730,7 +730,7 @@ Plaid access tokens are stored in `expo-secure-store` (device keychain) and neve
 - [x] MS-27.8.7 Group accounts by owner + collapsible sections
 - [ ] MS-27.8.8 Manual accounts as "Cash Wallets" + create/rename flow
 - [ ] MS-27.8.9 Cross-device Plaid refresh awareness
-- [ ] MS-27.8.10 Connection manifest (absorbed Phase 27.7)
+- [x] MS-27.8.10 Connection manifest (absorbed Phase 27.7)
 
 ### Phase 27.8 Smoke Check
 
