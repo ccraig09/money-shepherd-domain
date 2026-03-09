@@ -15,4 +15,14 @@ export const Features = {
   REMOTE_SYNC:
     process.env.EXPO_PUBLIC_ENABLE_REMOTE_SYNC !== "false" &&
     process.env.EXPO_PUBLIC_ENABLE_REMOTE_SYNC !== "0",
+
+  /** AI Advisor — Claude-powered budgeting assistance. */
+  AI_ADVISOR:
+    process.env.EXPO_PUBLIC_ENABLE_AI_ADVISOR !== "false" &&
+    process.env.EXPO_PUBLIC_ENABLE_AI_ADVISOR !== "0",
+
+  /** AI Text-to-Speech — read AI responses aloud. */
+  AI_TTS:
+    process.env.EXPO_PUBLIC_ENABLE_AI_TTS !== "false" &&
+    process.env.EXPO_PUBLIC_ENABLE_AI_TTS !== "0",
 } as const;

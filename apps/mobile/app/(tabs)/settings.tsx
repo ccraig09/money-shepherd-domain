@@ -21,6 +21,7 @@ import type { SyncStatus } from "../../src/domain/syncStatus";
 import { Spacing, Radius, FontSize, FontWeight, type ColorTokens } from "../../src/ui/tokens";
 import { useThemedStyles, useTheme } from "@/src/ui/ThemeProvider";
 import { Features } from "../../src/config/features";
+import { readAiUsage, type AiUsageStats } from "../../src/infra/firebase/aiUsage";
 import {
   hasBiometricHardware,
   isBiometricEnrolled,
@@ -54,6 +55,9 @@ export default function SettingsScreen() {
   const [biometricEnabled, setBiometricEnabled] = React.useState(false);
   const [biometricLabel, setBiometricLabel] = React.useState("Biometric");
 
+  // AI usage state
+  const [aiUsage, setAiUsage] = React.useState<AiUsageStats | null>(null);
+
   async function refreshMeta() {
     const current = await loadSyncMeta();
     setMeta(current);
@@ -61,6 +65,11 @@ export default function SettingsScreen() {
 
   React.useEffect(() => {
     refreshMeta();
+
+    // Load AI usage stats
+    if (Features.AI_ADVISOR && state?.householdId) {
+      readAiUsage(state.householdId).then(setAiUsage).catch(() => {});
+    }
 
     async function initBiometric() {
       const [hasHw, enrolled, prefOn] = await Promise.all([
@@ -296,6 +305,16 @@ export default function SettingsScreen() {
         </View>
       )}
 
+      {/* AI Usage */}
+      {Features.AI_ADVISOR && aiUsage && (
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>AI Advisor</Text>
+          <Row label="Calls today" value={`${aiUsage.callsToday} / 20`} />
+          <Row label="Calls this month" value={`${aiUsage.totalCalls}`} />
+          <AiBudgetBar costCents={aiUsage.estimatedCostCents} />
+        </View>
+      )}
+
       {/* Budget */}
       <View style={styles.card}>
         <Text style={styles.cardTitle}>Budget</Text>
@@ -478,6 +497,51 @@ function ActionButton({
   );
 }
 
+const AI_BUDGET_CAP_CENTS = 700; // $7.00
+const AI_BUDGET_WARNING_PERCENT = 0.75;
+
+function AiBudgetBar({ costCents }: { costCents: number }) {
+  const styles = useThemedStyles(createStyles);
+  const { colors } = useTheme();
+  const percent = Math.min(costCents / AI_BUDGET_CAP_CENTS, 1);
+  const isWarning = percent >= AI_BUDGET_WARNING_PERCENT;
+  const isFull = percent >= 1;
+  const costDollars = (costCents / 100).toFixed(2);
+  const capDollars = (AI_BUDGET_CAP_CENTS / 100).toFixed(2);
+
+  return (
+    <View style={styles.budgetBarContainer}>
+      <View style={styles.budgetBarLabels}>
+        <Text style={[styles.budgetBarCost, isFull && styles.budgetBarFull, isWarning && !isFull && styles.budgetBarWarning]}>
+          ${costDollars}
+        </Text>
+        <Text style={styles.budgetBarCap}>/ ${capDollars}</Text>
+      </View>
+      <View style={styles.budgetBarTrack}>
+        <View
+          style={[
+            styles.budgetBarFill,
+            { width: `${Math.round(percent * 100)}%` as `${number}%` },
+            isFull
+              ? { backgroundColor: colors.error }
+              : isWarning
+                ? { backgroundColor: colors.warning }
+                : { backgroundColor: colors.primary },
+          ]}
+        />
+        {/* 75% warning marker */}
+        <View style={[styles.budgetBarMarker, { left: "75%" }]} />
+      </View>
+      {isWarning && !isFull && (
+        <Text style={styles.budgetBarHint}>Approaching monthly limit</Text>
+      )}
+      {isFull && (
+        <Text style={[styles.budgetBarHint, { color: colors.error }]}>Monthly limit reached</Text>
+      )}
+    </View>
+  );
+}
+
 const createStyles = (c: ColorTokens) => StyleSheet.create({
   root: { flex: 1, backgroundColor: c.surfaceLight },
   container: { padding: Spacing.lg, paddingTop: 60, gap: Spacing.lg, paddingBottom: Spacing.bottomPad },
@@ -534,4 +598,14 @@ const createStyles = (c: ColorTokens) => StyleSheet.create({
   themeLabel: { fontSize: FontSize.subtitle, color: c.textMid },
   themeLabelActive: { color: c.textDark, fontWeight: FontWeight.semibold },
   themeCheck: { fontSize: FontSize.subtitle, color: c.primary, fontWeight: FontWeight.bold },
+  budgetBarContainer: { paddingVertical: Spacing.sm },
+  budgetBarLabels: { flexDirection: "row", alignItems: "baseline", marginBottom: Spacing.xs },
+  budgetBarCost: { fontSize: FontSize.subtitle, fontWeight: FontWeight.bold, color: c.textDark },
+  budgetBarWarning: { color: c.warning },
+  budgetBarFull: { color: c.error },
+  budgetBarCap: { fontSize: FontSize.small, color: c.textMuted, marginLeft: Spacing.xs },
+  budgetBarTrack: { height: 8, backgroundColor: c.borderLight, borderRadius: 4, overflow: "hidden" as const, position: "relative" as const },
+  budgetBarFill: { height: "100%", borderRadius: 4 },
+  budgetBarMarker: { position: "absolute" as const, top: 0, bottom: 0, width: 2, backgroundColor: c.textMuted, opacity: 0.4 },
+  budgetBarHint: { fontSize: FontSize.caption, color: c.warning, marginTop: Spacing.xs },
 });
