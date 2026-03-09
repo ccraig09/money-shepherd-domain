@@ -9,8 +9,8 @@ const PLAID_CLIENT_ID = defineSecret("PLAID_CLIENT_ID");
 const PLAID_SECRET = defineSecret("PLAID_SECRET");
 const PLAID_ENV = defineString("PLAID_ENV", { default: "sandbox" });
 
-// AI (Anthropic Claude) — used by AI advisor functions
-export const ANTHROPIC_API_KEY = defineSecret("ANTHROPIC_API_KEY");
+// AI Cloud Functions
+export { analyzeSpending } from "./ai/analyzeSpending";
 
 function makePlaidClient(clientId: string, secret: string): PlaidApi {
   const config = new Configuration({

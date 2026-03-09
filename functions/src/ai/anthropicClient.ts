@@ -1,7 +1,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 
 /** Single model for all AI tasks — Sonnet 4.6 */
-export const AI_MODEL = "claude-sonnet-4-6-20250514";
+export const AI_MODEL = "claude-sonnet-4-6";
 
 /** Max tokens per AI response */
 export const MAX_TOKENS = 4096;

@@ -45,6 +45,8 @@ export interface EnvelopeSuggestion {
 
 export interface AnalyzeSpendingResponse {
   suggestions: EnvelopeSuggestion[];
+  /** Present when spending is ≥75% of the monthly budget cap */
+  warning?: "budget_warning";
 }
 
 export interface SuggestAllocationsRequest {
