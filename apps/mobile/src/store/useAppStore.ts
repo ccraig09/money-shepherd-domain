@@ -103,6 +103,7 @@ type AppStore = {
   deduplicateAccounts: () => Promise<void>;
   importState: (state: AppStateV1) => Promise<void>;
   syncNow: () => Promise<void>;
+  analyzeSpending: () => Promise<{ suggestions: { name: string; goalCents: number; type: string; reason: string }[]; warning?: "budget_warning" }>;
 };
 
 const engine = createEngine();
@@ -1169,5 +1170,22 @@ export const useAppStore = create<AppStore>((set, get) => ({
       });
       return { imported: 0 };
     }
+  },
+
+  analyzeSpending: async () => {
+    const { state } = get();
+    if (!state) throw new Error("No state available");
+
+    const { buildAiContext } = await import("@money-shepherd/domain");
+    const { callAnalyzeSpending } = await import("../infra/firebase/aiClient");
+
+    const context = buildAiContext(state);
+    const result = await callAnalyzeSpending(state.householdId, context);
+
+    if (result.warning === "budget_warning") {
+      set({ toast: { text: "AI budget at 75% — approaching monthly limit", variant: "info" } });
+    }
+
+    return result;
   },
 }));

@@ -13,6 +13,7 @@ import { formatMoney } from "../src/lib/moneyFormat";
 import { Card } from "../src/ui/components/Card";
 import { Spacing, Radius, FontSize, FontWeight, type ColorTokens } from "../src/ui/tokens";
 import { useThemedStyles, useTheme } from "@/src/ui/ThemeProvider";
+import { Features } from "../src/config/features";
 
 export default function SeedBudgetScreen() {
   const styles = useThemedStyles(createStyles);
@@ -80,7 +81,12 @@ export default function SeedBudgetScreen() {
           accountIds,
         });
       }
-      router.dismissAll();
+      // After first seed, offer AI envelope setup if flag is on
+      if (!isReseed && Features.AI_ADVISOR) {
+        router.replace("/ai-setup-wizard");
+      } else {
+        router.dismissAll();
+      }
     } catch {
       // Error handled by store — toast will show
       setSeeding(false);

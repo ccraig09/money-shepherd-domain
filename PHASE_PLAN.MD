@@ -752,8 +752,8 @@ Plaid access tokens are stored in `expo-secure-store` (device keychain) and neve
 - [x] MS-28.2 Context builder (AppState → AI summary, pure function + tests)
 - [x] MS-28.1 Claude Cloud Function setup (Anthropic SDK, secrets, system prompt)
 - [x] MS-28.1b API usage monitoring + cost controls ($7/mo cap, 75% warning, rate limits, Settings UI)
-- [ ] MS-28.3 Spending analysis Cloud Function (suggest envelopes + budgets, max 7)
-- [ ] MS-28.4 Guided setup wizard UI (preview + one-tap create envelopes)
+- [x] MS-28.3 Spending analysis Cloud Function (suggest envelopes + budgets, max 7)
+- [x] MS-28.4 Guided setup wizard UI (preview + one-tap create envelopes)
 - [ ] MS-28.5 Auto-allocate suggestions (preview + one-tap allocate)
 - [ ] MS-28.6 AI auto-categorization Cloud Function (merchant → envelope mapping, batch 20)
 - [ ] MS-28.7 Integrate AI categorization into suggestEnvelope hierarchy

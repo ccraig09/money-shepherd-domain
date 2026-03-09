@@ -305,13 +305,22 @@ export default function SettingsScreen() {
         </View>
       )}
 
-      {/* AI Usage */}
-      {Features.AI_ADVISOR && aiUsage && (
+      {/* AI Advisor */}
+      {Features.AI_ADVISOR && (
         <View style={styles.card}>
           <Text style={styles.cardTitle}>AI Advisor</Text>
-          <Row label="Calls today" value={`${aiUsage.callsToday} / 20`} />
-          <Row label="Calls this month" value={`${aiUsage.totalCalls}`} />
-          <AiBudgetBar costCents={aiUsage.estimatedCostCents} />
+          <ActionButton
+            label="✦ Suggest Envelopes"
+            onPress={() => router.push("/ai-setup-wizard")}
+            disabled={isBusy || !state}
+          />
+          {aiUsage && (
+            <>
+              <Row label="Calls today" value={`${aiUsage.callsToday} / 20`} />
+              <Row label="Calls this month" value={`${aiUsage.totalCalls}`} />
+              <AiBudgetBar costCents={aiUsage.estimatedCostCents} />
+            </>
+          )}
         </View>
       )}
 
