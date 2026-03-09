@@ -728,18 +728,18 @@ Plaid access tokens are stored in `expo-secure-store` (device keychain) and neve
 #### Tier 4 — UX Improvements
 
 - [x] MS-27.8.7 Group accounts by owner + collapsible sections
-- [ ] MS-27.8.8 Manual accounts as "Cash Wallets" + create/rename flow
-- [ ] MS-27.8.9 Cross-device Plaid refresh awareness
 - [x] MS-27.8.10 Connection manifest (absorbed Phase 27.7)
+
+> **Deferred to future:** MS-27.8.8 (Cash Wallets), MS-27.8.9 (Cross-device refresh awareness)
 
 ### Phase 27.8 Smoke Check
 
-- [ ] Both devices show same balances after sync
-- [ ] No duplicate accounts
-- [ ] Pending transactions visible with badge
-- [ ] Accounts grouped by owner (Los / Jackia)
-- [ ] Partner's connected banks visible on Connect Accounts screen
-- [ ] Auto-sync on app foreground
+- [x] Both devices show same balances after sync
+- [x] No duplicate accounts
+- [x] Pending transactions visible with badge
+- [x] Accounts grouped by owner (Los / Jackia)
+- [x] Partner's connected banks visible on Connect Accounts screen
+- [x] Auto-sync on app foreground
 
 ---
 
