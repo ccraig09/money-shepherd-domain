@@ -727,7 +727,7 @@ Plaid access tokens are stored in `expo-secure-store` (device keychain) and neve
 
 #### Tier 4 — UX Improvements
 
-- [ ] MS-27.8.7 Group accounts by owner + collapsible sections
+- [x] MS-27.8.7 Group accounts by owner + collapsible sections
 - [ ] MS-27.8.8 Manual accounts as "Cash Wallets" + create/rename flow
 - [ ] MS-27.8.9 Cross-device Plaid refresh awareness
 - [ ] MS-27.8.10 Connection manifest (absorbed Phase 27.7)

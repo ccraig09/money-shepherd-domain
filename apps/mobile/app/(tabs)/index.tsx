@@ -390,7 +390,7 @@ export default function DashboardScreen() {
       {/* Accounts overview */}
       {state.accounts.length > 0 && (
         <View style={styles.accountsSection}>
-          <AccountsCard accounts={state.accounts} />
+          <AccountsCard accounts={state.accounts} users={state.users} />
         </View>
       )}
 
