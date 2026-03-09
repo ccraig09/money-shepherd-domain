@@ -745,42 +745,49 @@ Plaid access tokens are stored in `expo-secure-store` (device keychain) and neve
 
 ## Phase 28: AI Advisor — Foundation + Guided Setup
 
-> **Goal:** After connecting a bank, AI analyzes spending, auto-creates envelopes, sets budgets, and categorizes transactions — all with user preview/confirm. Uses OpenAI GPT-4o-mini via Cloud Functions. $5/month budget cap with full usage monitoring.
+> **Goal:** After connecting a bank, AI analyzes spending, auto-creates envelopes, sets budgets, and categorizes transactions — all with user preview/confirm. Uses Claude Sonnet 4.6 (Anthropic) via Cloud Functions. $7/month budget cap with 75% warning + full usage monitoring. Optional TTS with player controls.
 
 ### Recommended build order
 
-- [ ] MS-28.1 OpenAI Cloud Function setup (SDK, secrets, system prompt)
-- [ ] MS-28.1b API usage monitoring + cost controls ($5/mo cap, rate limits, Settings UI)
-- [ ] MS-28.2 Context builder (AppState → AI summary, pure function + tests)
-- [ ] MS-28.3 Spending analysis Cloud Function (suggest envelopes + budgets)
+- [x] MS-28.2 Context builder (AppState → AI summary, pure function + tests)
+- [x] MS-28.1 Claude Cloud Function setup (Anthropic SDK, secrets, system prompt)
+- [x] MS-28.1b API usage monitoring + cost controls ($7/mo cap, 75% warning, rate limits, Settings UI)
+- [ ] MS-28.3 Spending analysis Cloud Function (suggest envelopes + budgets, max 7)
 - [ ] MS-28.4 Guided setup wizard UI (preview + one-tap create envelopes)
 - [ ] MS-28.5 Auto-allocate suggestions (preview + one-tap allocate)
-- [ ] MS-28.6 AI auto-categorization Cloud Function (merchant → envelope mapping)
+- [ ] MS-28.6 AI auto-categorization Cloud Function (merchant → envelope mapping, batch 20)
 - [ ] MS-28.7 Integrate AI categorization into suggestEnvelope hierarchy
 - [ ] MS-28.8 Auto-assign preview + bulk confirm in Inbox
+- [ ] MS-28.9 TTS player for AI responses (play/pause/rewind/skip, expo-speech)
 
 ### Architecture Notes
 
-- LLM: OpenAI GPT-4o-mini (~$0.03/mo est.) via Firebase Cloud Functions
-- API key in Firebase secrets (same pattern as Plaid)
+- LLM: Claude Sonnet 4.6 (all tasks) via Firebase Cloud Functions + `@anthropic-ai/sdk`
+- API key in Firebase secrets (same pattern as Plaid): `ANTHROPIC_API_KEY`
 - All AI actions: Preview → Confirm → Engine execute (no silent mutations)
-- Cached payee categorizations in existing `payeeMappings` field
+- Cached payee categorizations in AppState `aiPayeeMappings` field
 - AI tier slots into suggestEnvelope hierarchy: rules > AI > recurring > payee
 - System prompt versioned in code — no runtime training needed
-- Guardrails: $5/mo hard cap, 20 calls/day rate limit, 4K token cap, no PII sent
-- Usage monitoring: Firestore log, per-function breakdown, Settings UI dashboard
+- Guardrails: $7/mo hard cap, 75% warning (~$5.25), 20 calls/day rate limit, 4K token cap, no PII sent
+- Usage monitoring: Firestore log, per-function breakdown, Settings UI dashboard with budget bar
+- TTS: `expo-speech` (device-native, zero cost), full player controls (play/pause/rewind/skip)
+- Feature flags: `AI_ADVISOR`, `AI_TTS`
+- Auto-deploy Cloud Functions after each function ticket
 
 ### Phase 28 Smoke Check
 
 - [ ] Connect bank → "Set Up Your Budget" wizard appears
-- [ ] AI suggests envelopes based on real spending (giving first)
+- [ ] AI suggests envelopes based on real spending (giving first, max 7)
 - [ ] Can edit/remove suggestions before creating
 - [ ] One-tap creates all selected envelopes with goals
 - [ ] AI suggests allocation → preview → one-tap allocate
 - [ ] New transactions from unknown merchants get AI-categorized
-- [ ] AI suggestions appear in Inbox with "Confirm All"
-- [ ] Rate limit prevents excessive API calls
-- [ ] Settings shows AI usage stats (calls, tokens, cost, budget remaining)
+- [ ] AI suggestions appear in Inbox with sparkle badge + "Confirm All"
+- [ ] Rate limit prevents excessive API calls (20/day)
+- [ ] Settings shows AI usage stats (calls, tokens, cost, budget bar with 75% warning)
+- [ ] 75% budget warning shows amber toast + Settings indicator
+- [ ] $7 hard cap blocks further AI calls with clear message
+- [ ] TTS toggle in Settings → player controls on AI cards → play/pause/rewind/skip work
 
 ---
 
