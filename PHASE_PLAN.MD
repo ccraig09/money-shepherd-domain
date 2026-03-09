@@ -723,7 +723,7 @@ Plaid access tokens are stored in `expo-secure-store` (device keychain) and neve
 
 #### Tier 3 — Sync Reliability
 
-- [ ] MS-27.8.6 Auto-sync on foreground + pull-to-refresh on Dashboard
+- [x] MS-27.8.6 Auto-sync on foreground + pull-to-refresh on Dashboard
 
 #### Tier 4 — UX Improvements
 
