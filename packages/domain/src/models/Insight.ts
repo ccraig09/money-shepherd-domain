@@ -7,7 +7,9 @@ export type InsightType =
   | "idle-funds"
   | "debt-milestone"
   | "positive-net"
-  | "ai-tip";
+  | "ai-tip"
+  | "unusual-charge"
+  | "spending-spike";
 
 export type Insight = {
   type: InsightType;

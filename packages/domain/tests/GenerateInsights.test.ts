@@ -281,4 +281,107 @@ describe("generateInsights", () => {
       expect(aiIdx).toBeLessThan(idleIdx);
     });
   });
+
+  describe("unusual-charge", () => {
+    it("flags a merchant charge that is >2× the historical average and >$50", () => {
+      const txs = [
+        // 3 historical charges for "Walmart" in January (~$60 avg)
+        makeTx({ id: "tx-1", description: "Walmart", amount: Money.fromCents(-5500), postedAt: "2026-01-05T00:00:00Z" }),
+        makeTx({ id: "tx-2", description: "Walmart", amount: Money.fromCents(-6500), postedAt: "2026-01-15T00:00:00Z" }),
+        makeTx({ id: "tx-3", description: "Walmart", amount: Money.fromCents(-6000), postedAt: "2026-01-25T00:00:00Z" }),
+        // This month: $320 charge (>2× avg and >$50)
+        makeTx({ id: "tx-4", description: "Walmart", amount: Money.fromCents(-32000), postedAt: "2026-02-10T00:00:00Z" }),
+      ];
+      const ctx = baseContext({ transactions: txs, now: "2026-02-15" });
+      const result = generateInsights(ctx);
+      const insight = result.find((i) => i.type === "unusual-charge");
+      expect(insight).toBeDefined();
+      expect(insight!.severity).toBe("warning");
+      expect(insight!.message).toContain("Walmart");
+      expect(insight!.message).toContain("$320.00");
+    });
+
+    it("does not flag when charge is below 2× average", () => {
+      const txs = [
+        makeTx({ id: "tx-1", description: "Walmart", amount: Money.fromCents(-6000), postedAt: "2026-01-05T00:00:00Z" }),
+        makeTx({ id: "tx-2", description: "Walmart", amount: Money.fromCents(-6000), postedAt: "2026-01-15T00:00:00Z" }),
+        // This month: $100 (1.67× avg, below 2× threshold)
+        makeTx({ id: "tx-3", description: "Walmart", amount: Money.fromCents(-10000), postedAt: "2026-02-10T00:00:00Z" }),
+      ];
+      const ctx = baseContext({ transactions: txs, now: "2026-02-15" });
+      const result = generateInsights(ctx);
+      expect(result.find((i) => i.type === "unusual-charge")).toBeUndefined();
+    });
+
+    it("does not flag small charges even if ratio is high", () => {
+      const txs = [
+        // Historical: $2 avg
+        makeTx({ id: "tx-1", description: "Coffee", amount: Money.fromCents(-200), postedAt: "2026-01-05T00:00:00Z" }),
+        makeTx({ id: "tx-2", description: "Coffee", amount: Money.fromCents(-200), postedAt: "2026-01-15T00:00:00Z" }),
+        // This month: $10 (5× avg but only $10 — below $50 threshold)
+        makeTx({ id: "tx-3", description: "Coffee", amount: Money.fromCents(-1000), postedAt: "2026-02-10T00:00:00Z" }),
+      ];
+      const ctx = baseContext({ transactions: txs, now: "2026-02-15" });
+      const result = generateInsights(ctx);
+      expect(result.find((i) => i.type === "unusual-charge")).toBeUndefined();
+    });
+
+    it("needs at least 2 historical charges to establish a baseline", () => {
+      const txs = [
+        makeTx({ id: "tx-1", description: "Walmart", amount: Money.fromCents(-6000), postedAt: "2026-01-05T00:00:00Z" }),
+        makeTx({ id: "tx-2", description: "Walmart", amount: Money.fromCents(-30000), postedAt: "2026-02-10T00:00:00Z" }),
+      ];
+      const ctx = baseContext({ transactions: txs, now: "2026-02-15" });
+      const result = generateInsights(ctx);
+      expect(result.find((i) => i.type === "unusual-charge")).toBeUndefined();
+    });
+  });
+
+  describe("spending-spike", () => {
+    it("warns when this month's daily pace is >1.5× last month", () => {
+      const txs = [
+        // Last month (Feb): $1000 total over 28 days = ~$35.71/day
+        makeTx({ id: "tx-1", amount: Money.fromCents(-100000), postedAt: "2026-02-15T00:00:00Z" }),
+        // This month (Mar): $800 in first 10 days = $80/day (2.24× pace)
+        makeTx({ id: "tx-2", amount: Money.fromCents(-80000), postedAt: "2026-03-05T00:00:00Z" }),
+      ];
+      const ctx = baseContext({ transactions: txs, now: "2026-03-10" });
+      const result = generateInsights(ctx);
+      const insight = result.find((i) => i.type === "spending-spike");
+      expect(insight).toBeDefined();
+      expect(insight!.severity).toBe("warning");
+      expect(insight!.message).toMatch(/\d+% above last month/);
+    });
+
+    it("does not warn when pace is below 1.5×", () => {
+      const txs = [
+        // Last month: $3000 over 28 days = ~$107/day
+        makeTx({ id: "tx-1", amount: Money.fromCents(-300000), postedAt: "2026-02-15T00:00:00Z" }),
+        // This month: $1200 in 10 days = $120/day (1.12× — below threshold)
+        makeTx({ id: "tx-2", amount: Money.fromCents(-120000), postedAt: "2026-03-05T00:00:00Z" }),
+      ];
+      const ctx = baseContext({ transactions: txs, now: "2026-03-10" });
+      const result = generateInsights(ctx);
+      expect(result.find((i) => i.type === "spending-spike")).toBeUndefined();
+    });
+
+    it("does not warn in the first 4 days of the month", () => {
+      const txs = [
+        makeTx({ id: "tx-1", amount: Money.fromCents(-100000), postedAt: "2026-02-15T00:00:00Z" }),
+        makeTx({ id: "tx-2", amount: Money.fromCents(-50000), postedAt: "2026-03-02T00:00:00Z" }),
+      ];
+      const ctx = baseContext({ transactions: txs, now: "2026-03-03" });
+      const result = generateInsights(ctx);
+      expect(result.find((i) => i.type === "spending-spike")).toBeUndefined();
+    });
+
+    it("does not warn when there is no last month spending", () => {
+      const txs = [
+        makeTx({ id: "tx-1", amount: Money.fromCents(-80000), postedAt: "2026-03-05T00:00:00Z" }),
+      ];
+      const ctx = baseContext({ transactions: txs, now: "2026-03-10" });
+      const result = generateInsights(ctx);
+      expect(result.find((i) => i.type === "spending-spike")).toBeUndefined();
+    });
+  });
 });
