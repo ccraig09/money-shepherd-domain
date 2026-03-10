@@ -23,10 +23,11 @@ import { SpendingDonutCard, MonthlyTrendCard } from "../../src/ui/components/cha
 import { Spacing, Radius, FontSize, FontWeight, type ColorTokens } from "../../src/ui/tokens";
 import { useTheme, useThemedStyles } from "@/src/ui/ThemeProvider";
 import { getThisMonthSummary, getMonthlyTrend } from "../../src/lib/periodSummary";
-import { getCurrentPeriod, getFundingInPeriod, getSpendingInPeriod, generateInsights, groupEnvelopes, getWeeklySummary } from "@money-shepherd/domain";
+import { getCurrentPeriod, getFundingInPeriod, getSpendingInPeriod, generateInsights, groupEnvelopes, getWeeklySummary, getCashFlowForecast } from "@money-shepherd/domain";
 import type { InsightType } from "@money-shepherd/domain";
 import { MonthlyReviewCard } from "../../src/ui/components/MonthlyReviewCard";
 import { WeeklyNudgeCard } from "../../src/ui/components/WeeklyNudgeCard";
+import { CashFlowForecastCard } from "../../src/ui/components/CashFlowForecastCard";
 import { Features } from "../../src/config/features";
 
 const SEVERITY_PRIORITY: Record<string, number> = { warning: 0, info: 1, success: 2 };
@@ -112,6 +113,12 @@ export default function DashboardScreen() {
       state.budget.envelopes,
       now,
     );
+  }, [state]);
+
+  const cashFlowForecast = useMemo(() => {
+    if (!state) return null;
+    const now = new Date().toISOString().slice(0, 10);
+    return getCashFlowForecast(state.transactions, now);
   }, [state]);
 
   // Insights engine
@@ -239,6 +246,9 @@ export default function DashboardScreen() {
 
       {/* Weekly spending nudge */}
       {weeklySummary && <WeeklyNudgeCard summary={weeklySummary} />}
+
+      {/* Cash flow forecast */}
+      {cashFlowForecast && <CashFlowForecastCard forecast={cashFlowForecast} />}
 
       {/* This Month summary */}
       {monthSummary && (monthSummary.incomeCents > 0 || monthSummary.spendingCents > 0) && (

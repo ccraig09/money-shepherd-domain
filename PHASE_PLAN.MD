@@ -799,7 +799,7 @@ Plaid access tokens are stored in `expo-secure-store` (device keychain) and neve
 - [x] MS-29.3 AI-enhanced insights (blend AI + rule-based on dashboard)
 - [x] MS-29.4 Spending anomaly alerts (unusual charges, spending spikes)
 - [x] MS-29.5 Weekly spending nudge (lightweight Home card — top categories, envelope balances, no Cloud Function needed)
-- [ ] MS-29.6 Cash flow forecast card (projected month-end balance from recurring income − bills − average discretionary)
+- [x] MS-29.6 Cash flow forecast card (projected month-end balance from recurring income − bills − average discretionary)
 
 ### Architecture Notes
 

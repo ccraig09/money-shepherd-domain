@@ -30,3 +30,4 @@ export * from "./models/EnvelopeGroup";
 export * from "./logic/envelopeGrouping";
 export * from "./logic/buildAiContext";
 export * from "./logic/weeklySummary";
+export * from "./logic/cashFlowForecast";

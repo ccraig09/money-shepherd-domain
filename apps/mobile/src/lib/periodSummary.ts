@@ -41,6 +41,7 @@ export function getThisMonthSummary(
   let spendingCents = 0;
 
   for (const tx of transactions) {
+    if (tx.isPending) continue; // exclude pending — not yet settled
     const date = datePrefix(tx);
     if (date < period.startDate || date > period.endDate) continue;
 
@@ -95,6 +96,7 @@ export function getMonthlyTrend(
     let spendingCents = 0;
 
     for (const tx of transactions) {
+      if (tx.isPending) continue; // exclude pending
       const date = tx.postedAt.slice(0, 10);
       if (date < period.startDate || date > period.endDate) continue;
       if (tx.amount.cents > 0) incomeCents += tx.amount.cents;
