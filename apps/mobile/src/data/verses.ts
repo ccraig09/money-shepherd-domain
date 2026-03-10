@@ -23,7 +23,6 @@ export const verses: Verse[] = [
   { text: "A generous person will prosper; whoever refreshes others will be refreshed.", reference: "Proverbs 11:25" },
   { text: "The plans of the diligent lead to profit as surely as haste leads to poverty.", reference: "Proverbs 21:5" },
   { text: "Dishonest money dwindles away, but whoever gathers money little by little makes it grow.", reference: "Proverbs 13:11" },
-  { text: "Good planning and hard work lead to prosperity, but hasty shortcuts lead to poverty.", reference: "Proverbs 21:5" },
   { text: "The wise have wealth and luxury, but fools spend whatever they get.", reference: "Proverbs 21:20" },
   { text: "Just as the rich rule the poor, so the borrower is servant to the lender.", reference: "Proverbs 22:7" },
   { text: "Remember this—a farmer who plants only a few seeds will get a small crop. But the one who plants generously will get a generous crop.", reference: "2 Corinthians 9:6" },
@@ -32,7 +31,9 @@ export const verses: Verse[] = [
   { text: "I know how to live on almost nothing or with everything. I have learned the secret of living in every situation, whether it is with a full stomach or empty, with plenty or little.", reference: "Philippians 4:12" },
   { text: "For I can do everything through Christ, who gives me strength.", reference: "Philippians 4:13" },
   { text: "The LORD is my shepherd; I have all that I need.", reference: "Psalm 23:1" },
-  { text: "Bring all the tithes into the storehouse so there will be enough food in my Temple. If you do, I will open the windows of heaven for you.", reference: "Malachi 3:10" },
   { text: "What good is it for someone to gain the whole world, yet forfeit their soul?", reference: "Mark 8:36" },
   { text: "Keep your lives free from the love of money and be content with what you have, because God has said, 'Never will I leave you; never will I forsake you.'", reference: "Hebrews 13:5" },
+  { text: "But those who won't care for their relatives, especially those in their own household, have denied the true faith. Such people are worse than unbelievers.", reference: "1 Timothy 5:8" },
+  { text: "But divide your investments among many places, for you do not know what risks might lie ahead.", reference: "Ecclesiastes 11:2" },
+  { text: "But don't begin until you count the cost. For who would begin construction of a building without first calculating the cost to see if there is enough money to finish it?", reference: "Luke 14:28" },
 ];

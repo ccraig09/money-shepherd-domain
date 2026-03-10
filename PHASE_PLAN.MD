@@ -790,22 +790,32 @@ Plaid access tokens are stored in `expo-secure-store` (device keychain) and neve
 
 ## Phase 29: AI Advisor — Ongoing Intelligence
 
-> **Goal:** Monthly spending reviews, budget adjustment suggestions, enhanced dashboard insights, anomaly alerts.
+> **Goal:** Monthly/weekly spending reviews, budget adjustment suggestions, enhanced dashboard insights, anomaly alerts, and cash flow forecasting.
 
 ### Recommended build order
 
-- [ ] MS-29.1 Monthly review Cloud Function (spending summary + adjustment suggestions)
+- [ ] MS-29.1 Monthly review Cloud Function (spending summary + month-over-month deltas + adjustment suggestions)
 - [ ] MS-29.2 Budget adjustment UI (monthly review card + one-tap adjust)
 - [ ] MS-29.3 AI-enhanced insights (blend AI + rule-based on dashboard)
 - [ ] MS-29.4 Spending anomaly alerts (unusual charges, spending spikes)
+- [ ] MS-29.5 Weekly spending nudge (lightweight Home card — top categories, envelope balances, no Cloud Function needed)
+- [ ] MS-29.6 Cash flow forecast card (projected month-end balance from recurring income − bills − average discretionary)
+
+### Architecture Notes
+
+- MS-29.1 prompt must include month-over-month comparisons ("Dining up 30% vs last month")
+- MS-29.5 runs client-side from existing AppState — no AI call needed, just smart aggregation
+- MS-29.6 uses transaction recurrence patterns already in state — lightweight projection, not a Cloud Function
 
 ### Phase 29 Smoke Check
 
 - [ ] Start of month → monthly review card appears on dashboard
-- [ ] Review shows per-envelope highlights (over/under budget)
+- [ ] Review shows per-envelope highlights (over/under budget) with month-over-month deltas
 - [ ] Budget adjustments can be previewed and applied in one tap
 - [ ] AI insights blend with rule-based insights on dashboard
 - [ ] Unusual spending triggers an alert
+- [ ] Weekly nudge card appears on Home (top spend categories this week)
+- [ ] Cash flow forecast shows projected month-end balance
 
 ---
 
@@ -815,24 +825,34 @@ Plaid access tokens are stored in `expo-secure-store` (device keychain) and neve
 
 ### Recommended build order
 
-- [ ] MS-30.1 Chat UI component (bubbles, markdown, action cards)
-- [ ] MS-30.2 Conversational Cloud Function (multi-turn, budget-aware)
-- [ ] MS-30.3 Action execution from chat (preview → confirm → engine)
+- [ ] MS-30.1 Chat UI component (bubbles, markdown, action cards, suggested question chips on empty state)
+- [ ] MS-30.2 Conversational Cloud Function (multi-turn, budget-aware system prompt)
+- [ ] MS-30.3 Action execution from chat (preview → confirm → engine — envelopes, transfers, goals, budget adjustments)
 - [ ] MS-30.4 Chat session persistence + history (multi-session storage, auto-title, 24h resume)
 - [ ] MS-30.5 Chat history list UI (past conversations, read-only view, swipe to delete)
 - [ ] MS-30.6 TTS player for AI chat responses (play/pause/rewind/skip, expo-speech)
 
+### Architecture Notes
+
+- **Shepherd personality (critical):** The AI voice is a warm, encouraging friend — not a pastor or theologian. Faith is a gentle undertone, not the main event. Think occasional stewardship wisdom ("you're managing what you've been given well"), a rare scripture reference when it fits naturally, and zero guilt/prescriptive religious language. Never preachy. The vibe is "wise friend who happens to be faith-informed."
+- **Giving philosophy:** The app never prescribes a tithe percentage or nudges users toward a giving target. Giving is from the heart — the envelope is purely for tracking what you chose to give (cash, Venmo, extra payment). No "you should give 10%" messaging anywhere. If a user asks about giving, the AI acknowledges it as a personal decision and offers to help track it, nothing more.
+- MS-30.1 empty state shows 3-4 suggested question chips: "How am I doing this month?", "Can I afford…?", "What should I adjust?", "Explain my spending"
+- MS-30.3 action vocabulary: create envelope, move money between envelopes, set/adjust goals, adjust budget amounts, explain spending trends
+- MS-30.2 system prompt must encode the shepherd personality above — warm, concise, actionable, faith-as-undertone
+
 ### Phase 30 Smoke Check
 
-- [ ] Tap "Ask Money Shepherd" → chat screen opens
-- [ ] Ask "How am I doing this month?" → get spending summary response
+- [ ] Tap "Ask Money Shepherd" → chat screen opens with suggested question chips
+- [ ] Ask "How am I doing this month?" → get spending summary response (warm, concise tone)
 - [ ] Ask "Create a Vacation savings envelope for $2000" → action card appears → confirm → envelope created
 - [ ] Ask "Move $50 from Dining to Groceries" → transfer action card → confirm → balances update
+- [ ] Ask "Set a $500 goal on my Emergency Fund" → goal action card → confirm → goal set
 - [ ] Chat persists across app relaunches (within 24h)
 - [ ] Start new conversation → old one appears in history list
 - [ ] Tap old conversation → view past messages (read-only)
 - [ ] AI unavailable → graceful error message, no crash
 - [ ] TTS toggle in Settings → player controls on chat bubbles → play/pause/rewind/skip work
+- [ ] AI tone is warm and encouraging, not preachy or overly religious
 
 ---
 
@@ -841,6 +861,8 @@ Plaid access tokens are stored in `expo-secure-store` (device keychain) and neve
 - [ ] Sticky date headers in Transactions list (#166)
 - [ ] Remove disconnected/stale accounts — sandbox cleanup, account management (#167)
 - [ ] Available to Assign explainer — tap to see breakdown (#168)
+- [ ] Subscription intelligence (detect new/unused/price-changed recurring charges)
+- [ ] Proactive chat nudges (shepherd checks in on overspending patterns via chat)
 
 ---
 

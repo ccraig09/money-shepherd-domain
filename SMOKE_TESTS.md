@@ -616,7 +616,7 @@ Expected
 ### H) Giving envelope
 
 1. Create a new envelope
-2. Mark type as **Giving** (e.g., "Tithe")
+2. Mark type as **Giving** (e.g., "Giving", "Generosity")
 3. Go to Envelopes list
 
 **Expected**
