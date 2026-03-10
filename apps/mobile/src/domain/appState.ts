@@ -37,6 +37,10 @@ export type AppStateV1 = {
   // Envelope groups for organizing envelopes
   envelopeGroups?: EnvelopeGroup[];
 
+  // AI-derived merchant→envelopeId mappings (normalizedPayee → envelopeId)
+  // Populated by the categorizeTransactions Cloud Function, used in suggestEnvelope hierarchy
+  aiPayeeMappings?: Record<string, string>;
+
   // Set true after user seeds Available to Assign from bank balances (prevents re-prompting)
   budgetSeeded?: boolean;
 

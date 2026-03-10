@@ -55,6 +55,7 @@ export default function InboxScreen() {
     if (!state) return new Map<string, EnvelopeSuggestion>();
     const payeeMappings = state.payeeMappings ?? {};
     const rules = state.assignmentRules ?? [];
+    const aiMappings = state.aiPayeeMappings ?? {};
     const envelopeNames = Object.fromEntries(
       state.budget.envelopes.map((e) => [e.id, e.name]),
     );
@@ -65,6 +66,7 @@ export default function InboxScreen() {
         payeeMappings,
         rules,
         recurringPatterns,
+        aiMappings,
       });
       if (suggestion && Object.hasOwn(envelopeNames, suggestion.envelopeId)) {
         result.set(tx.id, suggestion);

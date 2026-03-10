@@ -12,7 +12,7 @@ export type AssignmentRule = {
 export type EnvelopeSuggestion = {
   envelopeId: string;
   confidence: "high" | "medium";
-  source: "rule" | "payee" | "recurring";
+  source: "rule" | "ai" | "recurring" | "payee";
 };
 
 type SuggestInput = {
@@ -20,6 +20,8 @@ type SuggestInput = {
   payeeMappings: Record<string, string>;
   rules: AssignmentRule[];
   recurringPatterns?: RecurringPattern[];
+  /** AI-derived merchant→envelopeId mappings (normalizedPayee → envelopeId) */
+  aiMappings?: Record<string, string>;
 };
 
 export function suggestEnvelope(input: SuggestInput): EnvelopeSuggestion | null {
@@ -28,6 +30,9 @@ export function suggestEnvelope(input: SuggestInput): EnvelopeSuggestion | null 
 
   const ruleMatch = matchByRules(normalized, input.rules);
   if (ruleMatch) return ruleMatch;
+
+  const aiMatch = matchByAi(normalized, input.aiMappings ?? {});
+  if (aiMatch) return aiMatch;
 
   const recurringMatch = matchByRecurring(normalized, input.recurringPatterns ?? []);
   if (recurringMatch) return recurringMatch;
@@ -65,6 +70,19 @@ function matchByRecurring(
   if (!match) return null;
 
   return { envelopeId: match.envelopeId, confidence: "high", source: "recurring" };
+}
+
+function matchByAi(
+  normalized: string,
+  aiMappings: Record<string, string>,
+): EnvelopeSuggestion | null {
+  if (!Object.hasOwn(aiMappings, normalized)) return null;
+
+  return {
+    envelopeId: aiMappings[normalized],
+    confidence: "medium",
+    source: "ai",
+  };
 }
 
 function matchByPayee(

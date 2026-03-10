@@ -222,4 +222,100 @@ describe("suggestEnvelope", () => {
       expect(result?.source).toBe("payee");
     });
   });
+
+  describe("AI mappings", () => {
+    const aiMappings: Record<string, string> = {
+      target: "env-shopping",
+      "whole foods": "env-groceries",
+    };
+
+    it("suggests envelope from AI mappings with medium confidence", () => {
+      const result = suggestEnvelope({
+        description: "TARGET #0123",
+        payeeMappings: {},
+        rules: [],
+        aiMappings,
+      });
+
+      expect(result).toEqual({
+        envelopeId: "env-shopping",
+        confidence: "medium",
+        source: "ai",
+      });
+    });
+
+    it("rules take priority over AI mappings", () => {
+      const rule: AssignmentRule = {
+        id: "rule-1",
+        pattern: "target",
+        matchType: "contains",
+        envelopeId: "env-general",
+        priority: 1,
+      };
+
+      const result = suggestEnvelope({
+        description: "TARGET",
+        payeeMappings: {},
+        rules: [rule],
+        aiMappings,
+      });
+
+      expect(result?.envelopeId).toBe("env-general");
+      expect(result?.source).toBe("rule");
+    });
+
+    it("AI takes priority over recurring patterns", () => {
+      const recurringTarget: RecurringPattern = {
+        normalizedPayee: "target",
+        envelopeId: "env-recurring",
+        interval: "monthly",
+      };
+
+      const result = suggestEnvelope({
+        description: "TARGET",
+        payeeMappings: {},
+        rules: [],
+        recurringPatterns: [recurringTarget],
+        aiMappings,
+      });
+
+      expect(result?.envelopeId).toBe("env-shopping");
+      expect(result?.source).toBe("ai");
+    });
+
+    it("AI takes priority over payee memorization", () => {
+      const result = suggestEnvelope({
+        description: "TARGET",
+        payeeMappings: { target: "env-old" },
+        rules: [],
+        aiMappings,
+      });
+
+      expect(result?.envelopeId).toBe("env-shopping");
+      expect(result?.source).toBe("ai");
+    });
+
+    it("falls back through AI to payee when no AI match", () => {
+      const result = suggestEnvelope({
+        description: "STARBUCKS",
+        payeeMappings: { starbucks: "env-dining" },
+        rules: [],
+        aiMappings,
+      });
+
+      expect(result?.envelopeId).toBe("env-dining");
+      expect(result?.source).toBe("payee");
+    });
+
+    it("returns null when no source matches", () => {
+      const result = suggestEnvelope({
+        description: "UNKNOWN STORE",
+        payeeMappings: {},
+        rules: [],
+        aiMappings,
+      });
+
+      expect(result).toBeNull();
+    });
+  });
 });
