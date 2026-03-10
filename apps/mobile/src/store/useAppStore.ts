@@ -105,6 +105,7 @@ type AppStore = {
   syncNow: () => Promise<void>;
   analyzeSpending: () => Promise<{ suggestions: { name: string; goalCents: number; type: string; reason: string }[]; warning?: "budget_warning" }>;
   suggestAllocations: () => Promise<{ allocations: { envelopeId: string; amountCents: number; reason: string }[]; warning?: "budget_warning" }>;
+  categorizeInbox: () => Promise<{ mapped: number }>;
 };
 
 const engine = createEngine();
@@ -1214,5 +1215,63 @@ export const useAppStore = create<AppStore>((set, get) => ({
     }
 
     return result;
+  },
+
+  categorizeInbox: async () => {
+    const { state } = get();
+    if (!state) return { mapped: 0 };
+
+    const { normalizePayee } = await import("@money-shepherd/domain");
+    const { callCategorizeTransactions } = await import("../infra/firebase/aiClient");
+
+    const txById = Object.fromEntries(state.transactions.map((tx) => [tx.id, tx]));
+    const existingAiMappings = state.aiPayeeMappings ?? {};
+    const payeeMappings = state.payeeMappings ?? {};
+
+    // Collect unique normalized merchants from unassigned inbox items
+    // that don't already have an AI or payee mapping
+    const merchants = Array.from(
+      new Set(
+        state.inbox.unassignedTransactionIds
+          .map((id) => txById[id])
+          .filter((tx) => tx !== undefined && tx.amount.cents < 0)
+          .map((tx) => normalizePayee(tx!.description))
+          .filter(
+            (n) =>
+              n.length > 0 &&
+              !Object.hasOwn(existingAiMappings, n) &&
+              !Object.hasOwn(payeeMappings, n),
+          ),
+      ),
+    );
+
+    if (merchants.length === 0) return { mapped: 0 };
+
+    const envelopes = state.budget.envelopes.map((e) => ({
+      id: e.id,
+      name: e.name,
+      type: e.type,
+    }));
+
+    const result = await callCategorizeTransactions(state.householdId, {
+      merchants,
+      envelopes,
+    });
+
+    if (result.categorizations.length === 0) return { mapped: 0 };
+
+    // Build normalizedMerchant → envelopeId from high/medium confidence results
+    const newMappings: Record<string, string> = {};
+    for (const c of result.categorizations) {
+      const normalized = normalizePayee(c.merchant);
+      if (normalized) newMappings[normalized] = c.envelopeId;
+    }
+
+    await engine.mergeAiPayeeMappings(newMappings);
+
+    const { state: updated } = get();
+    useAppStore.setState({ state: updated });
+
+    return { mapped: Object.keys(newMappings).length };
   },
 }));

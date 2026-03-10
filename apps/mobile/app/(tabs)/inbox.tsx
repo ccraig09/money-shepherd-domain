@@ -1,9 +1,10 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState, useCallback } from "react";
 import {
   View,
   Text,
   FlatList,
   Pressable,
+  ActivityIndicator,
   StyleSheet,
 } from "react-native";
 import { router } from "expo-router";
@@ -14,11 +15,15 @@ import { HelpTooltip } from "../../src/ui/components/HelpTooltip";
 import { Spacing, Radius, FontSize, FontWeight, type ColorTokens } from "../../src/ui/tokens";
 import { useThemedStyles } from "@/src/ui/ThemeProvider";
 import { suggestEnvelope, detectRecurring, normalizePayee, isBnplTransaction, type Transaction, type EnvelopeSuggestion } from "@money-shepherd/domain";
+import { Features } from "../../src/config/features";
 
 export default function InboxScreen() {
   const styles = useThemedStyles(createStyles);
   const state = useAppStore((s) => s.state);
   const confirmAllSuggestions = useAppStore((s) => s.confirmAllSuggestions);
+  const categorizeInbox = useAppStore((s) => s.categorizeInbox);
+  const showToast = useAppStore((s) => s.showToast);
+  const [aiLoading, setAiLoading] = useState(false);
 
   const inboxItems = useMemo(() => {
     if (!state) return [];
@@ -75,6 +80,27 @@ export default function InboxScreen() {
     return result;
   }, [state, inboxItems, recurringPatterns]);
 
+  const handleAiCategorize = useCallback(async () => {
+    setAiLoading(true);
+    try {
+      const { mapped } = await categorizeInbox();
+      if (mapped > 0) {
+        showToast(`✦ AI mapped ${mapped} merchant${mapped === 1 ? "" : "s"}`, "success");
+      } else {
+        showToast("No new merchants to categorize", "info");
+      }
+    } catch {
+      showToast("AI categorization failed", "error");
+    } finally {
+      setAiLoading(false);
+    }
+  }, [categorizeInbox, showToast]);
+
+  // Count inbox items that have no suggestion yet (AI button is useful for these)
+  const uncategorizedCount = useMemo(() => {
+    return inboxItems.filter((tx) => !suggestions.has(tx.id)).length;
+  }, [inboxItems, suggestions]);
+
   if (!state) {
     return (
       <View style={styles.center}>
@@ -128,6 +154,21 @@ export default function InboxScreen() {
           <Text style={styles.confirmAllText}>
             Confirm All ({suggestions.size})
           </Text>
+        </Pressable>
+      )}
+
+      {Features.AI_ADVISOR && uncategorizedCount > 0 && (
+        <Pressable
+          style={[styles.aiBtn, aiLoading && styles.aiBtnDisabled]}
+          onPress={handleAiCategorize}
+          disabled={aiLoading}
+          accessibilityLabel="AI categorize unassigned transactions"
+        >
+          {aiLoading ? (
+            <ActivityIndicator size="small" color="#fff" />
+          ) : (
+            <Text style={styles.aiBtnText}>✦ AI Categorize ({uncategorizedCount})</Text>
+          )}
         </Pressable>
       )}
 
@@ -201,12 +242,14 @@ export default function InboxScreen() {
                         styles.suggestionBadge,
                         suggestion.confidence === "high"
                           ? styles.suggestionBadgeHigh
+                          : suggestion.source === "ai"
+                          ? styles.suggestionBadgeAi
                           : styles.suggestionBadgeMedium,
                       ]}
                       accessibilityLabel={`Suggested: ${suggestedEnvelopeName}`}
                     >
                       <Text style={styles.suggestionBadgeText}>
-                        → {suggestedEnvelopeName}
+                        {suggestion.source === "ai" ? "✦ " : "→ "}{suggestedEnvelopeName}
                       </Text>
                     </View>
                   )}
@@ -399,5 +442,29 @@ const createStyles = (c: ColorTokens) => StyleSheet.create({
     color: c.textOnColor,
     fontSize: FontSize.subtitle,
     fontWeight: FontWeight.bold,
+  },
+  aiBtn: {
+    marginHorizontal: Spacing.base,
+    marginTop: Spacing.sm,
+    paddingVertical: Spacing.sm,
+    borderRadius: Radius.lg,
+    backgroundColor: c.primary,
+    alignItems: "center",
+    flexDirection: "row",
+    justifyContent: "center",
+    gap: Spacing.xs,
+  },
+  aiBtnDisabled: {
+    opacity: 0.6,
+  },
+  aiBtnText: {
+    color: c.textOnColor,
+    fontSize: FontSize.body,
+    fontWeight: FontWeight.semibold,
+  },
+  suggestionBadgeAi: {
+    backgroundColor: c.primarySurface,
+    borderWidth: 1,
+    borderColor: c.primary,
   },
 });

@@ -757,7 +757,7 @@ Plaid access tokens are stored in `expo-secure-store` (device keychain) and neve
 - [x] MS-28.5 Auto-allocate suggestions (preview + one-tap allocate)
 - [x] MS-28.6 AI auto-categorization Cloud Function (merchant → envelope mapping, batch 20)
 - [x] MS-28.7 Integrate AI categorization into suggestEnvelope hierarchy
-- [ ] MS-28.8 Auto-assign preview + bulk confirm in Inbox
+- [x] MS-28.8 Auto-assign preview + bulk confirm in Inbox
 - [ ] MS-28.9 TTS player for AI responses (play/pause/rewind/skip, expo-speech)
 
 ### Architecture Notes

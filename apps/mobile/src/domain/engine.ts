@@ -6,7 +6,7 @@ import {
 import { ensureAnonAuth } from "../infra/firebase/firebaseClient";
 import { HouseholdStateRepo } from "../infra/remote/householdStateRepo";
 import { loadSyncMeta, saveSyncMeta } from "../infra/local/syncMeta";
-import { createEnvelope, renameEnvelope, deleteEnvelope, setTransactionNote, assignTransaction, unassignTransaction, editTransaction, deleteTransaction, transferBetweenEnvelopes, seedBudgetFromBalances, setEnvelopeGoal, clearEnvelopeGoal, setEnvelopeTarget, clearEnvelopeTarget, setEnvelopeType, addAssignmentRule, removeAssignmentRule, reorderAssignmentRules, createEnvelopeGroup, renameEnvelopeGroup, deleteEnvelopeGroup, reorderEnvelopeGroups, moveEnvelopeToGroup, deduplicateAccounts, removePlaidTransactions } from "./commands";
+import { createEnvelope, renameEnvelope, deleteEnvelope, setTransactionNote, assignTransaction, unassignTransaction, editTransaction, deleteTransaction, transferBetweenEnvelopes, seedBudgetFromBalances, setEnvelopeGoal, clearEnvelopeGoal, setEnvelopeTarget, clearEnvelopeTarget, setEnvelopeType, addAssignmentRule, removeAssignmentRule, reorderAssignmentRules, createEnvelopeGroup, renameEnvelopeGroup, deleteEnvelopeGroup, reorderEnvelopeGroups, moveEnvelopeToGroup, deduplicateAccounts, removePlaidTransactions, mergeAiPayeeMappings } from "./commands";
 import { allocateToEnvelope } from "./allocate";
 import type { AppStateV1 } from "./appState";
 import { APP_STATE_VERSION } from "./appState";
@@ -101,6 +101,7 @@ export type Engine = {
   confirmAllSuggestions(args: {
     assignments: { transactionId: string; envelopeId: string; assignedByUserId: string }[];
   }): Promise<RecomputeResult>;
+  mergeAiPayeeMappings(mappings: Record<string, string>): Promise<RecomputeResult>;
 
   importPlaidAccounts(args: {
     newAccounts: Account[];
@@ -370,6 +371,12 @@ export function createEngine(): Engine {
       state = assignTransaction(state, assignment);
     }
     return recompute(state);
+  }
+
+  async function mergeAiPayeeMappingsAction(mappings: Record<string, string>): Promise<RecomputeResult> {
+    const state = await getState();
+    const next = mergeAiPayeeMappings(state, mappings);
+    return recompute(next);
   }
 
   async function seed(): Promise<AppStateV1> {
@@ -809,6 +816,7 @@ export function createEngine(): Engine {
     reorderEnvelopeGroups: reorderEnvelopeGroupsAction,
     moveEnvelopeToGroup: moveEnvelopeToGroupAction,
     confirmAllSuggestions: confirmAllSuggestionsAction,
+    mergeAiPayeeMappings: mergeAiPayeeMappingsAction,
     importPlaidAccounts,
     updatePlaidBalances,
     importPlaidTransactions,

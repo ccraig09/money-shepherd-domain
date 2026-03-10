@@ -1,6 +1,6 @@
 import { Money, applyTransactionsToBudget } from "@money-shepherd/domain";
 import type { AppStateV1 } from "../appState";
-import { createEnvelope, renameEnvelope, deleteEnvelope, setTransactionNote, seedBudgetFromBalances, assignTransaction, addAssignmentRule, removeAssignmentRule, reorderAssignmentRules } from "../commands";
+import { createEnvelope, renameEnvelope, deleteEnvelope, setTransactionNote, seedBudgetFromBalances, assignTransaction, addAssignmentRule, removeAssignmentRule, reorderAssignmentRules, mergeAiPayeeMappings } from "../commands";
 
 function makeState(envelopeNames: string[] = []): AppStateV1 {
   return {
@@ -567,5 +567,36 @@ describe("reorderAssignmentRules", () => {
     expect(next.assignmentRules![0]).toMatchObject({ id: "rule-c", priority: 1 });
     expect(next.assignmentRules![1]).toMatchObject({ id: "rule-a", priority: 2 });
     expect(next.assignmentRules![2]).toMatchObject({ id: "rule-b", priority: 3 });
+  });
+});
+
+describe("mergeAiPayeeMappings", () => {
+  it("adds new AI mappings to empty state", () => {
+    const next = mergeAiPayeeMappings(makeState(), { target: "env-0", amazon: "env-1" });
+    expect(next.aiPayeeMappings).toEqual({ target: "env-0", amazon: "env-1" });
+  });
+
+  it("merges new mappings with existing ones", () => {
+    const state = { ...makeState(), aiPayeeMappings: { walmart: "env-0" } };
+    const next = mergeAiPayeeMappings(state, { target: "env-1" });
+    expect(next.aiPayeeMappings).toEqual({ walmart: "env-0", target: "env-1" });
+  });
+
+  it("new mappings overwrite existing keys", () => {
+    const state = { ...makeState(), aiPayeeMappings: { walmart: "env-0" } };
+    const next = mergeAiPayeeMappings(state, { walmart: "env-new" });
+    expect(next.aiPayeeMappings!.walmart).toBe("env-new");
+  });
+
+  it("returns same state reference when mappings are empty", () => {
+    const state = makeState();
+    const next = mergeAiPayeeMappings(state, {});
+    expect(next).toBe(state);
+  });
+
+  it("does not mutate payeeMappings", () => {
+    const state = { ...makeState(), payeeMappings: { starbucks: "env-0" } };
+    mergeAiPayeeMappings(state, { target: "env-1" });
+    expect(state.payeeMappings).toEqual({ starbucks: "env-0" });
   });
 });

@@ -1005,3 +1005,20 @@ export function deduplicateAccounts(state: AppStateV1): { state: AppStateV1; rem
     removedCount,
   };
 }
+
+/**
+ * Merges AI-derived merchant→envelopeId mappings into aiPayeeMappings.
+ * New mappings are added; existing entries are preserved (user's manual
+ * assignments via payeeMappings are not affected).
+ */
+export function mergeAiPayeeMappings(
+  state: AppStateV1,
+  mappings: Record<string, string>,
+): AppStateV1 {
+  if (Object.keys(mappings).length === 0) return state;
+  return {
+    ...state,
+    aiPayeeMappings: { ...(state.aiPayeeMappings ?? {}), ...mappings },
+    updatedAt: nowIso(),
+  };
+}
