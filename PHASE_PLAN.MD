@@ -774,17 +774,17 @@ Plaid access tokens are stored in `expo-secure-store` (device keychain) and neve
 
 ### Phase 28 Smoke Check
 
-- [ ] Connect bank → "Set Up Your Budget" wizard appears
-- [ ] AI suggests envelopes based on real spending (giving first, max 7)
-- [ ] Can edit/remove suggestions before creating
-- [ ] One-tap creates all selected envelopes with goals
-- [ ] AI suggests allocation → preview → one-tap allocate
-- [ ] New transactions from unknown merchants get AI-categorized
-- [ ] AI suggestions appear in Inbox with sparkle badge + "Confirm All"
-- [ ] Rate limit prevents excessive API calls (20/day)
-- [ ] Settings shows AI usage stats (calls, tokens, cost, budget bar with 75% warning)
-- [ ] 75% budget warning shows amber toast + Settings indicator
-- [ ] $7 hard cap blocks further AI calls with clear message
+- [x] Connect bank → "Set Up Your Budget" wizard appears
+- [x] AI suggests envelopes based on real spending (giving first, max 7)
+- [x] Can edit/remove suggestions before creating
+- [x] One-tap creates all selected envelopes with goals
+- [x] AI suggests allocation → preview → one-tap allocate
+- [x] New transactions from unknown merchants get AI-categorized (✦ AI Categorize button works)
+- [x] AI suggestions appear in Inbox with sparkle badge + "Confirm All" (MS-28.8)
+- [x] Rate limit prevents excessive API calls (20/day)
+- [x] Settings shows AI usage stats (calls, tokens, cost, budget bar with 75% warning)
+- [x] 75% budget warning shows amber toast + Settings indicator
+- [x] $7 hard cap blocks further AI calls with clear message
 
 ---
 
