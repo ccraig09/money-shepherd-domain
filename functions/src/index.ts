@@ -11,6 +11,7 @@ const PLAID_ENV = defineString("PLAID_ENV", { default: "sandbox" });
 
 // AI Cloud Functions
 export { analyzeSpending } from "./ai/analyzeSpending";
+export { suggestAllocations } from "./ai/suggestAllocations";
 
 function makePlaidClient(clientId: string, secret: string): PlaidApi {
   const config = new Configuration({

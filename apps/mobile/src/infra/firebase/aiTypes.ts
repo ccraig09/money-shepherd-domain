@@ -41,3 +41,26 @@ export interface AnalyzeSpendingResponse {
   /** Present when AI usage is ≥75% of the monthly budget cap */
   warning?: "budget_warning";
 }
+
+export interface SuggestAllocationsPayload {
+  availableCents: number;
+  envelopes: {
+    id: string;
+    name: string;
+    balanceCents: number;
+    goalCents?: number;
+    type?: string;
+  }[];
+}
+
+export interface AllocationSuggestion {
+  envelopeId: string;
+  amountCents: number;
+  reason: string;
+}
+
+export interface SuggestAllocationsResponse {
+  allocations: AllocationSuggestion[];
+  /** Present when AI usage is ≥75% of the monthly budget cap */
+  warning?: "budget_warning";
+}

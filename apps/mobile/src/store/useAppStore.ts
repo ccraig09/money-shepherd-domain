@@ -104,6 +104,7 @@ type AppStore = {
   importState: (state: AppStateV1) => Promise<void>;
   syncNow: () => Promise<void>;
   analyzeSpending: () => Promise<{ suggestions: { name: string; goalCents: number; type: string; reason: string }[]; warning?: "budget_warning" }>;
+  suggestAllocations: () => Promise<{ allocations: { envelopeId: string; amountCents: number; reason: string }[]; warning?: "budget_warning" }>;
 };
 
 const engine = createEngine();
@@ -1181,6 +1182,32 @@ export const useAppStore = create<AppStore>((set, get) => ({
 
     const context = buildAiContext(state);
     const result = await callAnalyzeSpending(state.householdId, context);
+
+    if (result.warning === "budget_warning") {
+      set({ toast: { text: "AI budget at 75% — approaching monthly limit", variant: "info" } });
+    }
+
+    return result;
+  },
+
+  suggestAllocations: async () => {
+    const { state } = get();
+    if (!state) throw new Error("No state available");
+
+    const { callSuggestAllocations } = await import("../infra/firebase/aiClient");
+
+    const envelopes = state.budget.envelopes.map((e) => ({
+      id: e.id,
+      name: e.name,
+      balanceCents: e.balance.cents,
+      goalCents: e.goal?.cents,
+      type: e.type,
+    }));
+
+    const result = await callSuggestAllocations(state.householdId, {
+      availableCents: state.budget.availableToAssign.cents,
+      envelopes,
+    });
 
     if (result.warning === "budget_warning") {
       set({ toast: { text: "AI budget at 75% — approaching monthly limit", variant: "info" } });

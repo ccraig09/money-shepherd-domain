@@ -178,6 +178,10 @@ function RootLayoutInner() {
             name="ai-setup-wizard"
             options={{ title: "AI Budget Setup", headerBackTitle: "Settings" }}
           />
+          <Stack.Screen
+            name="ai-allocate"
+            options={{ title: "AI Fill Envelopes", headerBackTitle: "Fill Envelopes" }}
+          />
         </Stack>
 
         {isReady && (status === "loading" || status === "idle") && (

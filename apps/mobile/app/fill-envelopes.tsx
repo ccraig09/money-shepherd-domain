@@ -17,6 +17,7 @@ import { MoneyInput } from "../src/ui/components/MoneyInput";
 import { ProgressBar } from "../src/ui/components/ProgressBar";
 import { Spacing, Radius, FontSize, FontWeight, type ColorTokens } from "../src/ui/tokens";
 import { useThemedStyles } from "@/src/ui/ThemeProvider";
+import { Features } from "../src/config/features";
 
 export default function FillEnvelopesScreen() {
   const styles = useThemedStyles(createStyles);
@@ -207,6 +208,16 @@ export default function FillEnvelopesScreen() {
 
             {/* Footer */}
             <View style={styles.footer}>
+              {Features.AI_ADVISOR && (
+                <Pressable
+                  onPress={() => router.push("/ai-allocate")}
+                  style={styles.aiBtn}
+                  accessibilityRole="button"
+                  accessibilityLabel="Get AI allocation suggestions"
+                >
+                  <Text style={styles.aiBtnText}>✦ AI Suggest</Text>
+                </Pressable>
+              )}
               <Text style={styles.totalLabel}>
                 Total: ${formatMoney(totalCents)}
               </Text>
@@ -315,6 +326,14 @@ const createStyles = (c: ColorTokens) => StyleSheet.create({
 
   // Footer
   footer: { marginTop: Spacing.md, gap: Spacing.sm },
+  aiBtn: {
+    borderWidth: 1,
+    borderColor: c.primary,
+    borderRadius: Radius.lg,
+    paddingVertical: Spacing.sm,
+    alignItems: "center",
+  },
+  aiBtnText: { color: c.primary, fontSize: FontSize.body, fontWeight: FontWeight.semibold },
   totalLabel: {
     fontSize: FontSize.subtitle,
     fontWeight: FontWeight.bold,
