@@ -106,6 +106,7 @@ type AppStore = {
   analyzeSpending: () => Promise<{ suggestions: { name: string; goalCents: number; type: string; reason: string }[]; warning?: "budget_warning" }>;
   suggestAllocations: () => Promise<{ allocations: { envelopeId: string; amountCents: number; reason: string }[]; warning?: "budget_warning" }>;
   categorizeInbox: () => Promise<{ mapped: number }>;
+  fetchMonthlyReview: () => Promise<import("../infra/firebase/aiTypes").MonthlyReviewResponse>;
 };
 
 const engine = createEngine();
@@ -1273,5 +1274,34 @@ export const useAppStore = create<AppStore>((set, get) => ({
     useAppStore.setState({ state: updated });
 
     return { mapped: Object.keys(newMappings).length };
+  },
+
+  fetchMonthlyReview: async () => {
+    const { state } = get();
+    if (!state) throw new Error("No state available");
+
+    const { buildAiContext } = await import("@money-shepherd/domain");
+    const { callMonthlyReview } = await import("../infra/firebase/aiClient");
+
+    // Build current month context
+    const currentMonth = buildAiContext(state);
+
+    // Build previous month context using period override
+    const now = new Date();
+    const prevYear = now.getMonth() === 0 ? now.getFullYear() - 1 : now.getFullYear();
+    const prevMonth = now.getMonth() === 0 ? 12 : now.getMonth(); // 1-based
+    const prevStart = `${prevYear}-${String(prevMonth).padStart(2, "0")}-01`;
+    const prevLastDay = new Date(prevYear, prevMonth, 0).getDate();
+    const prevEnd = `${prevYear}-${String(prevMonth).padStart(2, "0")}-${String(prevLastDay).padStart(2, "0")}`;
+
+    const previousMonth = buildAiContext(state, { startDate: prevStart, endDate: prevEnd });
+
+    const result = await callMonthlyReview(state.householdId, currentMonth, previousMonth);
+
+    if (result.warning === "budget_warning") {
+      set({ toast: { text: "AI budget at 75% — approaching monthly limit", variant: "info" } });
+    }
+
+    return result;
   },
 }));

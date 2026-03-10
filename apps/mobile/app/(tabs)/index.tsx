@@ -25,6 +25,8 @@ import { useTheme, useThemedStyles } from "@/src/ui/ThemeProvider";
 import { getThisMonthSummary, getMonthlyTrend } from "../../src/lib/periodSummary";
 import { getCurrentPeriod, getFundingInPeriod, getSpendingInPeriod, generateInsights, groupEnvelopes } from "@money-shepherd/domain";
 import type { InsightType } from "@money-shepherd/domain";
+import { MonthlyReviewCard } from "../../src/ui/components/MonthlyReviewCard";
+import { Features } from "../../src/config/features";
 
 const SEVERITY_PRIORITY: Record<string, number> = { warning: 0, info: 1, success: 2 };
 
@@ -214,6 +216,11 @@ export default function DashboardScreen() {
       {/* Insight card — Money Shepherd says... */}
       {topInsight && (
         <InsightCard insight={topInsight} onDismiss={dismissInsight} />
+      )}
+
+      {/* Monthly Review nudge — AI-powered month-over-month comparison */}
+      {Features.AI_ADVISOR && monthSummary && monthSummary.spendingCents > 0 && (
+        <MonthlyReviewCard onPress={() => router.push("/monthly-review")} />
       )}
 
       {/* This Month summary */}
