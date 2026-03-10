@@ -47,13 +47,23 @@ type MinimalState = {
   transactions: Transaction[];
 };
 
+export type PeriodOverride = {
+  startDate: string; // YYYY-MM-DD
+  endDate: string; // YYYY-MM-DD
+};
+
 /**
  * Build a sanitized AI context from app state.
  * Strips all PII — only aggregate amounts, envelope names, and normalized merchants.
+ *
+ * Pass `periodOverride` to build context for a specific date range
+ * (e.g. previous month for month-over-month comparisons).
  */
-export function buildAiContext(state: MinimalState): AiContext {
+export function buildAiContext(state: MinimalState, periodOverride?: PeriodOverride): AiContext {
   const now = new Date().toISOString();
-  const period = getCurrentPeriod(now);
+  const period = periodOverride
+    ? { startDate: periodOverride.startDate, endDate: periodOverride.endDate }
+    : getCurrentPeriod(now);
 
   // Filter to current period, non-pending transactions
   const periodTxs = state.transactions.filter((tx) => {

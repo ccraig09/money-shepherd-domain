@@ -1,4 +1,4 @@
-import { buildAiContext, AiContext } from "../src/logic/buildAiContext";
+import { buildAiContext, AiContext, PeriodOverride } from "../src/logic/buildAiContext";
 import { Money } from "../src/models/Money";
 import type { Budget } from "../src/models/Budget";
 import type { Account } from "../src/models/Account";
@@ -198,5 +198,59 @@ describe("buildAiContext", () => {
     expect(ctx.totalExpensesCents).toBe(5000);
     expect(ctx.transactionCount).toBe(1);
     expect(ctx.topMerchants).toHaveLength(1);
+  });
+
+  describe("periodOverride", () => {
+    it("filters transactions to the overridden period", () => {
+      const override: PeriodOverride = { startDate: "2026-02-01", endDate: "2026-02-28" };
+      const ctx = buildAiContext(makeState({
+        transactions: [
+          makeTx({ id: "t1", amount: Money.fromCents(-5000), description: "Feb Store", postedAt: "2026-02-15T12:00:00Z" }),
+          makeTx({ id: "t2", amount: Money.fromCents(-3000), description: "Mar Store", postedAt: "2026-03-05T12:00:00Z" }),
+          makeTx({ id: "t3", amount: Money.fromCents(100000), description: "Feb Income", postedAt: "2026-02-01T12:00:00Z" }),
+        ],
+      }), override);
+
+      expect(ctx.totalExpensesCents).toBe(5000);
+      expect(ctx.totalIncomeCents).toBe(100000);
+      expect(ctx.transactionCount).toBe(2);
+      expect(ctx.periodStartDate).toBe("2026-02-01");
+      expect(ctx.periodEndDate).toBe("2026-02-28");
+    });
+
+    it("returns empty aggregates when no transactions match the override period", () => {
+      const override: PeriodOverride = { startDate: "2025-06-01", endDate: "2025-06-30" };
+      const ctx = buildAiContext(makeState({
+        transactions: [
+          makeTx({ id: "t1", amount: Money.fromCents(-5000), description: "Walmart", postedAt: "2026-03-05T12:00:00Z" }),
+        ],
+      }), override);
+
+      expect(ctx.totalExpensesCents).toBe(0);
+      expect(ctx.totalIncomeCents).toBe(0);
+      expect(ctx.transactionCount).toBe(0);
+      expect(ctx.topMerchants).toEqual([]);
+    });
+
+    it("still includes envelope and account data regardless of period", () => {
+      const override: PeriodOverride = { startDate: "2025-01-01", endDate: "2025-01-31" };
+      const ctx = buildAiContext(makeState({
+        budget: {
+          id: "budget-1",
+          availableToAssign: Money.fromCents(10000),
+          envelopes: [
+            { id: "env-1", name: "Groceries", balance: Money.fromCents(20000), type: "spending" },
+          ],
+        },
+        accounts: [
+          { id: "acct-1", name: "Checking", balance: Money.fromCents(500000), accountType: "depository" },
+        ],
+      }), override);
+
+      expect(ctx.envelopes).toHaveLength(1);
+      expect(ctx.envelopes[0].name).toBe("Groceries");
+      expect(ctx.accountSummary).toHaveLength(1);
+      expect(ctx.availableToAssignCents).toBe(10000);
+    });
   });
 });

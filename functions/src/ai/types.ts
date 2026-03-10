@@ -91,6 +91,37 @@ export interface CategorizeTransactionsResponse {
   categorizations: MerchantCategorization[];
 }
 
+// ── Monthly review ────────────────────────────────────────
+
+export interface MonthlyReviewRequest {
+  householdId: string;
+  currentMonth: AiContextPayload;
+  previousMonth: AiContextPayload;
+}
+
+export interface EnvelopeHighlight {
+  envelopeName: string;
+  currentMonthCents: number;
+  previousMonthCents: number;
+  deltaPercent: number;
+  status: "over_budget" | "under_budget" | "on_track";
+}
+
+export interface BudgetAdjustment {
+  envelopeName: string;
+  currentGoalCents: number;
+  suggestedGoalCents: number;
+  reason: string;
+}
+
+export interface MonthlyReviewResponse {
+  summary: string;
+  envelopeHighlights: EnvelopeHighlight[];
+  adjustments: BudgetAdjustment[];
+  /** Present when AI usage is ≥75% of the monthly budget cap */
+  warning?: "budget_warning";
+}
+
 // ── Usage tracking ─────────────────────────────────────────
 
 export interface AiUsageRecord {

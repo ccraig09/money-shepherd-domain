@@ -1,6 +1,6 @@
 import { getFunctions, httpsCallable } from "firebase/functions";
 import { getFirebase, ensureAnonAuth } from "./firebaseClient";
-import type { AiContextPayload, AnalyzeSpendingResponse, SuggestAllocationsPayload, SuggestAllocationsResponse, CategorizeTransactionsPayload, CategorizeTransactionsResponse } from "./aiTypes";
+import type { AiContextPayload, AnalyzeSpendingResponse, SuggestAllocationsPayload, SuggestAllocationsResponse, CategorizeTransactionsPayload, CategorizeTransactionsResponse, MonthlyReviewResponse } from "./aiTypes";
 
 const functions = getFunctions(getFirebase().app);
 
@@ -55,5 +55,24 @@ export async function callCategorizeTransactions(
   >(functions, "categorizeTransactions");
 
   const result = await fn({ householdId, ...payload });
+  return result.data;
+}
+
+/**
+ * Calls the monthlyReview Cloud Function.
+ * Sends current and previous month contexts, receives review with highlights and adjustments.
+ */
+export async function callMonthlyReview(
+  householdId: string,
+  currentMonth: AiContextPayload,
+  previousMonth: AiContextPayload,
+): Promise<MonthlyReviewResponse> {
+  await ensureAnonAuth();
+  const fn = httpsCallable<
+    { householdId: string; currentMonth: AiContextPayload; previousMonth: AiContextPayload },
+    MonthlyReviewResponse
+  >(functions, "monthlyReview");
+
+  const result = await fn({ householdId, currentMonth, previousMonth });
   return result.data;
 }
