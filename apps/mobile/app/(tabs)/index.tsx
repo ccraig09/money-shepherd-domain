@@ -34,6 +34,7 @@ export default function DashboardScreen() {
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
   const state = useAppStore((s) => s.state);
+  const lastAiTip = useAppStore((s) => s.lastAiTip);
 
   const totalEnvelopeCents = useMemo(
     () => state?.budget.envelopes.reduce((sum, e) => sum + e.balance.cents, 0) ?? 0,
@@ -116,11 +117,12 @@ export default function DashboardScreen() {
       assignedTransactionIds: assignedTxIds,
       availableToAssignCents: state.budget.availableToAssign.cents,
       now,
+      aiTip: lastAiTip ?? undefined,
     });
     const visible = all.filter((i) => !dismissedTypes.has(i.type));
     visible.sort((a, b) => (SEVERITY_PRIORITY[a.severity] ?? 9) - (SEVERITY_PRIORITY[b.severity] ?? 9));
     return visible[0] ?? null;
-  }, [state, dismissedTypes]);
+  }, [state, dismissedTypes, lastAiTip]);
 
   const dismissInsight = useCallback(() => {
     if (!topInsight) return;

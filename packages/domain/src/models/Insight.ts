@@ -6,7 +6,8 @@ export type InsightType =
   | "unassigned-transactions"
   | "idle-funds"
   | "debt-milestone"
-  | "positive-net";
+  | "positive-net"
+  | "ai-tip";
 
 export type Insight = {
   type: InsightType;

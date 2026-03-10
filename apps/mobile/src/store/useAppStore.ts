@@ -7,6 +7,7 @@ import { clearSyncMeta, loadSyncMeta, saveSyncMeta } from "../infra/local/syncMe
 import { clearPin } from "../infra/local/pin";
 import { loadPlaidTokens, clearAllPlaidTokens, updateTokenCursor } from "../infra/local/secureTokens";
 import { savePlaidRefreshAt, loadPlaidRefreshAt, clearPlaidRefreshAt } from "../infra/local/plaidMeta";
+import { saveAiTip, loadAiTip, clearAiTip } from "../infra/local/aiTip";
 import { syncTransactions, fetchAccounts } from "../infra/plaid/plaidClient";
 import { mapPlaidTransactions } from "../infra/plaid/mapTransaction";
 import { mapPlaidAccounts } from "../infra/plaid/mapAccounts";
@@ -40,6 +41,7 @@ type AppStore = {
   lastPlaidRefreshAt: string | null;
   plaidSyncError: PlaidErrorInfo | null;
   toast: ToastMessage | null;
+  lastAiTip: string | null;
 
   // actions
   showToast: (text: string, variant?: ToastMessage["variant"]) => void;
@@ -177,6 +179,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
   lastPlaidRefreshAt: null,
   plaidSyncError: null,
   toast: null,
+  lastAiTip: null,
 
   showToast: (text, variant = "success") => set({ toast: { text, variant } }),
   setGuardReady: () => set({ guardState: "ready" }),
@@ -194,6 +197,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
       const lastRefresh = syncMeta
         ? await loadPlaidRefreshAt(syncMeta.userId)
         : null;
+      const savedAiTip = await loadAiTip();
 
       // Auto-dedup on boot if duplicates exist
       if (hasDuplicateAccounts(state)) {
@@ -219,6 +223,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
         status: "ready",
         lastSyncAt: now,
         lastPlaidRefreshAt: lastRefresh,
+        lastAiTip: savedAiTip,
         syncState: syncTransition(get().syncState, { type: "sync-success", at: now }),
       });
     } catch (err: any) {
@@ -243,6 +248,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
       await clearAllPlaidTokens("user-jackia");
       await clearPlaidRefreshAt("user-los");
       await clearPlaidRefreshAt("user-jackia");
+      await clearAiTip();
       set({ state: null, status: "idle", guardState: "needs-setup", errorMessage: null, lastPlaidRefreshAt: null, syncState: initialSyncState() });
     } catch (err: any) {
       set({ status: "error", errorMessage: err?.message ?? "Failed to reset" });
@@ -1297,6 +1303,12 @@ export const useAppStore = create<AppStore>((set, get) => ({
     const previousMonth = buildAiContext(state, { startDate: prevStart, endDate: prevEnd });
 
     const result = await callMonthlyReview(state.householdId, currentMonth, previousMonth);
+
+    // Cache AI summary as a dashboard insight tip (persisted across restarts)
+    if (result.summary) {
+      set({ lastAiTip: result.summary });
+      saveAiTip(result.summary).catch(() => {}); // fire-and-forget
+    }
 
     if (result.warning === "budget_warning") {
       set({ toast: { text: "AI budget at 75% — approaching monthly limit", variant: "info" } });

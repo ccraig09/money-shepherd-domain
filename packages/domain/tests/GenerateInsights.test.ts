@@ -29,6 +29,7 @@ function baseContext(overrides: Partial<Record<string, any>> = {}) {
     assignedTransactionIds: overrides.assignedTransactionIds ?? new Set(),
     availableToAssignCents: overrides.availableToAssignCents ?? 0,
     now: overrides.now ?? "2026-02-15",
+    aiTip: overrides.aiTip,
   };
 }
 
@@ -240,6 +241,44 @@ describe("generateInsights", () => {
       });
       const result = generateInsights(ctx);
       expect(result.find((i) => i.type === "positive-net")).toBeUndefined();
+    });
+  });
+
+  describe("ai-tip", () => {
+    it("includes AI tip when provided", () => {
+      const ctx = baseContext({ aiTip: "Your grocery spending is trending down — great progress!" });
+      const result = generateInsights(ctx);
+      const insight = result.find((i) => i.type === "ai-tip");
+      expect(insight).toBeDefined();
+      expect(insight!.severity).toBe("info");
+      expect(insight!.message).toBe("Your grocery spending is trending down — great progress!");
+    });
+
+    it("does not include AI tip when omitted", () => {
+      const ctx = baseContext();
+      const result = generateInsights(ctx);
+      expect(result.find((i) => i.type === "ai-tip")).toBeUndefined();
+    });
+
+    it("does not include AI tip when empty string", () => {
+      const ctx = baseContext({ aiTip: "" });
+      const result = generateInsights(ctx);
+      expect(result.find((i) => i.type === "ai-tip")).toBeUndefined();
+    });
+
+    it("places AI tip after warnings but before other info insights", () => {
+      const ctx = baseContext({
+        envelopes: [makeEnvelope({ balance: Money.fromCents(-1500), name: "Dining" })],
+        availableToAssignCents: 50000,
+        aiTip: "Consider reducing dining out this month.",
+      });
+      const result = generateInsights(ctx);
+      const types = result.map((i) => i.type);
+      const warningIdx = types.indexOf("overspent-envelope");
+      const aiIdx = types.indexOf("ai-tip");
+      const idleIdx = types.indexOf("idle-funds");
+      expect(warningIdx).toBeLessThan(aiIdx);
+      expect(aiIdx).toBeLessThan(idleIdx);
     });
   });
 });

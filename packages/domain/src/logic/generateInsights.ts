@@ -9,6 +9,8 @@ export type InsightContext = {
   availableToAssignCents: number;
   /** ISO date string, e.g. "2026-02-15" */
   now: string;
+  /** Optional AI-generated tip to blend into the insight list */
+  aiTip?: string;
 };
 
 function formatDollars(cents: number): string {
@@ -132,10 +134,19 @@ function positiveNet(transactions: Transaction[], now: string): Insight[] {
   ];
 }
 
+function aiTipInsight(aiTip: string | undefined): Insight[] {
+  if (!aiTip) return [];
+  return [{ type: "ai-tip", severity: "info", message: aiTip }];
+}
+
 export function generateInsights(context: InsightContext): Insight[] {
   return [
+    // Warnings first (most urgent)
     ...overspentEnvelope(context.envelopes),
     ...nearlyDepleted(context.envelopes, context.now),
+    // AI tip — personalized, above generic info
+    ...aiTipInsight(context.aiTip),
+    // Info & success
     ...unassignedTransactions(context.transactions, context.assignedTransactionIds),
     ...idleFunds(context.availableToAssignCents),
     ...debtMilestone(context.envelopes),
