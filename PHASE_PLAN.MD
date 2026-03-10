@@ -795,7 +795,7 @@ Plaid access tokens are stored in `expo-secure-store` (device keychain) and neve
 ### Recommended build order
 
 - [x] MS-29.1 Monthly review Cloud Function (spending summary + month-over-month deltas + adjustment suggestions)
-- [ ] MS-29.2 Budget adjustment UI (monthly review card + one-tap adjust)
+- [x] MS-29.2 Budget adjustment UI (monthly review card + one-tap adjust)
 - [ ] MS-29.3 AI-enhanced insights (blend AI + rule-based on dashboard)
 - [ ] MS-29.4 Spending anomaly alerts (unusual charges, spending spikes)
 - [ ] MS-29.5 Weekly spending nudge (lightweight Home card — top categories, envelope balances, no Cloud Function needed)
