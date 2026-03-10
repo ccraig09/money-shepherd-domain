@@ -745,7 +745,7 @@ Plaid access tokens are stored in `expo-secure-store` (device keychain) and neve
 
 ## Phase 28: AI Advisor — Foundation + Guided Setup
 
-> **Goal:** After connecting a bank, AI analyzes spending, auto-creates envelopes, sets budgets, and categorizes transactions — all with user preview/confirm. Uses Claude Sonnet 4.6 (Anthropic) via Cloud Functions. $7/month budget cap with 75% warning + full usage monitoring. Optional TTS with player controls.
+> **Goal:** After connecting a bank, AI analyzes spending, auto-creates envelopes, sets budgets, and categorizes transactions — all with user preview/confirm. Uses Claude Sonnet 4.6 (Anthropic) via Cloud Functions. $7/month budget cap with 75% warning + full usage monitoring.
 
 ### Recommended build order
 
@@ -758,7 +758,6 @@ Plaid access tokens are stored in `expo-secure-store` (device keychain) and neve
 - [x] MS-28.6 AI auto-categorization Cloud Function (merchant → envelope mapping, batch 20)
 - [x] MS-28.7 Integrate AI categorization into suggestEnvelope hierarchy
 - [x] MS-28.8 Auto-assign preview + bulk confirm in Inbox
-- [ ] MS-28.9 TTS player for AI responses (play/pause/rewind/skip, expo-speech)
 
 ### Architecture Notes
 
@@ -770,8 +769,7 @@ Plaid access tokens are stored in `expo-secure-store` (device keychain) and neve
 - System prompt versioned in code — no runtime training needed
 - Guardrails: $7/mo hard cap, 75% warning (~$5.25), 20 calls/day rate limit, 4K token cap, no PII sent
 - Usage monitoring: Firestore log, per-function breakdown, Settings UI dashboard with budget bar
-- TTS: `expo-speech` (device-native, zero cost), full player controls (play/pause/rewind/skip)
-- Feature flags: `AI_ADVISOR`, `AI_TTS`
+- Feature flags: `AI_ADVISOR`
 - Auto-deploy Cloud Functions after each function ticket
 
 ### Phase 28 Smoke Check
@@ -787,7 +785,6 @@ Plaid access tokens are stored in `expo-secure-store` (device keychain) and neve
 - [ ] Settings shows AI usage stats (calls, tokens, cost, budget bar with 75% warning)
 - [ ] 75% budget warning shows amber toast + Settings indicator
 - [ ] $7 hard cap blocks further AI calls with clear message
-- [ ] TTS toggle in Settings → player controls on AI cards → play/pause/rewind/skip work
 
 ---
 
@@ -823,6 +820,7 @@ Plaid access tokens are stored in `expo-secure-store` (device keychain) and neve
 - [ ] MS-30.3 Action execution from chat (preview → confirm → engine)
 - [ ] MS-30.4 Chat session persistence + history (multi-session storage, auto-title, 24h resume)
 - [ ] MS-30.5 Chat history list UI (past conversations, read-only view, swipe to delete)
+- [ ] MS-30.6 TTS player for AI chat responses (play/pause/rewind/skip, expo-speech)
 
 ### Phase 30 Smoke Check
 
@@ -834,6 +832,7 @@ Plaid access tokens are stored in `expo-secure-store` (device keychain) and neve
 - [ ] Start new conversation → old one appears in history list
 - [ ] Tap old conversation → view past messages (read-only)
 - [ ] AI unavailable → graceful error message, no crash
+- [ ] TTS toggle in Settings → player controls on chat bubbles → play/pause/rewind/skip work
 
 ---
 
