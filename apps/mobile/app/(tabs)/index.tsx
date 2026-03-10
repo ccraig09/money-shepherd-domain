@@ -23,9 +23,10 @@ import { SpendingDonutCard, MonthlyTrendCard } from "../../src/ui/components/cha
 import { Spacing, Radius, FontSize, FontWeight, type ColorTokens } from "../../src/ui/tokens";
 import { useTheme, useThemedStyles } from "@/src/ui/ThemeProvider";
 import { getThisMonthSummary, getMonthlyTrend } from "../../src/lib/periodSummary";
-import { getCurrentPeriod, getFundingInPeriod, getSpendingInPeriod, generateInsights, groupEnvelopes } from "@money-shepherd/domain";
+import { getCurrentPeriod, getFundingInPeriod, getSpendingInPeriod, generateInsights, groupEnvelopes, getWeeklySummary } from "@money-shepherd/domain";
 import type { InsightType } from "@money-shepherd/domain";
 import { MonthlyReviewCard } from "../../src/ui/components/MonthlyReviewCard";
+import { WeeklyNudgeCard } from "../../src/ui/components/WeeklyNudgeCard";
 import { Features } from "../../src/config/features";
 
 const SEVERITY_PRIORITY: Record<string, number> = { warning: 0, info: 1, success: 2 };
@@ -100,6 +101,17 @@ export default function DashboardScreen() {
     if (!state) return [];
     const now = new Date().toISOString().slice(0, 10);
     return getMonthlyTrend(state.transactions, now, 6);
+  }, [state]);
+
+  const weeklySummary = useMemo(() => {
+    if (!state) return null;
+    const now = new Date().toISOString().slice(0, 10);
+    return getWeeklySummary(
+      state.transactions,
+      state.inbox.assignmentsByTransactionId,
+      state.budget.envelopes,
+      now,
+    );
   }, [state]);
 
   // Insights engine
@@ -224,6 +236,9 @@ export default function DashboardScreen() {
       {Features.AI_ADVISOR && monthSummary && monthSummary.spendingCents > 0 && (
         <MonthlyReviewCard onPress={() => router.push("/monthly-review")} />
       )}
+
+      {/* Weekly spending nudge */}
+      {weeklySummary && <WeeklyNudgeCard summary={weeklySummary} />}
 
       {/* This Month summary */}
       {monthSummary && (monthSummary.incomeCents > 0 || monthSummary.spendingCents > 0) && (
