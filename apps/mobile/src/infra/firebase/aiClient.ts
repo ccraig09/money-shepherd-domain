@@ -1,6 +1,6 @@
 import { getFunctions, httpsCallable } from "firebase/functions";
 import { getFirebase, ensureAnonAuth } from "./firebaseClient";
-import type { AiContextPayload, AnalyzeSpendingResponse, SuggestAllocationsPayload, SuggestAllocationsResponse } from "./aiTypes";
+import type { AiContextPayload, AnalyzeSpendingResponse, SuggestAllocationsPayload, SuggestAllocationsResponse, CategorizeTransactionsPayload, CategorizeTransactionsResponse } from "./aiTypes";
 
 const functions = getFunctions(getFirebase().app);
 
@@ -35,6 +35,24 @@ export async function callSuggestAllocations(
     { householdId: string } & SuggestAllocationsPayload,
     SuggestAllocationsResponse
   >(functions, "suggestAllocations");
+
+  const result = await fn({ householdId, ...payload });
+  return result.data;
+}
+
+/**
+ * Calls the categorizeTransactions Cloud Function.
+ * Sends a batch of merchant names + envelope list, receives high/medium confidence mappings.
+ */
+export async function callCategorizeTransactions(
+  householdId: string,
+  payload: CategorizeTransactionsPayload,
+): Promise<CategorizeTransactionsResponse> {
+  await ensureAnonAuth();
+  const fn = httpsCallable<
+    { householdId: string } & CategorizeTransactionsPayload,
+    CategorizeTransactionsResponse
+  >(functions, "categorizeTransactions");
 
   const result = await fn({ householdId, ...payload });
   return result.data;

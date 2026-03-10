@@ -64,3 +64,22 @@ export interface SuggestAllocationsResponse {
   /** Present when AI usage is ≥75% of the monthly budget cap */
   warning?: "budget_warning";
 }
+
+export interface CategorizeTransactionsPayload {
+  merchants: string[];
+  envelopes: {
+    id: string;
+    name: string;
+    type?: string;
+  }[];
+}
+
+export interface MerchantCategorization {
+  merchant: string;
+  envelopeId: string;
+  confidence: "high" | "medium" | "low";
+}
+
+export interface CategorizeTransactionsResponse {
+  categorizations: MerchantCategorization[];
+}
