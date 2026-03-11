@@ -181,23 +181,22 @@ export const chatMessage = onCall<
 
     // Extract text and tool_use blocks
     const textBlocks = response.content.filter((b) => b.type === "text");
-    const toolBlock = response.content.find((b) => b.type === "tool_use");
+    const toolBlocks = response.content.filter((b) => b.type === "tool_use");
 
     const reply = textBlocks.map((b) => b.type === "text" ? b.text : "").join("\n").trim();
 
     // If no text AND no tool use, something went wrong
-    if (!reply && !toolBlock) {
+    if (!reply && toolBlocks.length === 0) {
       throw new HttpsError("internal", "AI returned no response.");
     }
 
-    // Extract action from tool_use block (take first only)
-    let action: ChatAction | undefined;
-    if (toolBlock && toolBlock.type === "tool_use") {
-      action = {
-        toolName: toolBlock.name,
-        toolInput: toolBlock.input as Record<string, unknown>,
-      };
-    }
+    // Extract all actions from tool_use blocks
+    const actions: ChatAction[] = toolBlocks
+      .filter((b): b is Anthropic.ToolUseBlock => b.type === "tool_use")
+      .map((b) => ({
+        toolName: b.name,
+        toolInput: b.input as Record<string, unknown>,
+      }));
 
     // Log usage
     const inputTokens = response.usage.input_tokens;
@@ -213,7 +212,7 @@ export const chatMessage = onCall<
 
     return {
       reply: reply || "I'll take care of that for you.",
-      ...(action && { action }),
+      ...(actions.length > 0 && { action: actions[0], actions }),
       ...(limits.warning === "budget_warning" && { warning: "budget_warning" as const }),
     };
   },

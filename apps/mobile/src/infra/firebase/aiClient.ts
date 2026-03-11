@@ -93,5 +93,12 @@ export async function callChatMessage(
   >(functions, "chatMessage");
 
   const result = await fn({ householdId, messages, context });
-  return result.data;
+  return normalizeChatResponse(result.data);
+}
+
+/** Normalize response — ensure `actions` is always populated from `action` or `actions` */
+function normalizeChatResponse(data: ChatMessageResponse): ChatMessageResponse {
+  if (data.actions && data.actions.length > 0) return data;
+  if (data.action) return { ...data, actions: [data.action] };
+  return data;
 }

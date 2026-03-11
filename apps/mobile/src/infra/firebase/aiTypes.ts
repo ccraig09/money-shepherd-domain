@@ -105,8 +105,10 @@ export interface ChatAction {
 
 export interface ChatMessageResponse {
   reply: string;
-  /** Suggested action the user can preview and confirm */
+  /** @deprecated Use `actions` instead — kept for backward compat */
   action?: ChatAction;
+  /** Suggested actions the user can preview and confirm (may be multiple for multi-step workflows) */
+  actions?: ChatAction[];
   /** Present when AI usage is ≥75% of the monthly budget cap */
   warning?: "budget_warning";
 }

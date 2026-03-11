@@ -13,6 +13,8 @@ type Props = {
   onCancel: () => void;
   /** Envelope lookup for human-readable names */
   envelopeLookup: Map<string, string>;
+  /** Step label for multi-action sets (e.g., "Step 1 of 3") */
+  stepLabel?: string;
 };
 
 /** Formats cents as dollars */
@@ -34,7 +36,7 @@ const TOOL_LABELS: Record<string, string> = {
  * Displays a human-readable summary of the AI-suggested action
  * with Confirm and Cancel buttons.
  */
-export function ActionPreviewCard({ action, status, onConfirm, onCancel, envelopeLookup }: Props) {
+export function ActionPreviewCard({ action, status, onConfirm, onCancel, envelopeLookup, stepLabel }: Props) {
   const styles = useThemedStyles(createStyles);
   const { colors } = useTheme();
 
@@ -44,6 +46,7 @@ export function ActionPreviewCard({ action, status, onConfirm, onCancel, envelop
   if (status === "executed") {
     return (
       <View style={[styles.card, styles.cardExecuted]}>
+        {stepLabel && <Text style={styles.stepLabel}>{stepLabel}</Text>}
         <Text style={styles.statusText}>Done</Text>
         <Text style={styles.label}>{label}</Text>
         {details.map((d, i) => (
@@ -56,6 +59,7 @@ export function ActionPreviewCard({ action, status, onConfirm, onCancel, envelop
   if (status === "dismissed") {
     return (
       <View style={[styles.card, styles.cardDismissed]}>
+        {stepLabel && <Text style={styles.stepLabel}>{stepLabel}</Text>}
         <Text style={styles.statusTextDismissed}>Cancelled</Text>
         <Text style={[styles.label, styles.labelDimmed]}>{label}</Text>
       </View>
@@ -64,6 +68,7 @@ export function ActionPreviewCard({ action, status, onConfirm, onCancel, envelop
 
   return (
     <View style={[styles.card, status === "error" && styles.cardError]}>
+      {stepLabel && <Text style={styles.stepLabel}>{stepLabel}</Text>}
       {status === "error" && (
         <Text style={styles.errorHint}>Something went wrong — try again?</Text>
       )}
@@ -171,6 +176,12 @@ const createStyles = (c: ColorTokens) =>
       fontWeight: FontWeight.semibold,
       color: c.error,
       marginBottom: Spacing.xs,
+    },
+    stepLabel: {
+      fontSize: FontSize.caption,
+      fontWeight: FontWeight.semibold,
+      color: c.textMuted,
+      marginBottom: 2,
     },
     label: {
       fontSize: FontSize.small,

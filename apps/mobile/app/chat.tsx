@@ -174,13 +174,14 @@ export default function ChatScreen() {
 
         const result = await sendChatMessage(history);
 
+        const actions = result.actions ?? (result.action ? [result.action] : undefined);
         const aiMsg: ChatMessage = {
           id: makeId("msg"),
           role: "assistant",
           content: result.reply,
           timestamp: Date.now(),
-          action: result.action,
-          actionStatus: result.action ? "pending" : undefined,
+          actions,
+          actionStatuses: actions ? actions.map(() => "pending" as const) : undefined,
         };
         setMessages((prev) => [...prev, aiMsg]);
       } catch {
@@ -201,23 +202,44 @@ export default function ChatScreen() {
   const handleConfirmAction = useCallback(
     async (messageId: string) => {
       const msg = messages.find((m) => m.id === messageId);
-      if (!msg?.action) return;
+      const actions = msg?.actions ?? (msg?.action ? [msg.action] : []);
+      if (actions.length === 0) return;
 
-      // Set executing state
-      setMessages((prev) =>
-        prev.map((m) => (m.id === messageId ? { ...m, actionStatus: "executing" as const } : m)),
-      );
+      // Execute each action sequentially, updating per-action status
+      for (let i = 0; i < actions.length; i++) {
+        // Mark current action as executing
+        setMessages((prev) =>
+          prev.map((m) => {
+            if (m.id !== messageId) return m;
+            const statuses = [...(m.actionStatuses ?? [])];
+            statuses[i] = "executing";
+            return { ...m, actionStatuses: statuses };
+          }),
+        );
 
-      try {
-        await executeChatAction(msg.action);
-        setMessages((prev) =>
-          prev.map((m) => (m.id === messageId ? { ...m, actionStatus: "executed" as const } : m)),
-        );
-      } catch {
-        // Show error state — buttons remain for retry
-        setMessages((prev) =>
-          prev.map((m) => (m.id === messageId ? { ...m, actionStatus: "error" as const } : m)),
-        );
+        try {
+          await executeChatAction(actions[i]);
+          // Mark current action as executed
+          setMessages((prev) =>
+            prev.map((m) => {
+              if (m.id !== messageId) return m;
+              const statuses = [...(m.actionStatuses ?? [])];
+              statuses[i] = "executed";
+              return { ...m, actionStatuses: statuses };
+            }),
+          );
+        } catch {
+          // Mark current action as error, remaining as pending (stop execution)
+          setMessages((prev) =>
+            prev.map((m) => {
+              if (m.id !== messageId) return m;
+              const statuses = [...(m.actionStatuses ?? [])];
+              statuses[i] = "error";
+              return { ...m, actionStatuses: statuses };
+            }),
+          );
+          return; // Stop executing remaining actions
+        }
       }
     },
     [messages, executeChatAction],
@@ -226,7 +248,11 @@ export default function ChatScreen() {
   const handleCancelAction = useCallback(
     (messageId: string) => {
       setMessages((prev) =>
-        prev.map((m) => (m.id === messageId ? { ...m, actionStatus: "dismissed" as const } : m)),
+        prev.map((m) => {
+          if (m.id !== messageId) return m;
+          const statuses = (m.actionStatuses ?? []).map(() => "dismissed" as const);
+          return { ...m, actionStatuses: statuses };
+        }),
       );
     },
     [],
@@ -241,14 +267,18 @@ export default function ChatScreen() {
 
   const isEmpty = messages.length === 0;
 
-  // Show follow-up chips when last message is an executed action and we're not typing
+  // Show follow-up chips when last message has all actions executed and we're not typing
   const lastMsg = messages[messages.length - 1];
+  const lastActions = lastMsg?.actions ?? (lastMsg?.action ? [lastMsg.action] : []);
+  const lastStatuses = lastMsg?.actionStatuses ?? (lastMsg?.actionStatus ? [lastMsg.actionStatus] : []);
+  const allExecuted = lastStatuses.length > 0 && lastStatuses.every((s) => s === "executed");
+  const lastExecutedAction = allExecuted ? lastActions[lastActions.length - 1] : undefined;
   const showFollowUp =
     !isReadOnly &&
     !isTyping &&
     lastMsg?.role === "assistant" &&
-    lastMsg.actionStatus === "executed" &&
-    lastMsg.action?.toolName;
+    allExecuted &&
+    lastExecutedAction;
 
   return (
     <KeyboardAvoidingView
@@ -319,9 +349,9 @@ export default function ChatScreen() {
                   </View>
                 </View>
               )}
-              {showFollowUp && (
+              {showFollowUp && lastExecutedAction && (
                 <FollowUpChips
-                  toolName={lastMsg.action!.toolName}
+                  action={lastExecutedAction}
                   onSelect={handleChipSelect}
                 />
               )}

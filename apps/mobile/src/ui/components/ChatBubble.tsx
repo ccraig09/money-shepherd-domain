@@ -6,15 +6,21 @@ import { Spacing, Radius, FontSize, FontWeight, LineHeight, type ColorTokens } f
 import { useThemedStyles, useTheme } from "../ThemeProvider";
 import type { ChatAction } from "../../infra/firebase/aiTypes";
 import { ActionPreviewCard } from "./ActionPreviewCard";
-type ActionStatus = "pending" | "executing" | "executed" | "dismissed" | "error";
+
+export type ActionStatus = "pending" | "executing" | "executed" | "dismissed" | "error";
 
 export type ChatMessage = {
   id: string;
   role: "user" | "assistant";
   content: string;
   timestamp: number;
+  /** @deprecated Use `actions` */
   action?: ChatAction;
+  /** @deprecated Use `actionStatuses` */
   actionStatus?: ActionStatus;
+  /** Multi-step actions */
+  actions?: ChatAction[];
+  actionStatuses?: ActionStatus[];
 };
 
 type Props = {
@@ -86,15 +92,20 @@ export function ChatBubble({
         ) : (
           <Markdown style={mdStyles}>{message.content}</Markdown>
         )}
-        {message.action && (
-          <ActionPreviewCard
-            action={message.action}
-            status={message.actionStatus ?? "pending"}
-            onConfirm={() => onConfirmAction?.(message.id)}
-            onCancel={() => onCancelAction?.(message.id)}
-            envelopeLookup={envelopeLookup ?? new Map()}
-          />
-        )}
+        {(message.actions ?? (message.action ? [message.action] : [])).map((act, idx, arr) => {
+          const statuses = message.actionStatuses ?? (message.actionStatus ? [message.actionStatus] : []);
+          return (
+            <ActionPreviewCard
+              key={`${act.toolName}-${idx}`}
+              action={act}
+              status={statuses[idx] ?? "pending"}
+              onConfirm={() => onConfirmAction?.(message.id)}
+              onCancel={() => onCancelAction?.(message.id)}
+              envelopeLookup={envelopeLookup ?? new Map()}
+              stepLabel={arr.length > 1 ? `Step ${idx + 1} of ${arr.length}` : undefined}
+            />
+          );
+        })}
         {!isUser && onTTSPlay && (
           <View style={styles.ttsRow}>
             <Pressable
