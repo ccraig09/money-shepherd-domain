@@ -12,6 +12,7 @@ import {
 import { router, useLocalSearchParams } from "expo-router";
 import { ChatBubble, type ChatMessage } from "../src/ui/components/ChatBubble";
 import { SuggestedChips } from "../src/ui/components/SuggestedChips";
+import { FollowUpChips } from "../src/ui/components/FollowUpChips";
 import { useAppStore } from "../src/store/useAppStore";
 import type { ChatMessageEntry } from "../src/infra/firebase/aiTypes";
 import {
@@ -240,6 +241,15 @@ export default function ChatScreen() {
 
   const isEmpty = messages.length === 0;
 
+  // Show follow-up chips when last message is an executed action and we're not typing
+  const lastMsg = messages[messages.length - 1];
+  const showFollowUp =
+    !isReadOnly &&
+    !isTyping &&
+    lastMsg?.role === "assistant" &&
+    lastMsg.actionStatus === "executed" &&
+    lastMsg.action?.toolName;
+
   return (
     <KeyboardAvoidingView
       style={styles.root}
@@ -298,16 +308,24 @@ export default function ChatScreen() {
             )
           }
           ListFooterComponent={
-            isTyping ? (
-              <View style={styles.typingRow}>
-                <View style={styles.typingAvatar}>
-                  <Text style={styles.typingAvatarText}>MS</Text>
+            <>
+              {isTyping && (
+                <View style={styles.typingRow}>
+                  <View style={styles.typingAvatar}>
+                    <Text style={styles.typingAvatarText}>MS</Text>
+                  </View>
+                  <View style={styles.typingBubble}>
+                    <Text style={styles.typingDots}>...</Text>
+                  </View>
                 </View>
-                <View style={styles.typingBubble}>
-                  <Text style={styles.typingDots}>...</Text>
-                </View>
-              </View>
-            ) : null
+              )}
+              {showFollowUp && (
+                <FollowUpChips
+                  toolName={lastMsg.action!.toolName}
+                  onSelect={handleChipSelect}
+                />
+              )}
+            </>
           }
         />
       )}
