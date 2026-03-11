@@ -104,6 +104,21 @@ Key areas:
 6. **Stop if scope grows:** If more than ~6 files are needed, pause and ask for approval.
 7. **Keep the app bootable at all commits:** No "will fix later" breaks.
 
+## iOS Simulator Testing — Token Budget Rules
+
+`ui_describe_all` costs ~11k tokens per call. **Never use it as a first resort.** Follow this priority order:
+
+1. **Screenshot first** — take a screenshot and visually estimate coordinates using the 1.49x scale factor (screenshot pixels ÷ 1.49 = logical points). Screen is 402×874 pt.
+2. **`ui_describe_point(x, y)`** — use targeted point queries (~200 tokens) to confirm exact bounds of a specific element.
+3. **`ui_describe_all` only as last resort** — when you genuinely cannot locate an element by sight or point queries (e.g., dynamically generated lists with unknown positions).
+
+### Common coordinates (logical points)
+
+- **Tab bar:** Home x=40, Inbox x=121, Envelopes x=201, Transactions x=321, Settings x=362 — all y≈840
+- **Nav bar back button:** x=70, y=72
+- **PIN Unlock:** x=201, y=499
+- **Modal dialogs:** input ≈ y=413, primary btn ≈ y=488, cancel ≈ y=537
+
 ## Per-Ticket Workflow
 
 For each GitHub ticket:
