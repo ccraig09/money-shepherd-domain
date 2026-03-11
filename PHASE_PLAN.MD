@@ -825,7 +825,7 @@ Plaid access tokens are stored in `expo-secure-store` (device keychain) and neve
 
 ### Recommended build order
 
-- [ ] MS-30.1 Chat UI component (bubbles, markdown, action cards, suggested question chips on empty state)
+- [x] MS-30.1 Chat UI component (bubbles, markdown, action cards, suggested question chips on empty state)
 - [ ] MS-30.2 Conversational Cloud Function (multi-turn, budget-aware system prompt)
 - [ ] MS-30.3 Action execution from chat (preview → confirm → engine — envelopes, transfers, goals, budget adjustments)
 - [ ] MS-30.4 Chat session persistence + history (multi-session storage, auto-title, 24h resume)

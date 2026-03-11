@@ -239,6 +239,26 @@ export default function DashboardScreen() {
         <InsightCard insight={topInsight} onDismiss={dismissInsight} />
       )}
 
+      {/* Ask Money Shepherd — chat entry point */}
+      {Features.AI_CHAT && (
+        <Pressable
+          onPress={() => router.push("/chat")}
+          style={styles.chatCard}
+          accessibilityLabel="Ask Money Shepherd"
+        >
+          <View style={styles.chatCardIcon}>
+            <Text style={styles.chatCardIconText}>MS</Text>
+          </View>
+          <View style={styles.chatCardBody}>
+            <Text style={styles.chatCardTitle}>Ask Money Shepherd</Text>
+            <Text style={styles.chatCardSub}>
+              Get advice, make changes, or ask about your budget
+            </Text>
+          </View>
+          <Text style={styles.chatCardArrow}>›</Text>
+        </Pressable>
+      )}
+
       {/* Monthly Review nudge — AI-powered month-over-month comparison */}
       {Features.AI_ADVISOR && monthSummary && monthSummary.spendingCents > 0 && (
         <MonthlyReviewCard onPress={() => router.push("/monthly-review")} />
@@ -577,6 +597,48 @@ const createStyles = (c: ColorTokens) => StyleSheet.create({
   },
   heroStatLabel: { fontSize: FontSize.small, color: "rgba(255,255,255,0.75)" },
   heroStatValue: { fontSize: FontSize.small, fontWeight: FontWeight.semibold, color: c.textOnColor },
+
+  // Ask Money Shepherd card
+  chatCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginHorizontal: Spacing.base,
+    marginBottom: Spacing.base,
+    padding: Spacing.base,
+    borderRadius: Radius.xl,
+    backgroundColor: c.primarySurface,
+    borderWidth: 1,
+    borderColor: c.borderWarning,
+    gap: Spacing.md,
+  },
+  chatCardIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: c.primary,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  chatCardIconText: {
+    fontSize: FontSize.small,
+    fontWeight: FontWeight.bold,
+    color: c.textOnColor,
+  },
+  chatCardBody: { flex: 1, gap: 2 },
+  chatCardTitle: {
+    fontSize: FontSize.body,
+    fontWeight: FontWeight.semibold,
+    color: c.textDark,
+  },
+  chatCardSub: {
+    fontSize: FontSize.caption,
+    color: c.textMuted,
+  },
+  chatCardArrow: {
+    fontSize: 22,
+    color: c.primary,
+    fontWeight: FontWeight.bold,
+  },
 
   // This Month card
   monthCard: {

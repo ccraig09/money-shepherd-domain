@@ -21,6 +21,11 @@ export const Features = {
     process.env.EXPO_PUBLIC_ENABLE_AI_ADVISOR !== "false" &&
     process.env.EXPO_PUBLIC_ENABLE_AI_ADVISOR !== "0",
 
+  /** AI Chat — conversational budget assistant. */
+  AI_CHAT:
+    process.env.EXPO_PUBLIC_ENABLE_AI_CHAT !== "false" &&
+    process.env.EXPO_PUBLIC_ENABLE_AI_CHAT !== "0",
+
   /** AI Text-to-Speech — read AI responses aloud. */
   AI_TTS:
     process.env.EXPO_PUBLIC_ENABLE_AI_TTS !== "false" &&

@@ -182,6 +182,10 @@ function RootLayoutInner() {
             name="ai-allocate"
             options={{ title: "AI Fill Envelopes", headerBackTitle: "Fill Envelopes" }}
           />
+          <Stack.Screen
+            name="chat"
+            options={{ title: "Money Shepherd", headerBackTitle: "Home" }}
+          />
         </Stack>
 
         {isReady && (status === "loading" || status === "idle") && (
