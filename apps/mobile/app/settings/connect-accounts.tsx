@@ -223,7 +223,21 @@ export default function ConnectAccountsScreen() {
             } catch {
               console.warn("[Plaid] removeItem failed — removing local token anyway");
             }
+            // Look up the token BEFORE removing it so we can get account IDs
+            const allTokens = await loadPlaidTokens(userId);
+            const token = allTokens.find((t) => t.itemId === itemId);
+            const accountIds = token?.accountIdMap
+              ? Object.values(token.accountIdMap)
+              : [];
+
             await removePlaidToken(userId, itemId);
+
+            // Remove the associated accounts from app state
+            if (accountIds.length > 0) {
+              await engine.removeAccounts({ accountIds });
+              useAppStore.setState({ state: await engine.getState() });
+            }
+
             const updated = await loadPlaidTokens(userId);
             setTokens((prev) => ({ ...prev, [userId]: updated }));
 

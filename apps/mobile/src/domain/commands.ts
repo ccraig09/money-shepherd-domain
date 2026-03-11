@@ -907,6 +907,29 @@ export function removePlaidTransactions(
   };
 }
 
+/**
+ * Removes accounts by ID. Transactions referencing removed accounts are
+ * preserved (orphaned gracefully) — the UI will fall back to showing the
+ * raw accountId, which is acceptable for historical data.
+ */
+export function removeAccounts(
+  state: AppStateV1,
+  args: { accountIds: string[] },
+): AppStateV1 {
+  if (args.accountIds.length === 0) return state;
+
+  const removeSet = new Set(args.accountIds);
+  const nextAccounts = state.accounts.filter((a) => !removeSet.has(a.id));
+
+  if (nextAccounts.length === state.accounts.length) return state;
+
+  return {
+    ...state,
+    accounts: nextAccounts,
+    updatedAt: nowIso(),
+  };
+}
+
 export function hasDuplicateAccounts(state: AppStateV1): boolean {
   const plaidAccounts = state.accounts.filter((a) => a.id.startsWith("plaid-"));
   const groups = new Map<string, number>();
