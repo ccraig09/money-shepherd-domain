@@ -6,7 +6,7 @@ import {
 import { ensureAnonAuth } from "../infra/firebase/firebaseClient";
 import { HouseholdStateRepo } from "../infra/remote/householdStateRepo";
 import { loadSyncMeta, saveSyncMeta } from "../infra/local/syncMeta";
-import { createEnvelope, renameEnvelope, deleteEnvelope, setTransactionNote, assignTransaction, unassignTransaction, editTransaction, deleteTransaction, transferBetweenEnvelopes, seedBudgetFromBalances, setEnvelopeGoal, clearEnvelopeGoal, setEnvelopeTarget, clearEnvelopeTarget, setEnvelopeType, addAssignmentRule, removeAssignmentRule, reorderAssignmentRules, createEnvelopeGroup, renameEnvelopeGroup, deleteEnvelopeGroup, reorderEnvelopeGroups, moveEnvelopeToGroup, deduplicateAccounts, removePlaidTransactions, mergeAiPayeeMappings } from "./commands";
+import { createEnvelope, renameEnvelope, deleteEnvelope, setTransactionNote, assignTransaction, unassignTransaction, editTransaction, deleteTransaction, transferBetweenEnvelopes, seedBudgetFromBalances, setEnvelopeGoal, clearEnvelopeGoal, setEnvelopeTarget, clearEnvelopeTarget, setEnvelopeType, addAssignmentRule, removeAssignmentRule, reorderAssignmentRules, createEnvelopeGroup, renameEnvelopeGroup, deleteEnvelopeGroup, reorderEnvelopeGroups, moveEnvelopeToGroup, deduplicateAccounts, removePlaidTransactions, removeAccounts, mergeAiPayeeMappings } from "./commands";
 import { allocateToEnvelope } from "./allocate";
 import type { AppStateV1 } from "./appState";
 import { APP_STATE_VERSION } from "./appState";
@@ -120,6 +120,9 @@ export type Engine = {
   removePlaidTransactions(args: {
     transactionIds: string[];
   }): Promise<RecomputeResult>;
+
+  /** Remove accounts by ID (e.g. when disconnecting a stale bank). */
+  removeAccounts(args: { accountIds: string[] }): Promise<RecomputeResult>;
 
   /** Import a validated state (from export), overwriting local, then recompute + sync. */
   importState(state: AppStateV1): Promise<RecomputeResult>;
@@ -746,13 +749,16 @@ export function createEngine(): Engine {
     // Only accounts whose IDs appear here will have their balance updated.
     const updatedById = new Map(args.updatedAccounts.map((a) => [a.id, a]));
 
+    const existingIds = new Set(state.accounts.map((a) => a.id));
+
     const accounts = state.accounts.map((existing) => {
       const fresh = updatedById.get(existing.id);
       if (!fresh) return existing;
-      // Copy balance + accountType from fresh Plaid data.
+      // Copy balance, accountType, and name from fresh Plaid data.
       // Also carry over ownerUserId and institutionName if provided (backfill).
       return {
         ...existing,
+        name: fresh.name,
         balance: fresh.balance,
         accountType: fresh.accountType,
         ...(fresh.ownerUserId && { ownerUserId: fresh.ownerUserId }),
@@ -760,7 +766,10 @@ export function createEngine(): Engine {
       };
     });
 
-    const next: AppStateV1 = { ...state, accounts };
+    // Add any new accounts not yet in state (e.g. partner connected on another device)
+    const newAccounts = args.updatedAccounts.filter((a) => !existingIds.has(a.id));
+
+    const next: AppStateV1 = { ...state, accounts: [...accounts, ...newAccounts] };
     return recompute(next);
   }
 
@@ -769,6 +778,15 @@ export function createEngine(): Engine {
   }): Promise<RecomputeResult> {
     const state = await getState();
     const next = removePlaidTransactions(state, args);
+    if (next === state) return { state, syncOutcome: "local-only" };
+    return recompute(next);
+  }
+
+  async function removeAccountsAction(args: {
+    accountIds: string[];
+  }): Promise<RecomputeResult> {
+    const state = await getState();
+    const next = removeAccounts(state, args);
     if (next === state) return { state, syncOutcome: "local-only" };
     return recompute(next);
   }
@@ -822,6 +840,7 @@ export function createEngine(): Engine {
     importPlaidTransactions,
     removePlaidTransactions: removePlaidTransactionsAction,
     importState,
+    removeAccounts: removeAccountsAction,
     deduplicateAccounts: deduplicateAccountsAction,
     syncNow,
     onSyncResult: null,
