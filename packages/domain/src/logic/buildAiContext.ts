@@ -21,6 +21,7 @@ export type AiContext = {
 };
 
 export type AiEnvelopeSummary = {
+  id: string;
   name: string;
   balanceCents: number;
   goalCents?: number;
@@ -86,6 +87,7 @@ export function buildAiContext(state: MinimalState, periodOverride?: PeriodOverr
   // Envelopes — names are user-created categories, safe to send
   const envelopes: AiEnvelopeSummary[] = state.budget.envelopes.map((e) => {
     const summary: AiEnvelopeSummary = {
+      id: e.id,
       name: e.name,
       balanceCents: e.balance.cents,
     };

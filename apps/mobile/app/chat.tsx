@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from "react";
+import React, { useState, useRef, useCallback, useMemo } from "react";
 import {
   View,
   Text,
@@ -38,6 +38,19 @@ export default function ChatScreen() {
   const flatListRef = useRef<FlatList<ChatMessage>>(null);
 
   const sendChatMessage = useAppStore((s) => s.sendChatMessage);
+  const executeChatAction = useAppStore((s) => s.executeChatAction);
+  const appState = useAppStore((s) => s.state);
+
+  // Build envelope ID → name lookup for ActionPreviewCard
+  const envelopeLookup = useMemo(() => {
+    const map = new Map<string, string>();
+    if (appState?.budget?.envelopes) {
+      for (const env of appState.budget.envelopes) {
+        map.set(env.id, env.name);
+      }
+    }
+    return map;
+  }, [appState?.budget?.envelopes]);
 
   const sendMessage = useCallback(
     async (text: string) => {
@@ -70,6 +83,8 @@ export default function ChatScreen() {
           role: "assistant",
           content: result.reply,
           timestamp: Date.now(),
+          action: result.action,
+          actionStatus: result.action ? "pending" : undefined,
         };
         setMessages((prev) => [...prev, aiMsg]);
       } catch {
@@ -85,6 +100,40 @@ export default function ChatScreen() {
       }
     },
     [messages, sendChatMessage],
+  );
+
+  const handleConfirmAction = useCallback(
+    async (messageId: string) => {
+      const msg = messages.find((m) => m.id === messageId);
+      if (!msg?.action) return;
+
+      // Set executing state
+      setMessages((prev) =>
+        prev.map((m) => (m.id === messageId ? { ...m, actionStatus: "executing" as const } : m)),
+      );
+
+      try {
+        await executeChatAction(msg.action);
+        setMessages((prev) =>
+          prev.map((m) => (m.id === messageId ? { ...m, actionStatus: "executed" as const } : m)),
+        );
+      } catch {
+        // Show error state — buttons remain for retry
+        setMessages((prev) =>
+          prev.map((m) => (m.id === messageId ? { ...m, actionStatus: "error" as const } : m)),
+        );
+      }
+    },
+    [messages, executeChatAction],
+  );
+
+  const handleCancelAction = useCallback(
+    (messageId: string) => {
+      setMessages((prev) =>
+        prev.map((m) => (m.id === messageId ? { ...m, actionStatus: "dismissed" as const } : m)),
+      );
+    },
+    [],
   );
 
   const handleChipSelect = useCallback(
@@ -122,7 +171,14 @@ export default function ChatScreen() {
           ref={flatListRef}
           data={messages}
           keyExtractor={(m) => m.id}
-          renderItem={({ item }) => <ChatBubble message={item} />}
+          renderItem={({ item }) => (
+            <ChatBubble
+              message={item}
+              onConfirmAction={handleConfirmAction}
+              onCancelAction={handleCancelAction}
+              envelopeLookup={envelopeLookup}
+            />
+          )}
           contentContainerStyle={styles.messageList}
           onContentSizeChange={() =>
             flatListRef.current?.scrollToEnd({ animated: true })

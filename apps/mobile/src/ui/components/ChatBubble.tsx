@@ -2,23 +2,33 @@ import React from "react";
 import { View, Text, StyleSheet } from "react-native";
 import { Spacing, Radius, FontSize, FontWeight, LineHeight, type ColorTokens } from "../tokens";
 import { useThemedStyles } from "../ThemeProvider";
+import type { ChatAction } from "../../infra/firebase/aiTypes";
+import { ActionPreviewCard } from "./ActionPreviewCard";
+
+type ActionStatus = "pending" | "executing" | "executed" | "dismissed" | "error";
 
 export type ChatMessage = {
   id: string;
   role: "user" | "assistant";
   content: string;
   timestamp: number;
+  action?: ChatAction;
+  actionStatus?: ActionStatus;
 };
 
 type Props = {
   message: ChatMessage;
+  onConfirmAction?: (messageId: string) => void;
+  onCancelAction?: (messageId: string) => void;
+  envelopeLookup?: Map<string, string>;
 };
 
 /**
  * Chat bubble — user messages right-aligned (primary tint),
  * assistant messages left-aligned (surface card style).
+ * When the message includes an action, renders an ActionPreviewCard below the text.
  */
-export function ChatBubble({ message }: Props) {
+export function ChatBubble({ message, onConfirmAction, onCancelAction, envelopeLookup }: Props) {
   const styles = useThemedStyles(createStyles);
   const isUser = message.role === "user";
 
@@ -43,6 +53,15 @@ export function ChatBubble({ message }: Props) {
         >
           {message.content}
         </Text>
+        {message.action && (
+          <ActionPreviewCard
+            action={message.action}
+            status={message.actionStatus ?? "pending"}
+            onConfirm={() => onConfirmAction?.(message.id)}
+            onCancel={() => onCancelAction?.(message.id)}
+            envelopeLookup={envelopeLookup ?? new Map()}
+          />
+        )}
       </View>
     </View>
   );

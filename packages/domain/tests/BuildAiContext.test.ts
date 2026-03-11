@@ -81,7 +81,7 @@ describe("buildAiContext", () => {
     expect(ctx.transactionCount).toBe(1);
   });
 
-  it("summarizes envelopes without leaking IDs", () => {
+  it("summarizes envelopes with IDs for tool use", () => {
     const ctx = buildAiContext(makeState({
       budget: {
         id: "budget-1",
@@ -94,11 +94,8 @@ describe("buildAiContext", () => {
     }));
 
     expect(ctx.envelopes).toHaveLength(2);
-    expect(ctx.envelopes[0]).toEqual({ name: "Groceries", balanceCents: 20000, goalCents: 40000, type: "spending" });
-    expect(ctx.envelopes[1]).toEqual({ name: "Giving", balanceCents: 5000, type: "giving" });
-    // Ensure no IDs leak
-    expect(JSON.stringify(ctx.envelopes)).not.toContain("env-1");
-    expect(JSON.stringify(ctx.envelopes)).not.toContain("env-2");
+    expect(ctx.envelopes[0]).toEqual({ id: "env-1", name: "Groceries", balanceCents: 20000, goalCents: 40000, type: "spending" });
+    expect(ctx.envelopes[1]).toEqual({ id: "env-2", name: "Giving", balanceCents: 5000, type: "giving" });
   });
 
   it("aggregates top merchants by spend (descending)", () => {

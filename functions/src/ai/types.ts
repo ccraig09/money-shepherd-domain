@@ -11,6 +11,7 @@ export interface AiContextPayload {
   totalExpensesCents: number;
   availableToAssignCents: number;
   envelopes: Array<{
+    id: string;
     name: string;
     balanceCents: number;
     goalCents?: number;
@@ -135,8 +136,15 @@ export interface ChatMessageRequest {
   context: AiContextPayload;
 }
 
+export interface ChatAction {
+  toolName: string;
+  toolInput: Record<string, unknown>;
+}
+
 export interface ChatMessageResponse {
   reply: string;
+  /** Suggested action the user can preview and confirm */
+  action?: ChatAction;
   /** Present when AI usage is ≥75% of the monthly budget cap */
   warning?: "budget_warning";
 }

@@ -110,6 +110,7 @@ type AppStore = {
   categorizeInbox: () => Promise<{ mapped: number }>;
   fetchMonthlyReview: () => Promise<import("../infra/firebase/aiTypes").MonthlyReviewResponse>;
   sendChatMessage: (messages: import("../infra/firebase/aiTypes").ChatMessageEntry[]) => Promise<import("../infra/firebase/aiTypes").ChatMessageResponse>;
+  executeChatAction: (action: import("../infra/firebase/aiTypes").ChatAction) => Promise<void>;
 };
 
 const engine = createEngine();
@@ -1333,5 +1334,53 @@ export const useAppStore = create<AppStore>((set, get) => ({
     }
 
     return result;
+  },
+
+  executeChatAction: async (action) => {
+    const { state } = get();
+    if (!state) throw new Error("No state available");
+
+    const store = get();
+    const { toolName, toolInput } = action;
+    const input = toolInput as Record<string, string | number>;
+
+    switch (toolName) {
+      case "create_envelope":
+        await store.createEnvelope(
+          input.name as string,
+          (input.type as "spending" | "savings" | "debt" | "giving") ?? undefined,
+        );
+        break;
+      case "rename_envelope":
+        await store.renameEnvelope(input.envelopeId as string, input.name as string);
+        break;
+      case "delete_envelope":
+        await store.deleteEnvelope(input.envelopeId as string);
+        break;
+      case "set_envelope_goal":
+        await store.setEnvelopeGoal(input.envelopeId as string, input.goalCents as number);
+        break;
+      case "transfer_funds":
+        await store.transferBetweenEnvelopes({
+          fromEnvelopeId: input.fromEnvelopeId as string,
+          toEnvelopeId: input.toEnvelopeId as string,
+          amountCents: input.amountCents as number,
+        });
+        break;
+      case "allocate_to_envelope":
+        await store.allocateToEnvelope({
+          envelopeId: input.envelopeId as string,
+          amountCents: input.amountCents as number,
+        });
+        break;
+      case "set_envelope_type":
+        await store.setEnvelopeType(
+          input.envelopeId as string,
+          input.envelopeType as "spending" | "savings" | "debt" | "giving",
+        );
+        break;
+      default:
+        throw new Error(`Unknown chat action: ${toolName}`);
+    }
   },
 }));
