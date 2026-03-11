@@ -6,6 +6,7 @@ import {
   StyleSheet,
   ScrollView,
   RefreshControl,
+  Modal,
 } from "react-native";
 import { router } from "expo-router";
 import { useAppStore } from "../../src/store/useAppStore";
@@ -17,7 +18,6 @@ import { Card } from "../../src/ui/components/Card";
 import { ProgressBar } from "../../src/ui/components/ProgressBar";
 import { SectionHeader } from "../../src/ui/components/SectionHeader";
 import { AccountsCard } from "../../src/ui/components/AccountsCard";
-import { HelpTooltip } from "../../src/ui/components/HelpTooltip";
 import { InsightCard } from "../../src/ui/components/InsightCard";
 import { SpendingDonutCard, MonthlyTrendCard } from "../../src/ui/components/charts";
 import { Spacing, Radius, FontSize, FontWeight, type ColorTokens } from "../../src/ui/tokens";
@@ -42,6 +42,13 @@ export default function DashboardScreen() {
     () => state?.budget.envelopes.reduce((sum, e) => sum + e.balance.cents, 0) ?? 0,
     [state],
   );
+
+  const totalAccountCents = useMemo(
+    () => state?.accounts.reduce((sum, a) => sum + a.balance.cents, 0) ?? 0,
+    [state],
+  );
+
+  const [ataModalVisible, setAtaModalVisible] = useState(false);
 
   // Unassigned expenses — nudge the user to assign them
   const unassignedExpenseCount = useMemo(() => {
@@ -209,11 +216,16 @@ export default function DashboardScreen() {
       <View style={styles.heroCard}>
         <View style={styles.heroLabelRow}>
           <Text style={styles.heroLabel}>Available to Assign</Text>
-          <HelpTooltip
-            inverted
-            title="Available to Assign"
-            body="Money in your accounts that hasn't been given a job yet. Allocate it into envelopes to plan your spending."
-          />
+          <Pressable
+            onPress={() => setAtaModalVisible(true)}
+            hitSlop={8}
+            accessibilityLabel="How is this calculated?"
+            accessibilityRole="button"
+          >
+            <View style={styles.helpIcon}>
+              <Text style={styles.helpIconText}>?</Text>
+            </View>
+          </Pressable>
         </View>
         <Text
           style={[
@@ -230,6 +242,45 @@ export default function DashboardScreen() {
           </Text>
         </View>
       </View>
+
+      {/* ATA Explainer Modal */}
+      <Modal
+        visible={ataModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setAtaModalVisible(false)}
+      >
+        <Pressable style={styles.ataOverlay} onPress={() => setAtaModalVisible(false)}>
+          <Pressable style={styles.ataCard} onPress={() => {}}>
+            <Text style={styles.ataTitle}>How Available to Assign works</Text>
+            <Text style={styles.ataDescription}>
+              This is money in your accounts that hasn&apos;t been given a job yet.
+            </Text>
+            <View style={styles.ataBreakdown}>
+              <View style={styles.ataRow}>
+                <Text style={styles.ataRowLabel}>Total in accounts</Text>
+                <Text style={styles.ataRowValue}>${formatMoney(totalAccountCents)}</Text>
+              </View>
+              <View style={styles.ataRow}>
+                <Text style={styles.ataRowLabel}>Allocated to envelopes</Text>
+                <Text style={[styles.ataRowValue, styles.ataRowDeduct]}>
+                  −${formatMoney(totalEnvelopeCents)}
+                </Text>
+              </View>
+              <View style={styles.ataDivider} />
+              <View style={styles.ataRow}>
+                <Text style={styles.ataRowTotal}>Available to Assign</Text>
+                <Text style={[styles.ataRowTotal, availableCents < 0 && styles.ataRowNegative]}>
+                  ${formatMoney(availableCents)}
+                </Text>
+              </View>
+            </View>
+            <Pressable onPress={() => setAtaModalVisible(false)} style={styles.ataDismiss}>
+              <Text style={styles.ataDismissText}>Got it</Text>
+            </Pressable>
+          </Pressable>
+        </Pressable>
+      </Modal>
 
       {/* Daily scripture */}
       <ScriptureStrip />
@@ -597,6 +648,92 @@ const createStyles = (c: ColorTokens) => StyleSheet.create({
   },
   heroStatLabel: { fontSize: FontSize.small, color: "rgba(255,255,255,0.75)" },
   heroStatValue: { fontSize: FontSize.small, fontWeight: FontWeight.semibold, color: c.textOnColor },
+  helpIcon: {
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.5)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  helpIconText: {
+    fontSize: 11,
+    fontWeight: FontWeight.bold,
+    color: "rgba(255,255,255,0.6)",
+    lineHeight: 14,
+  },
+
+  // ATA explainer modal
+  ataOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.4)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  ataCard: {
+    backgroundColor: c.surface,
+    borderRadius: Radius.lg,
+    padding: Spacing.lg,
+    marginHorizontal: Spacing.xl,
+    maxWidth: 340,
+    width: "100%",
+    gap: Spacing.sm,
+  },
+  ataTitle: {
+    fontSize: FontSize.subtitle,
+    fontWeight: FontWeight.bold,
+    color: c.textDark,
+  },
+  ataDescription: {
+    fontSize: FontSize.body,
+    color: c.textMid,
+    lineHeight: 22,
+  },
+  ataBreakdown: {
+    marginTop: Spacing.sm,
+    gap: Spacing.sm,
+  },
+  ataRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  ataRowLabel: {
+    fontSize: FontSize.body,
+    color: c.textMid,
+  },
+  ataRowValue: {
+    fontSize: FontSize.body,
+    fontWeight: FontWeight.semibold,
+    color: c.textDark,
+  },
+  ataRowDeduct: {
+    color: c.error,
+  },
+  ataDivider: {
+    height: 1,
+    backgroundColor: c.borderLight,
+  },
+  ataRowTotal: {
+    fontSize: FontSize.subtitle,
+    fontWeight: FontWeight.bold,
+    color: c.textDark,
+  },
+  ataRowNegative: {
+    color: c.error,
+  },
+  ataDismiss: {
+    marginTop: Spacing.sm,
+    alignSelf: "flex-end",
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+  },
+  ataDismissText: {
+    fontSize: FontSize.body,
+    fontWeight: FontWeight.semibold,
+    color: c.primary,
+  },
 
   // Ask Money Shepherd card
   chatCard: {
