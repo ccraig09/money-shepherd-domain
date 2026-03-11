@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback, useMemo } from "react";
+import React, { useState, useRef, useCallback, useMemo, useEffect } from "react";
 import {
   View,
   Text,
@@ -9,7 +9,6 @@ import {
   Platform,
   StyleSheet,
 } from "react-native";
-import { router } from "expo-router";
 import { ChatBubble, type ChatMessage } from "../src/ui/components/ChatBubble";
 import { SuggestedChips } from "../src/ui/components/SuggestedChips";
 import { useAppStore } from "../src/store/useAppStore";
@@ -23,11 +22,14 @@ import {
   type ColorTokens,
 } from "../src/ui/tokens";
 import { useThemedStyles, useTheme } from "@/src/ui/ThemeProvider";
-
-let nextId = 1;
-function makeId() {
-  return `msg-${nextId++}`;
-}
+import { makeId } from "@/src/lib/id";
+import {
+  findResumableSession,
+  saveSession,
+  cleanupOldSessions,
+  deriveTitle,
+} from "@/src/infra/local/chatSessions";
+import type { ChatSession } from "@/src/infra/local/chatSessions";
 
 export default function ChatScreen() {
   const styles = useThemedStyles(createStyles);
@@ -36,10 +38,62 @@ export default function ChatScreen() {
   const [inputText, setInputText] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const flatListRef = useRef<FlatList<ChatMessage>>(null);
+  const sessionRef = useRef<ChatSession | null>(null);
 
   const sendChatMessage = useAppStore((s) => s.sendChatMessage);
   const executeChatAction = useAppStore((s) => s.executeChatAction);
   const appState = useAppStore((s) => s.state);
+
+  // ── Session persistence ─────────────────────────────────
+
+  // On mount: try to resume the last session (within 24h) + cleanup old ones
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      cleanupOldSessions(); // fire-and-forget
+      const resumable = await findResumableSession();
+      if (cancelled) return;
+      if (resumable && resumable.messages.length > 0) {
+        sessionRef.current = resumable;
+        setMessages(resumable.messages as ChatMessage[]);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
+  // Auto-save whenever messages change (debounced to coalesce rapid updates)
+  useEffect(() => {
+    if (messages.length === 0) return;
+    const timeout = setTimeout(() => {
+      const now = Date.now();
+      if (!sessionRef.current) {
+        sessionRef.current = {
+          id: makeId("chat"),
+          title: deriveTitle(messages),
+          messages,
+          createdAt: now,
+          updatedAt: now,
+        };
+      } else {
+        sessionRef.current = {
+          ...sessionRef.current,
+          title: deriveTitle(messages),
+          messages,
+          updatedAt: now,
+        };
+      }
+      saveSession(sessionRef.current);
+    }, 500);
+    return () => clearTimeout(timeout);
+  }, [messages]);
+
+  // ── New conversation ────────────────────────────────────
+
+  const handleNewConversation = useCallback(() => {
+    sessionRef.current = null;
+    setMessages([]);
+    setInputText("");
+  }, []);
 
   // Build envelope ID → name lookup for ActionPreviewCard
   const envelopeLookup = useMemo(() => {
@@ -58,7 +112,7 @@ export default function ChatScreen() {
       if (!trimmed) return;
 
       const userMsg: ChatMessage = {
-        id: makeId(),
+        id: makeId("msg"),
         role: "user",
         content: trimmed,
         timestamp: Date.now(),
@@ -79,7 +133,7 @@ export default function ChatScreen() {
         const result = await sendChatMessage(history);
 
         const aiMsg: ChatMessage = {
-          id: makeId(),
+          id: makeId("msg"),
           role: "assistant",
           content: result.reply,
           timestamp: Date.now(),
@@ -89,7 +143,7 @@ export default function ChatScreen() {
         setMessages((prev) => [...prev, aiMsg]);
       } catch {
         const errorMsg: ChatMessage = {
-          id: makeId(),
+          id: makeId("msg"),
           role: "assistant",
           content: "Sorry, I wasn't able to respond right now. Please try again in a moment.",
           timestamp: Date.now(),
@@ -182,6 +236,15 @@ export default function ChatScreen() {
           contentContainerStyle={styles.messageList}
           onContentSizeChange={() =>
             flatListRef.current?.scrollToEnd({ animated: true })
+          }
+          ListHeaderComponent={
+            <Pressable
+              style={styles.newChatBtn}
+              onPress={handleNewConversation}
+              accessibilityLabel="Start new conversation"
+            >
+              <Text style={styles.newChatBtnText}>+ New conversation</Text>
+            </Pressable>
           }
           ListFooterComponent={
             isTyping ? (
@@ -289,8 +352,21 @@ const createStyles = (c: ColorTokens) =>
 
     // ── Message list ───────────────────────────
     messageList: {
-      paddingTop: Spacing.base,
+      paddingTop: Spacing.sm,
       paddingBottom: Spacing.sm,
+    },
+
+    // ── New conversation button ────────────────
+    newChatBtn: {
+      alignSelf: "center",
+      paddingHorizontal: Spacing.base,
+      paddingVertical: Spacing.xs,
+      marginBottom: Spacing.sm,
+    },
+    newChatBtnText: {
+      fontSize: FontSize.caption,
+      fontWeight: FontWeight.semibold,
+      color: c.primary,
     },
 
     // ── Typing indicator ───────────────────────

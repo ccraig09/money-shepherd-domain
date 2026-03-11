@@ -828,7 +828,7 @@ Plaid access tokens are stored in `expo-secure-store` (device keychain) and neve
 - [x] MS-30.1 Chat UI component (bubbles, markdown, action cards, suggested question chips on empty state)
 - [x] MS-30.2 Conversational Cloud Function (multi-turn, budget-aware system prompt)
 - [x] MS-30.3 Action execution from chat (preview → confirm → engine — envelopes, transfers, goals, budget adjustments)
-- [ ] MS-30.4 Chat session persistence + history (multi-session storage, auto-title, 24h resume)
+- [x] MS-30.4 Chat session persistence + history (multi-session storage, auto-title, 24h resume)
 - [ ] MS-30.5 Chat history list UI (past conversations, read-only view, swipe to delete)
 - [ ] MS-30.6 TTS player for AI chat responses (play/pause/rewind/skip, expo-speech)
 - [ ] MS-30.7 Chat markdown rendering + emoji support in ChatBubble (react-native-markdown-display)
