@@ -223,7 +223,7 @@ export default function TransactionsScreen() {
           sections={sections}
           keyExtractor={(tx) => tx.id}
           contentContainerStyle={styles.list}
-          stickySectionHeadersEnabled={false}
+          stickySectionHeadersEnabled
           renderSectionHeader={({ section }) => (
             <View style={styles.sectionHeader}>
               <Text style={styles.sectionHeaderText}>{section.title}</Text>
