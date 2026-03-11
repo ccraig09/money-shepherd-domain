@@ -31,6 +31,7 @@ export default function TransactionsScreen() {
   const showToast = useAppStore((s) => s.showToast);
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [showTransfers, setShowTransfers] = useState(false);
 
   // Re-render every 30s so "Xm ago" stays fresh
   const [, setTick] = useState(0);
@@ -60,9 +61,19 @@ export default function TransactionsScreen() {
     return accounts.find((a) => a.id === accountId)?.name ?? accountId;
   }
 
+  const transferCount = useMemo(
+    () => state?.transactions.filter((tx) => tx.isTransfer).length ?? 0,
+    [state],
+  );
+
   const sections = useMemo(() => {
     if (!state) return [];
     let txs = [...state.transactions];
+
+    // Hide transfers by default
+    if (!showTransfers) {
+      txs = txs.filter((tx) => !tx.isTransfer);
+    }
 
     if (searchQuery.trim()) {
       const q = searchQuery.trim().toLowerCase();
@@ -78,7 +89,7 @@ export default function TransactionsScreen() {
     );
     return groupByDate(sorted);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state, searchQuery]);
+  }, [state, searchQuery, showTransfers]);
 
   const assignedTxIds = useMemo(
     () => {
@@ -168,6 +179,27 @@ export default function TransactionsScreen() {
             returnKeyType="search"
             accessibilityLabel="Search transactions"
           />
+          {transferCount > 0 && (
+            <View style={styles.filterRow}>
+              <Pressable
+                onPress={() => setShowTransfers((v) => !v)}
+                style={[
+                  styles.filterChip,
+                  showTransfers && styles.filterChipActive,
+                ]}
+                accessibilityLabel={showTransfers ? "Hide transfers" : "Show transfers"}
+              >
+                <Text
+                  style={[
+                    styles.filterChipText,
+                    showTransfers && styles.filterChipTextActive,
+                  ]}
+                >
+                  Transfers ({transferCount})
+                </Text>
+              </Pressable>
+            </View>
+          )}
         </View>
       )}
 
@@ -211,9 +243,10 @@ export default function TransactionsScreen() {
               : null;
             const attributionName = assignedByName ?? createdByName;
             const isBnpl = isBnplTransaction(item.description ?? "");
+            const isTransfer = !!item.isTransfer;
             return (
               <Pressable
-                style={styles.row}
+                style={[styles.row, isTransfer && styles.transferRow]}
                 onPress={() =>
                   router.push(
                     `/transaction/${item.id}` as any,
@@ -243,6 +276,11 @@ export default function TransactionsScreen() {
                     {isBnpl && (
                       <View style={styles.bnplBadge} accessibilityLabel="Buy now pay later">
                         <Text style={styles.bnplBadgeText}>BNPL</Text>
+                      </View>
+                    )}
+                    {isTransfer && (
+                      <View style={styles.transferBadge} accessibilityLabel="Account transfer">
+                        <Text style={styles.transferBadgeText}>Transfer</Text>
                       </View>
                     )}
                   </View>
@@ -349,6 +387,31 @@ const createStyles = (c: ColorTokens) => StyleSheet.create({
     fontSize: FontSize.body,
     color: c.textDark,
   },
+  filterRow: {
+    flexDirection: "row",
+    gap: Spacing.xs,
+    marginTop: Spacing.xs,
+  },
+  filterChip: {
+    paddingHorizontal: Spacing.md,
+    paddingVertical: 4,
+    borderRadius: Radius.pill,
+    borderWidth: 1,
+    borderColor: c.borderLight,
+    backgroundColor: c.surfaceLight,
+  },
+  filterChipActive: {
+    backgroundColor: c.primary,
+    borderColor: c.primary,
+  },
+  filterChipText: {
+    fontSize: FontSize.caption,
+    fontWeight: FontWeight.semibold,
+    color: c.textMuted,
+  },
+  filterChipTextActive: {
+    color: c.textOnColor,
+  },
   noResults: {
     flex: 1,
     alignItems: "center",
@@ -429,6 +492,17 @@ const createStyles = (c: ColorTokens) => StyleSheet.create({
     borderColor: c.debt,
   },
   bnplBadgeText: { fontSize: 10, fontWeight: FontWeight.semibold, color: c.debt },
+  transferBadge: {
+    paddingHorizontal: 5,
+    paddingVertical: 1,
+    borderRadius: Radius.sm,
+    backgroundColor: c.surfaceLight,
+    borderWidth: 1,
+    borderColor: c.borderLight,
+    borderStyle: "dashed" as const,
+  },
+  transferBadgeText: { fontSize: 10, fontWeight: FontWeight.semibold, color: c.textMuted },
+  transferRow: { opacity: 0.55 },
   unassignedBadge: {
     alignSelf: "flex-start",
     paddingHorizontal: Spacing.xs,

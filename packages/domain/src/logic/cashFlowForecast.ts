@@ -48,9 +48,9 @@ export function getCashFlowForecast(
   sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6);
   const sevenDaysAgoStr = `${sevenDaysAgo.getFullYear()}-${pad(sevenDaysAgo.getMonth() + 1)}-${pad(sevenDaysAgo.getDate())}`;
 
-  // ── Build history for recurring detection (exclude pending) ─
+  // ── Build history for recurring detection (exclude pending + transfers) ─
   const history = transactions
-    .filter((tx) => !tx.isPending)
+    .filter((tx) => !tx.isPending && !tx.isTransfer)
     .map((tx) => ({
       normalizedPayee: normalizePayee(tx.description),
       envelopeId: "",
@@ -86,6 +86,7 @@ export function getCashFlowForecast(
 
   for (const tx of transactions) {
     if (tx.isPending) continue; // exclude pending — not yet settled
+    if (tx.isTransfer) continue; // exclude inter-account transfers
     const txDate = tx.postedAt.slice(0, 10);
     if (txDate < monthPrefix + "-01" || txDate > nowDate) continue;
 

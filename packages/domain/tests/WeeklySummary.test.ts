@@ -175,4 +175,17 @@ describe("getWeeklySummary", () => {
     expect(result.weekStartDate).toBe("2026-03-04");
     expect(result.weekEndDate).toBe("2026-03-10");
   });
+
+  it("excludes transactions marked as transfers", () => {
+    const transactions = [
+      { ...tx("t1", -50000, "2026-03-08", "Transfer To Checking"), isTransfer: true as const },
+      { ...tx("t2", 50000, "2026-03-08", "From Savings"), isTransfer: true as const },
+      tx("t3", -10000, "2026-03-08", "Coffee Shop"),
+    ];
+
+    const result = getWeeklySummary(transactions, {}, [], NOW);
+    // Only the coffee shop counts — transfers excluded
+    expect(result.totalSpentCents).toBe(10000);
+    expect(result.unassignedSpentCents).toBe(10000);
+  });
 });

@@ -54,6 +54,7 @@ export function getWeeklySummary(
 
   for (const tx of transactions) {
     if (tx.amount.cents >= 0) continue; // skip income
+    if (tx.isTransfer) continue; // exclude inter-account transfers
     const txDate = tx.postedAt.slice(0, 10);
     if (txDate < weekStartDate || txDate > weekEndDate) continue;
 

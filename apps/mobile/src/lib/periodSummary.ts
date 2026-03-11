@@ -42,6 +42,7 @@ export function getThisMonthSummary(
 
   for (const tx of transactions) {
     if (tx.isPending) continue; // exclude pending — not yet settled
+    if (tx.isTransfer) continue; // exclude inter-account transfers
     const date = datePrefix(tx);
     if (date < period.startDate || date > period.endDate) continue;
 
@@ -97,6 +98,7 @@ export function getMonthlyTrend(
 
     for (const tx of transactions) {
       if (tx.isPending) continue; // exclude pending
+      if (tx.isTransfer) continue; // exclude inter-account transfers
       const date = tx.postedAt.slice(0, 10);
       if (date < period.startDate || date > period.endDate) continue;
       if (tx.amount.cents > 0) incomeCents += tx.amount.cents;

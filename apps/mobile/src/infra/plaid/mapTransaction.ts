@@ -1,4 +1,4 @@
-import { Money } from "@money-shepherd/domain";
+import { Money, isTransferTransaction, isTransferByCategory } from "@money-shepherd/domain";
 import type { Transaction } from "@money-shepherd/domain";
 
 export interface PlaidTransaction {
@@ -9,6 +9,7 @@ export interface PlaidTransaction {
   merchant_name: string | null;
   name: string | null;
   pending?: boolean;
+  personal_finance_category_primary?: string;
 }
 
 /**
@@ -35,6 +36,10 @@ export function mapPlaidTransaction(
 
   const postedAt = new Date(plaidTx.date + "T00:00:00.000Z").toISOString();
 
+  const transfer =
+    isTransferByCategory(plaidTx.personal_finance_category_primary) ||
+    isTransferTransaction(description);
+
   return {
     id: `plaid-tx-${plaidTx.transaction_id}`,
     accountId,
@@ -42,6 +47,7 @@ export function mapPlaidTransaction(
     description,
     postedAt,
     ...(plaidTx.pending && { isPending: true }),
+    ...(transfer && { isTransfer: true }),
   };
 }
 

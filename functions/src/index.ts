@@ -239,6 +239,7 @@ interface PlaidTransactionResult {
   merchant_name: string | null;
   name: string | null;
   pending: boolean;
+  personal_finance_category_primary?: string;
 }
 
 interface SyncTransactionsResponse {
@@ -286,6 +287,7 @@ export const syncTransactions = onCall<
       merchant_name?: string | null;
       name: string;
       pending: boolean;
+      personal_finance_category?: { primary: string; detailed: string } | null;
     }): PlaidTransactionResult => ({
       transaction_id: t.transaction_id,
       account_id: t.account_id,
@@ -294,6 +296,9 @@ export const syncTransactions = onCall<
       merchant_name: t.merchant_name ?? null,
       name: t.name ?? null,
       pending: t.pending,
+      ...(t.personal_finance_category?.primary && {
+        personal_finance_category_primary: t.personal_finance_category.primary,
+      }),
     });
 
     return {

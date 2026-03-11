@@ -74,6 +74,7 @@ export function getSpendingInPeriod(
 
   for (const tx of transactions) {
     if (tx.isPending) continue; // exclude pending
+    if (tx.isTransfer) continue; // exclude inter-account transfers
     if (!assignedTxIds.has(tx.id)) continue;
     if (tx.amount.cents >= 0) continue;
     if (!isWithinPeriod(tx.postedAt, period)) continue;

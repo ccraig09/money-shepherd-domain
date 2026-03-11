@@ -131,4 +131,17 @@ describe("getCashFlowForecast", () => {
     expect(result.monthSpentCents).toBe(70000);
     expect(result.projectedNetCents).toBeLessThan(250000);
   });
+
+  it("excludes transactions marked as transfers from spending and income", () => {
+    const txs = [
+      tx("i1", 250000, "2026-03-05", "Paycheck"),
+      { ...tx("t1", -50000, "2026-03-06", "Transfer To Checking"), isTransfer: true as const },
+      { ...tx("t2", 50000, "2026-03-06", "From Savings"), isTransfer: true as const },
+      tx("s1", -10000, "2026-03-10", "Coffee Shop"),
+    ];
+    const result = getCashFlowForecast(txs, NOW)!;
+    // Transfers should be excluded: income = 250000, spent = 10000
+    expect(result.monthIncomeCents).toBe(250000);
+    expect(result.monthSpentCents).toBe(10000);
+  });
 });

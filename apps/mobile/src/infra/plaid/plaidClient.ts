@@ -85,6 +85,7 @@ export interface PlaidSyncedTransaction {
   date: string;
   merchant_name: string | null;
   name: string | null;
+  personal_finance_category_primary?: string;
 }
 
 export interface SyncTransactionsResult {

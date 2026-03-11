@@ -5,7 +5,7 @@ import {
   runTransaction,
   serverTimestamp,
 } from "firebase/firestore";
-import { Money } from "@money-shepherd/domain";
+import { Money, isTransferTransaction } from "@money-shepherd/domain";
 import type { AppStateV1 } from "../../domain/appState";
 import { getFirebase, ensureAnonAuth } from "../firebase/firebaseClient";
 
@@ -80,6 +80,8 @@ function deserializeState(raw: any): AppStateV1 {
     transactions: (raw.transactions ?? []).map((t: any) => ({
       ...t,
       amount: hydrateMoney(t.amount),
+      ...(t.isTransfer === undefined &&
+        isTransferTransaction(t.description ?? "") && { isTransfer: true }),
     })),
     budget: {
       ...raw.budget,

@@ -7,6 +7,7 @@ export type Transaction = {
   description: string;
   postedAt: string; // ISO string
   isPending?: boolean; // true for pending bank transactions (not yet posted)
+  isTransfer?: boolean; // true for inter-account transfers (excluded from spending/income)
   envelopeId?: string; // reserved for Phase 4/5
   createdByUserId?: string; // who created this manual transaction
 };

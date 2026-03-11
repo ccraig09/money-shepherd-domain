@@ -1,5 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { Money } from "@money-shepherd/domain";
+import { Money, isTransferTransaction } from "@money-shepherd/domain";
 import type { AppStateV1 } from "./appState";
 import { runMigrations } from "./migrations";
 
@@ -30,10 +30,12 @@ function hydrateState(raw: any): AppStateV1 {
     balance: hydrateMoney(a.balance),
   }));
 
-  // transactions
+  // transactions — enrich with isTransfer for older records missing the flag
   const transactions = (raw.transactions ?? []).map((t: any) => ({
     ...t,
     amount: hydrateMoney(t.amount),
+    ...(t.isTransfer === undefined &&
+      isTransferTransaction(t.description ?? "") && { isTransfer: true }),
   }));
 
   // budget
