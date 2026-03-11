@@ -81,8 +81,10 @@ export function getCashFlowForecast(
   // ── Month-to-date income & spending ───────────────────────
   let monthIncomeCents = 0;
   let monthSpentCents = 0;
-  let rollingDiscretionaryCents = 0;
   const rollingDays = Math.min(dayOfMonth, 7);
+
+  // Daily discretionary totals for the rolling window (keyed by date string)
+  const dailyDiscretionary = new Map<string, number>();
 
   for (const tx of transactions) {
     if (tx.isPending) continue; // exclude pending — not yet settled
@@ -97,7 +99,8 @@ export function getCashFlowForecast(
       // Rolling 7-day discretionary (exclude recurring)
       const payee = normalizePayee(tx.description);
       if (!recurringPayees.has(payee) && txDate >= sevenDaysAgoStr) {
-        rollingDiscretionaryCents += Math.abs(tx.amount.cents);
+        const prev = dailyDiscretionary.get(txDate) ?? 0;
+        dailyDiscretionary.set(txDate, prev + Math.abs(tx.amount.cents));
       }
     }
   }
@@ -118,9 +121,23 @@ export function getCashFlowForecast(
     else upcomingBillsCents += Math.abs(avg);
   }
 
-  // ── Project remaining discretionary (7-day rolling pace) ──
-  const dailyRollingPace = rollingDays > 0 ? rollingDiscretionaryCents / rollingDays : 0;
-  const projectedDiscretionaryCents = Math.round(dailyRollingPace * daysRemaining);
+  // ── Project remaining discretionary (median daily pace) ───
+  // Use median instead of mean so one-time large purchases (e.g. $500
+  // windshield repair) don't inflate the projection.
+  // Fill zero-spend days in the window so they count toward the median.
+  const dailyTotals: number[] = [];
+  for (let i = 0; i < rollingDays; i++) {
+    const d = new Date(date);
+    d.setDate(d.getDate() - i);
+    const key = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+    dailyTotals.push(dailyDiscretionary.get(key) ?? 0);
+  }
+  dailyTotals.sort((a, b) => a - b);
+  const mid = Math.floor(dailyTotals.length / 2);
+  const medianDailyPace = dailyTotals.length % 2 === 1
+    ? dailyTotals[mid]
+    : Math.round((dailyTotals[mid - 1] + dailyTotals[mid]) / 2);
+  const projectedDiscretionaryCents = Math.round(medianDailyPace * daysRemaining);
 
   // ── Projected month-end net ────────────────────────────────
   const projectedNetCents =

@@ -81,14 +81,20 @@ describe("getCashFlowForecast", () => {
     expect(result.upcomingBillsCents).toBe(0);
   });
 
-  it("estimates remaining discretionary spending from 7-day rolling pace", () => {
+  it("estimates remaining discretionary spending from 7-day median daily pace", () => {
+    // Spend on most days in the window so median is non-zero
     const discretionary = [
-      tx("d1", -10000, "2026-03-10", "Coffee Shop"),
-      tx("d2", -10000, "2026-03-12", "Random Store"),
-      tx("d3", -10000, "2026-03-14", "Lunch Place"),
+      tx("d1", -5000, "2026-03-09", "Coffee Shop"),
+      tx("d2", -5000, "2026-03-10", "Random Store"),
+      tx("d3", -5000, "2026-03-11", "Lunch Place"),
+      tx("d4", -5000, "2026-03-12", "Groceries"),
+      tx("d5", -5000, "2026-03-13", "Gas"),
+      tx("d6", -5000, "2026-03-14", "Takeout"),
+      tx("d7", -5000, "2026-03-15", "Dinner"),
     ];
     const result = getCashFlowForecast(discretionary, NOW)!;
-    expect(result.projectedDiscretionaryCents).toBeGreaterThan(0);
+    // Median of 7 days all at 5000 = 5000/day × 16 remaining = 80000
+    expect(result.projectedDiscretionaryCents).toBe(80000);
   });
 
   it("computes positive projected net when income exceeds spending", () => {
@@ -111,12 +117,16 @@ describe("getCashFlowForecast", () => {
   it("handles mixed recurring and non-recurring transactions", () => {
     const txs = [
       ...recurringHistory("Netflix", -1599, 3, 20), // upcoming bill
-      tx("o1", -2500, "2026-03-08", "Random Purchase"),
-      tx("o2", -3500, "2026-03-12", "Another Store"),
+      tx("o1", -2500, "2026-03-09", "Random Purchase"),
+      tx("o2", -3500, "2026-03-10", "Another Store"),
+      tx("o3", -2000, "2026-03-11", "Coffee"),
+      tx("o4", -3000, "2026-03-12", "Gas"),
+      tx("o5", -2500, "2026-03-13", "Lunch"),
     ];
     const result = getCashFlowForecast(txs, NOW)!;
     expect(result.upcomingBillsCents).toBe(1599);
-    expect(result.projectedDiscretionaryCents).toBeGreaterThan(0);
+    // Median of [0, 0, 2000, 2500, 2500, 3000, 3500] = 2500
+    expect(result.projectedDiscretionaryCents).toBe(2500 * 16);
   });
 
   it("projected net equals income minus total outflows", () => {
@@ -130,6 +140,24 @@ describe("getCashFlowForecast", () => {
     expect(result.monthIncomeCents).toBe(250000);
     expect(result.monthSpentCents).toBe(70000);
     expect(result.projectedNetCents).toBeLessThan(250000);
+  });
+
+  it("uses median daily pace so one-time large purchases don't inflate projection", () => {
+    // 6 normal days ~$30/day, 1 outlier day $500
+    const txs = [
+      tx("n1", -3000, "2026-03-09", "Coffee"),
+      tx("n2", -3000, "2026-03-10", "Lunch"),
+      tx("n3", -3000, "2026-03-11", "Snacks"),
+      tx("n4", -3000, "2026-03-12", "Gas"),
+      tx("n5", -3000, "2026-03-13", "Groceries"),
+      tx("n6", -3000, "2026-03-14", "Takeout"),
+      tx("outlier", -50000, "2026-03-15", "Windshield Repair"),
+    ];
+    const result = getCashFlowForecast(txs, NOW)!;
+    // Median of [0, 3000, 3000, 3000, 3000, 3000, 50000] = 3000
+    // With mean it would be ~9571/day. 16 remaining days.
+    // Median: 3000 * 16 = 48000
+    expect(result.projectedDiscretionaryCents).toBe(48000);
   });
 
   it("excludes transactions marked as transfers from spending and income", () => {
