@@ -833,7 +833,7 @@ Plaid access tokens are stored in `expo-secure-store` (device keychain) and neve
 - [x] MS-30.6 TTS player for AI chat responses (play/pause/rewind/skip, expo-speech)
 - [x] MS-30.7 Chat markdown rendering + emoji support in ChatBubble (react-native-markdown-display)
 - [x] MS-30.8 Floating TTS control bar — persistent bottom bar (above input) showing now-playing message + prev/pause/next, replaces inline bubble controls
-- [ ] MS-30.9 Voice picker in Settings — list available voices via Speech.getAvailableVoicesAsync(), persist selection, default to enhanced/Siri voice on iOS
+- [x] MS-30.9 Voice picker in Settings — list available voices via Speech.getAvailableVoicesAsync(), persist selection, default to enhanced/Siri voice on iOS
 - [ ] MS-30.10 Follow-up chip suggestions after action execution (context-aware quick actions)
 - [ ] MS-30.11 Multi-step action workflows — chain related actions in one conversation turn (e.g. create envelope + set goal + allocate)
 

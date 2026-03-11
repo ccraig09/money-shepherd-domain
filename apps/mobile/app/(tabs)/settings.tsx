@@ -30,6 +30,9 @@ import {
   authenticateWithBiometric,
   getBiometricTypeLabel,
 } from "../../src/infra/local/biometric";
+// eslint-disable-next-line import/no-unresolved
+import * as Speech from "expo-speech";
+import { loadVoiceId } from "../../src/infra/local/voicePreference";
 
 export default function SettingsScreen() {
   const styles = useThemedStyles(createStyles);
@@ -58,6 +61,9 @@ export default function SettingsScreen() {
   // AI usage state
   const [aiUsage, setAiUsage] = React.useState<AiUsageStats | null>(null);
 
+  // TTS voice state
+  const [voiceName, setVoiceName] = React.useState<string>("Default");
+
   async function refreshMeta() {
     const current = await loadSyncMeta();
     setMeta(current);
@@ -70,6 +76,15 @@ export default function SettingsScreen() {
     if (Features.AI_ADVISOR && state?.householdId) {
       readAiUsage(state.householdId).then(setAiUsage).catch(() => {});
     }
+
+    async function initVoiceName() {
+      const savedId = await loadVoiceId();
+      if (!savedId) return;
+      const available = await Speech.getAvailableVoicesAsync();
+      const match = available.find((v) => v.identifier === savedId);
+      if (match?.name) setVoiceName(match.name);
+    }
+    if (Features.AI_TTS) initVoiceName();
 
     async function initBiometric() {
       const [hasHw, enrolled, prefOn] = await Promise.all([
@@ -319,6 +334,16 @@ export default function SettingsScreen() {
               <Row label="Calls today" value={`${aiUsage.callsToday} / 20`} />
               <Row label="Calls this month" value={`${aiUsage.totalCalls}`} />
               <AiBudgetBar costCents={aiUsage.estimatedCostCents} />
+            </>
+          )}
+          {Features.AI_TTS && (
+            <>
+              <Divider />
+              <ActionButton
+                label={`Voice: ${voiceName}`}
+                onPress={() => router.push("/settings/voice-picker")}
+                disabled={isBusy}
+              />
             </>
           )}
         </View>

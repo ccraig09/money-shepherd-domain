@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 // eslint-disable-next-line import/no-unresolved
 import * as Speech from "expo-speech";
+import { loadVoiceId } from "../infra/local/voicePreference";
 
 export type TTSState = {
   currentMessageId: string | null;
@@ -36,12 +37,18 @@ export function useTTS(
   const messagesRef = useRef(assistantMessages);
   messagesRef.current = assistantMessages;
 
+  // Saved voice ID — loaded once on mount, kept in a ref so speakMessage sees it
+  const voiceIdRef = useRef<string | undefined>(undefined);
+
   // Generation counter — prevents stale onStopped/onDone callbacks from
   // resetting state after a skip (stop old → speak new race condition).
   const genRef = useRef(0);
 
-  // Clean up on unmount
+  // Load saved voice preference on mount; clean up on unmount
   useEffect(() => {
+    loadVoiceId().then((id) => {
+      voiceIdRef.current = id ?? undefined;
+    });
     return () => {
       genRef.current += 1;
       Speech.stop();
@@ -65,6 +72,7 @@ export function useTTS(
       totalMessages: msgs.length,
     });
     Speech.speak(stripMarkdown(text), {
+      ...(voiceIdRef.current ? { voice: voiceIdRef.current } : {}),
       onDone: () => {
         if (genRef.current !== gen) return;
         // Auto-advance to next assistant message

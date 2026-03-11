@@ -167,6 +167,10 @@ function RootLayoutInner() {
             options={{ presentation: "modal", title: "Seed Budget" }}
           />
           <Stack.Screen
+            name="settings/voice-picker"
+            options={{ title: "Voice", headerBackTitle: "Settings" }}
+          />
+          <Stack.Screen
             name="settings/connect-accounts"
             options={{ title: "Connect Accounts", headerBackTitle: "Settings" }}
           />
