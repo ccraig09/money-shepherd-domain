@@ -33,6 +33,7 @@ import {
 } from "@/src/infra/local/chatSessions";
 import type { ChatSession } from "@/src/infra/local/chatSessions";
 import { useTTS } from "@/src/lib/useTTS";
+import { FloatingTTSBar } from "@/src/ui/components/FloatingTTSBar";
 
 export default function ChatScreen() {
   const styles = useThemedStyles(createStyles);
@@ -132,6 +133,12 @@ export default function ChatScreen() {
   );
   const { ttsState, play, pause, resume, stop, skipNext, skipPrev } =
     useTTS(assistantMessages);
+
+  const currentSnippet = useMemo(() => {
+    if (!ttsState.currentMessageId) return "";
+    const msg = messages.find((m) => m.id === ttsState.currentMessageId);
+    return msg?.content.slice(0, 80) ?? "";
+  }, [ttsState.currentMessageId, messages]);
 
   // Stop TTS when starting a new conversation
   const handleNewConversationOrig = handleNewConversation;
@@ -272,12 +279,7 @@ export default function ChatScreen() {
               onConfirmAction={handleConfirmAction}
               onCancelAction={handleCancelAction}
               envelopeLookup={envelopeLookup}
-              ttsState={ttsState}
               onTTSPlay={play}
-              onTTSPause={pause}
-              onTTSResume={resume}
-              onTTSSkipPrev={skipPrev}
-              onTTSSkipNext={skipNext}
             />
           )}
           contentContainerStyle={styles.messageList}
@@ -309,6 +311,17 @@ export default function ChatScreen() {
           }
         />
       )}
+
+      {/* Floating TTS bar — visible when playing/paused */}
+      <FloatingTTSBar
+        ttsState={ttsState}
+        currentSnippet={currentSnippet}
+        onPause={pause}
+        onResume={resume}
+        onSkipPrev={skipPrev}
+        onSkipNext={skipNext}
+        onStop={stop}
+      />
 
       {/* Input bar — hidden in read-only mode */}
       {!isReadOnly && (

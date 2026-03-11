@@ -6,8 +6,6 @@ import { Spacing, Radius, FontSize, FontWeight, LineHeight, type ColorTokens } f
 import { useThemedStyles, useTheme } from "../ThemeProvider";
 import type { ChatAction } from "../../infra/firebase/aiTypes";
 import { ActionPreviewCard } from "./ActionPreviewCard";
-import type { TTSState } from "../../lib/useTTS";
-
 type ActionStatus = "pending" | "executing" | "executed" | "dismissed" | "error";
 
 export type ChatMessage = {
@@ -24,12 +22,8 @@ type Props = {
   onConfirmAction?: (messageId: string) => void;
   onCancelAction?: (messageId: string) => void;
   envelopeLookup?: Map<string, string>;
-  ttsState?: TTSState;
+  /** When provided, shows a speaker icon on assistant bubbles to start TTS */
   onTTSPlay?: (messageId: string) => void;
-  onTTSPause?: () => void;
-  onTTSResume?: () => void;
-  onTTSSkipPrev?: () => void;
-  onTTSSkipNext?: () => void;
 };
 
 /** Build markdown styles from theme colors */
@@ -64,21 +58,11 @@ export function ChatBubble({
   onConfirmAction,
   onCancelAction,
   envelopeLookup,
-  ttsState,
   onTTSPlay,
-  onTTSPause,
-  onTTSResume,
-  onTTSSkipPrev,
-  onTTSSkipNext,
 }: Props) {
   const styles = useThemedStyles(createStyles);
   const { colors } = useTheme();
   const isUser = message.role === "user";
-  const isThisPlaying =
-    ttsState?.currentMessageId === message.id && ttsState.isPlaying;
-  const isThisPaused =
-    ttsState?.currentMessageId === message.id && ttsState.isPaused;
-  const isThisActive = isThisPlaying || isThisPaused;
 
   const mdStyles = React.useMemo(() => buildMarkdownStyles(colors), [colors]);
 
@@ -113,49 +97,13 @@ export function ChatBubble({
         )}
         {!isUser && onTTSPlay && (
           <View style={styles.ttsRow}>
-            {isThisActive ? (
-              <>
-                <Pressable
-                  onPress={onTTSSkipPrev}
-                  style={styles.ttsBtn}
-                  accessibilityLabel="Previous message"
-                >
-                  <MaterialIcons name="skip-previous" size={20} color={colors.primary} />
-                </Pressable>
-                {isThisPlaying ? (
-                  <Pressable
-                    onPress={onTTSPause}
-                    style={styles.ttsBtn}
-                    accessibilityLabel="Pause"
-                  >
-                    <MaterialIcons name="pause" size={20} color={colors.primary} />
-                  </Pressable>
-                ) : (
-                  <Pressable
-                    onPress={onTTSResume}
-                    style={styles.ttsBtn}
-                    accessibilityLabel="Resume"
-                  >
-                    <MaterialIcons name="play-arrow" size={20} color={colors.primary} />
-                  </Pressable>
-                )}
-                <Pressable
-                  onPress={onTTSSkipNext}
-                  style={styles.ttsBtn}
-                  accessibilityLabel="Next message"
-                >
-                  <MaterialIcons name="skip-next" size={20} color={colors.primary} />
-                </Pressable>
-              </>
-            ) : (
-              <Pressable
-                onPress={() => onTTSPlay(message.id)}
-                style={styles.ttsBtn}
-                accessibilityLabel="Listen to message"
-              >
-                <MaterialIcons name="volume-up" size={18} color={colors.textMuted} />
-              </Pressable>
-            )}
+            <Pressable
+              onPress={() => onTTSPlay(message.id)}
+              style={styles.ttsBtn}
+              accessibilityLabel="Listen to message"
+            >
+              <MaterialIcons name="volume-up" size={18} color={colors.textMuted} />
+            </Pressable>
           </View>
         )}
       </View>

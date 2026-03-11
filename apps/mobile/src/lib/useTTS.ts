@@ -6,12 +6,18 @@ export type TTSState = {
   currentMessageId: string | null;
   isPlaying: boolean;
   isPaused: boolean;
+  /** 1-based index of current message in assistant message list */
+  currentIndex: number;
+  /** Total number of assistant messages */
+  totalMessages: number;
 };
 
 const INITIAL_STATE: TTSState = {
   currentMessageId: null,
   isPlaying: false,
   isPaused: false,
+  currentIndex: 0,
+  totalMessages: 0,
 };
 
 /** Strip **bold** and *italic* markdown markers before speaking */
@@ -30,21 +36,57 @@ export function useTTS(
   const messagesRef = useRef(assistantMessages);
   messagesRef.current = assistantMessages;
 
+  // Generation counter — prevents stale onStopped/onDone callbacks from
+  // resetting state after a skip (stop old → speak new race condition).
+  const genRef = useRef(0);
+
   // Clean up on unmount
   useEffect(() => {
     return () => {
+      genRef.current += 1;
       Speech.stop();
     };
   }, []);
 
+  /** Ref to speakByIndex so onDone can auto-advance without stale closures */
+  const speakByIndexRef = useRef<(idx: number) => void>(() => {});
+
   const speakMessage = useCallback((id: string, text: string) => {
+    genRef.current += 1;
+    const gen = genRef.current;
+    const msgs = messagesRef.current;
+    const idx = msgs.findIndex((m) => m.id === id);
     Speech.stop();
-    setState({ currentMessageId: id, isPlaying: true, isPaused: false });
+    setState({
+      currentMessageId: id,
+      isPlaying: true,
+      isPaused: false,
+      currentIndex: idx + 1,
+      totalMessages: msgs.length,
+    });
     Speech.speak(stripMarkdown(text), {
-      onDone: () => setState(INITIAL_STATE),
-      onStopped: () => setState(INITIAL_STATE),
+      onDone: () => {
+        if (genRef.current !== gen) return;
+        // Auto-advance to next assistant message
+        const nextIdx = idx + 1;
+        if (nextIdx < messagesRef.current.length) {
+          speakByIndexRef.current(nextIdx);
+        } else {
+          setState(INITIAL_STATE);
+        }
+      },
+      onStopped: () => { if (genRef.current === gen) setState(INITIAL_STATE); },
     });
   }, []);
+
+  const speakByIndex = useCallback((idx: number) => {
+    const msgs = messagesRef.current;
+    if (idx < 0 || idx >= msgs.length) return;
+    speakMessage(msgs[idx].id, msgs[idx].content);
+  }, [speakMessage]);
+
+  // Keep ref in sync for auto-advance callback
+  speakByIndexRef.current = speakByIndex;
 
   const play = useCallback(
     (messageId: string) => {
@@ -66,6 +108,7 @@ export function useTTS(
   }, []);
 
   const stop = useCallback(() => {
+    genRef.current += 1;
     Speech.stop();
     setState(INITIAL_STATE);
   }, []);
