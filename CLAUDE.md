@@ -227,7 +227,7 @@ The app uses anonymous Firebase auth and Firestore for multi-device sync. Config
 - Pre-existing TS error in `apps/mobile/src/infra/firebase/firebaseClient.ts`: `getReactNativePersistence` not exported from `firebase/auth` — do not flag as a regression.
 
 ### Current Status
-- **Active phase**: Phase 19 (Hardening + release readiness)
-- **Next ticket**: MS-19.15 (Accounts overview)
-- **Recently completed**: MS-19.14 (seed budget from bank balances)
+- **Active phase**: Phase 31 (Polish & Cleanup)
+- **Next ticket**: MS-31.1 (Fix account name lookup)
+- **Recently completed**: Phase 30 (AI Advisor — Conversational)
 - Run `git log --oneline -20` and `gh issue list --state open` to catch up on recent work.

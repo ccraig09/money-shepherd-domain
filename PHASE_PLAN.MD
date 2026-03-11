@@ -98,6 +98,7 @@ Optional sub-tag:
 - `## Phase 28 [EVOLUTION | Track H: AI Advisor]: AI Advisor — Foundation + Guided Setup`
 - `## Phase 29 [EVOLUTION | Track H: AI Advisor]: AI Advisor — Ongoing Intelligence`
 - `## Phase 30 [EVOLUTION | Track H: AI Advisor]: AI Advisor — Conversational`
+- `## Phase 31 [POLISH]: Polish & Cleanup`
 
 ---
 
@@ -861,11 +862,36 @@ Plaid access tokens are stored in `expo-secure-store` (device keychain) and neve
 
 ---
 
+## Phase 31: Polish & Cleanup
+
+> **Goal:** Fix visible bugs, remove stale data, and add UX polish that makes the app feel tight and trustworthy.
+
+### Recommended build order
+
+- [x] MS-31.1 Fix account name lookup — show bank names instead of raw Plaid IDs (#130)
+- [x] MS-31.2 Remove disconnected/stale accounts — sandbox cleanup + account management UI (#167)
+- [ ] MS-31.3 Sticky date headers in Transactions list (#166)
+- [ ] MS-31.4 Available to Assign explainer — tap to see breakdown modal (#168)
+- [ ] MS-31.5 Forecast card info hints — tap (i) icons for calculation explainers (#178)
+- [ ] MS-31.6 Improve remaining spend projection — exclude one-time large purchases from daily pace (#179)
+- [ ] MS-31.7 Dual-purpose debt assignment — expenses assigned to debt envelopes count as payments (#131)
+- [ ] MS-31.8 Replace plain MS text icon with branded logo/symbol (#180)
+
+### Phase 31 Smoke Check
+
+- [ ] Inbox and Transactions show bank account names (not Plaid IDs)
+- [ ] Settings allows removing stale/sandbox accounts
+- [ ] Transactions list has sticky date section headers
+- [ ] Tapping Available to Assign shows breakdown modal
+- [ ] Forecast card (i) icons show calculation explanations
+- [ ] Large one-time purchases don't inflate remaining spend projection
+- [ ] Assigning expense to debt envelope counts as payment
+- [ ] Chat and typing indicators show branded icon (not plain "MS" text)
+
+---
+
 ## Future UX Backlog (unscheduled)
 
-- [ ] Sticky date headers in Transactions list (#166)
-- [ ] Remove disconnected/stale accounts — sandbox cleanup, account management (#167)
-- [ ] Available to Assign explainer — tap to see breakdown (#168)
 - [ ] Subscription intelligence (detect new/unused/price-changed recurring charges)
 - [ ] Proactive chat nudges (shepherd checks in on overspending patterns via chat)
 
