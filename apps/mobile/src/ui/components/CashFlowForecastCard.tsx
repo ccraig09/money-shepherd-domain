@@ -1,6 +1,7 @@
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
 import { Card } from "./Card";
+import { HelpTooltip } from "./HelpTooltip";
 import { Spacing, FontSize, FontWeight, type ColorTokens } from "../tokens";
 import { useThemedStyles } from "../ThemeProvider";
 import { formatMoney } from "../../lib/moneyFormat";
@@ -45,18 +46,26 @@ export function CashFlowForecastCard({ forecast }: Props) {
       {/* Breakdown */}
       <View style={styles.breakdown}>
         <View style={styles.row}>
-          <Text style={styles.rowLabel}>
-            Income this month
-          </Text>
+          <View style={styles.labelRow}>
+            <Text style={styles.rowLabel}>Income this month</Text>
+            <HelpTooltip
+              title="Income this month"
+              body="Paychecks and deposits received so far, plus recurring income expected later this month."
+            />
+          </View>
           <Text style={[styles.rowValue, styles.income]}>
             +${formatMoney(forecast.monthIncomeCents + forecast.remainingIncomeCents)}
           </Text>
         </View>
 
         <View style={styles.row}>
-          <Text style={styles.rowLabel}>
-            Spent so far
-          </Text>
+          <View style={styles.labelRow}>
+            <Text style={styles.rowLabel}>Spent so far</Text>
+            <HelpTooltip
+              title="Spent so far"
+              body="All non-transfer spending this month. Transfers between your own accounts are excluded."
+            />
+          </View>
           <Text style={styles.rowValue}>
             -${formatMoney(forecast.monthSpentCents)}
           </Text>
@@ -64,7 +73,13 @@ export function CashFlowForecastCard({ forecast }: Props) {
 
         {forecast.upcomingBillsCents > 0 && (
           <View style={styles.row}>
-            <Text style={styles.rowLabel}>Upcoming bills</Text>
+            <View style={styles.labelRow}>
+              <Text style={styles.rowLabel}>Upcoming bills</Text>
+              <HelpTooltip
+                title="Upcoming bills"
+                body="Recurring bills we expect but haven't posted yet this month."
+              />
+            </View>
             <Text style={[styles.rowValue, styles.expense]}>
               -${formatMoney(forecast.upcomingBillsCents)}
             </Text>
@@ -73,7 +88,13 @@ export function CashFlowForecastCard({ forecast }: Props) {
 
         {forecast.projectedDiscretionaryCents > 0 && (
           <View style={styles.row}>
-            <Text style={styles.rowLabel}>Est. remaining spend</Text>
+            <View style={styles.labelRow}>
+              <Text style={styles.rowLabel}>Est. remaining spend</Text>
+              <HelpTooltip
+                title="Est. remaining spend"
+                body="Based on your average daily spending pace over the last 7 days. Large one-time purchases can inflate this estimate."
+              />
+            </View>
             <Text style={[styles.rowValue, styles.muted]}>
               -${formatMoney(forecast.projectedDiscretionaryCents)}
             </Text>
@@ -120,6 +141,11 @@ const createStyles = (c: ColorTokens) =>
       flexDirection: "row",
       justifyContent: "space-between",
       alignItems: "center",
+    },
+    labelRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: Spacing.xs,
     },
     rowLabel: {
       fontSize: FontSize.small,
