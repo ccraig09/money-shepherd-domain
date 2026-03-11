@@ -186,6 +186,10 @@ function RootLayoutInner() {
             name="chat"
             options={{ title: "Money Shepherd", headerBackTitle: "Home" }}
           />
+          <Stack.Screen
+            name="chat-history"
+            options={{ title: "Past Conversations", headerBackTitle: "Chat" }}
+          />
         </Stack>
 
         {isReady && (status === "loading" || status === "idle") && (

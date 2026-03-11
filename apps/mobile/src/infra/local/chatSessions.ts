@@ -67,6 +67,12 @@ export async function saveSession(session: ChatSession): Promise<void> {
   await writeAll(sessions);
 }
 
+/** Load a single session by ID. */
+export async function loadSessionById(id: string): Promise<ChatSession | null> {
+  const sessions = await readAll();
+  return sessions.find((s) => s.id === id) ?? null;
+}
+
 /** Delete a session by ID. */
 export async function deleteSession(id: string): Promise<void> {
   const sessions = await readAll();

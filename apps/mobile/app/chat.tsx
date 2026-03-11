@@ -9,6 +9,7 @@ import {
   Platform,
   StyleSheet,
 } from "react-native";
+import { router, useLocalSearchParams } from "expo-router";
 import { ChatBubble, type ChatMessage } from "../src/ui/components/ChatBubble";
 import { SuggestedChips } from "../src/ui/components/SuggestedChips";
 import { useAppStore } from "../src/store/useAppStore";
@@ -28,17 +29,23 @@ import {
   saveSession,
   cleanupOldSessions,
   deriveTitle,
+  loadSessionById,
 } from "@/src/infra/local/chatSessions";
 import type { ChatSession } from "@/src/infra/local/chatSessions";
+import { useTTS } from "@/src/lib/useTTS";
 
 export default function ChatScreen() {
   const styles = useThemedStyles(createStyles);
   const { colors } = useTheme();
+  const { sessionId } = useLocalSearchParams<{ sessionId?: string }>();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputText, setInputText] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const flatListRef = useRef<FlatList<ChatMessage>>(null);
   const sessionRef = useRef<ChatSession | null>(null);
+
+  // Read-only mode when viewing a past conversation from history
+  const isReadOnly = !!sessionId;
 
   const sendChatMessage = useAppStore((s) => s.sendChatMessage);
   const executeChatAction = useAppStore((s) => s.executeChatAction);
@@ -46,24 +53,33 @@ export default function ChatScreen() {
 
   // ── Session persistence ─────────────────────────────────
 
-  // On mount: try to resume the last session (within 24h) + cleanup old ones
+  // On mount: load specific session (read-only) or resume last (within 24h)
   useEffect(() => {
     let cancelled = false;
     (async () => {
       cleanupOldSessions(); // fire-and-forget
-      const resumable = await findResumableSession();
-      if (cancelled) return;
-      if (resumable && resumable.messages.length > 0) {
-        sessionRef.current = resumable;
-        setMessages(resumable.messages as ChatMessage[]);
+      if (sessionId) {
+        const session = await loadSessionById(sessionId);
+        if (cancelled) return;
+        if (session) {
+          sessionRef.current = session;
+          setMessages(session.messages as ChatMessage[]);
+        }
+      } else {
+        const resumable = await findResumableSession();
+        if (cancelled) return;
+        if (resumable && resumable.messages.length > 0) {
+          sessionRef.current = resumable;
+          setMessages(resumable.messages as ChatMessage[]);
+        }
       }
     })();
     return () => { cancelled = true; };
-  }, []);
+  }, [sessionId]);
 
   // Auto-save whenever messages change (debounced to coalesce rapid updates)
   useEffect(() => {
-    if (messages.length === 0) return;
+    if (messages.length === 0 || isReadOnly) return;
     const timeout = setTimeout(() => {
       const now = Date.now();
       if (!sessionRef.current) {
@@ -85,7 +101,7 @@ export default function ChatScreen() {
       saveSession(sessionRef.current);
     }, 500);
     return () => clearTimeout(timeout);
-  }, [messages]);
+  }, [messages, isReadOnly]);
 
   // ── New conversation ────────────────────────────────────
 
@@ -105,6 +121,24 @@ export default function ChatScreen() {
     }
     return map;
   }, [appState?.budget?.envelopes]);
+
+  // ── TTS ────────────────────────────────────────────────
+  const assistantMessages = useMemo(
+    () =>
+      messages
+        .filter((m) => m.role === "assistant")
+        .map((m) => ({ id: m.id, content: m.content })),
+    [messages],
+  );
+  const { ttsState, play, pause, resume, stop, skipNext, skipPrev } =
+    useTTS(assistantMessages);
+
+  // Stop TTS when starting a new conversation
+  const handleNewConversationOrig = handleNewConversation;
+  const handleNewConversationWithTTS = useCallback(() => {
+    stop();
+    handleNewConversationOrig();
+  }, [stop, handleNewConversationOrig]);
 
   const sendMessage = useCallback(
     async (text: string) => {
@@ -219,6 +253,13 @@ export default function ChatScreen() {
             <Text style={styles.chipsLabel}>Try asking:</Text>
             <SuggestedChips onSelect={handleChipSelect} />
           </View>
+          <Pressable
+            style={styles.historyLink}
+            onPress={() => router.push("/chat-history")}
+            accessibilityLabel="View past conversations"
+          >
+            <Text style={styles.historyLinkText}>View past conversations</Text>
+          </Pressable>
         </View>
       ) : (
         <FlatList
@@ -231,6 +272,12 @@ export default function ChatScreen() {
               onConfirmAction={handleConfirmAction}
               onCancelAction={handleCancelAction}
               envelopeLookup={envelopeLookup}
+              ttsState={ttsState}
+              onTTSPlay={play}
+              onTTSPause={pause}
+              onTTSResume={resume}
+              onTTSSkipPrev={skipPrev}
+              onTTSSkipNext={skipNext}
             />
           )}
           contentContainerStyle={styles.messageList}
@@ -238,13 +285,15 @@ export default function ChatScreen() {
             flatListRef.current?.scrollToEnd({ animated: true })
           }
           ListHeaderComponent={
-            <Pressable
-              style={styles.newChatBtn}
-              onPress={handleNewConversation}
-              accessibilityLabel="Start new conversation"
-            >
-              <Text style={styles.newChatBtnText}>+ New conversation</Text>
-            </Pressable>
+            isReadOnly ? null : (
+              <Pressable
+                style={styles.newChatBtn}
+                onPress={handleNewConversationWithTTS}
+                accessibilityLabel="Start new conversation"
+              >
+                <Text style={styles.newChatBtnText}>+ New conversation</Text>
+              </Pressable>
+            )
           }
           ListFooterComponent={
             isTyping ? (
@@ -261,33 +310,35 @@ export default function ChatScreen() {
         />
       )}
 
-      {/* Input bar */}
-      <View style={styles.inputBar}>
-        <TextInput
-          style={styles.input}
-          placeholder="Ask anything about your budget..."
-          placeholderTextColor={colors.textSubtle}
-          value={inputText}
-          onChangeText={setInputText}
-          multiline
-          maxLength={500}
-          returnKeyType="send"
-          blurOnSubmit
-          onSubmitEditing={() => sendMessage(inputText)}
-          accessibilityLabel="Chat message input"
-        />
-        <Pressable
-          onPress={() => sendMessage(inputText)}
-          style={[
-            styles.sendBtn,
-            !inputText.trim() && styles.sendBtnDisabled,
-          ]}
-          disabled={!inputText.trim() || isTyping}
-          accessibilityLabel="Send message"
-        >
-          <Text style={styles.sendBtnText}>↑</Text>
-        </Pressable>
-      </View>
+      {/* Input bar — hidden in read-only mode */}
+      {!isReadOnly && (
+        <View style={styles.inputBar}>
+          <TextInput
+            style={styles.input}
+            placeholder="Ask anything about your budget..."
+            placeholderTextColor={colors.textSubtle}
+            value={inputText}
+            onChangeText={setInputText}
+            multiline
+            maxLength={500}
+            returnKeyType="send"
+            blurOnSubmit
+            onSubmitEditing={() => sendMessage(inputText)}
+            accessibilityLabel="Chat message input"
+          />
+          <Pressable
+            onPress={() => sendMessage(inputText)}
+            style={[
+              styles.sendBtn,
+              !inputText.trim() && styles.sendBtnDisabled,
+            ]}
+            disabled={!inputText.trim() || isTyping}
+            accessibilityLabel="Send message"
+          >
+            <Text style={styles.sendBtnText}>↑</Text>
+          </Pressable>
+        </View>
+      )}
     </KeyboardAvoidingView>
   );
 }
@@ -348,6 +399,16 @@ const createStyles = (c: ColorTokens) =>
       textTransform: "uppercase" as const,
       letterSpacing: 0.5,
       paddingHorizontal: Spacing.base,
+    },
+
+    // ── History link ──────────────────────────
+    historyLink: {
+      marginTop: Spacing.md,
+    },
+    historyLinkText: {
+      fontSize: FontSize.small,
+      fontWeight: FontWeight.semibold,
+      color: c.primary,
     },
 
     // ── Message list ───────────────────────────

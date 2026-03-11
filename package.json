@@ -13,11 +13,11 @@
     "ios": "expo run:ios"
   },
   "dependencies": {
-    "firebase": "^12.9.0",
-    "zustand": "^5.0.11",
     "expo": "~54.0.33",
+    "firebase": "^12.9.0",
     "react": "19.1.0",
-    "react-native": "0.81.5"
+    "react-native": "0.81.5",
+    "zustand": "^5.0.11"
   },
   "version": "1.0.0"
 }
