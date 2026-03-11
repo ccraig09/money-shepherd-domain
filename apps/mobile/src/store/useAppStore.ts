@@ -109,6 +109,7 @@ type AppStore = {
   suggestAllocations: () => Promise<{ allocations: { envelopeId: string; amountCents: number; reason: string }[]; warning?: "budget_warning" }>;
   categorizeInbox: () => Promise<{ mapped: number }>;
   fetchMonthlyReview: () => Promise<import("../infra/firebase/aiTypes").MonthlyReviewResponse>;
+  sendChatMessage: (messages: import("../infra/firebase/aiTypes").ChatMessageEntry[]) => Promise<import("../infra/firebase/aiTypes").ChatMessageResponse>;
 };
 
 const engine = createEngine();
@@ -1309,6 +1310,23 @@ export const useAppStore = create<AppStore>((set, get) => ({
       set({ lastAiTip: result.summary });
       saveAiTip(result.summary).catch(() => {}); // fire-and-forget
     }
+
+    if (result.warning === "budget_warning") {
+      set({ toast: { text: "AI budget at 75% — approaching monthly limit", variant: "info" } });
+    }
+
+    return result;
+  },
+
+  sendChatMessage: async (messages) => {
+    const { state } = get();
+    if (!state) throw new Error("No state available");
+
+    const { buildAiContext } = await import("@money-shepherd/domain");
+    const { callChatMessage } = await import("../infra/firebase/aiClient");
+
+    const context = buildAiContext(state);
+    const result = await callChatMessage(state.householdId, messages, context);
 
     if (result.warning === "budget_warning") {
       set({ toast: { text: "AI budget at 75% — approaching monthly limit", variant: "info" } });

@@ -12,6 +12,8 @@ import {
 import { router } from "expo-router";
 import { ChatBubble, type ChatMessage } from "../src/ui/components/ChatBubble";
 import { SuggestedChips } from "../src/ui/components/SuggestedChips";
+import { useAppStore } from "../src/store/useAppStore";
+import type { ChatMessageEntry } from "../src/infra/firebase/aiTypes";
 import {
   Spacing,
   Radius,
@@ -27,20 +29,6 @@ function makeId() {
   return `msg-${nextId++}`;
 }
 
-/** Placeholder response while no Cloud Function exists (MS-30.2). */
-function mockResponse(userText: string): string {
-  const lower = userText.toLowerCase();
-  if (lower.includes("how am i doing"))
-    return "You're doing well this month! Your spending is on track with your budget goals. Keep it up — every dollar you manage wisely is a step toward your goals.";
-  if (lower.includes("can i afford"))
-    return "Let me think about that... Based on your current envelope balances and upcoming bills, I'd want to look at the specifics. What are you considering?";
-  if (lower.includes("what should i adjust"))
-    return "Looking at your envelopes, a few small tweaks could help. I'll be able to give you specific suggestions once the AI backend is connected in the next update.";
-  if (lower.includes("explain my spending"))
-    return "Your top spending categories this month are where most of your budget goes. Once the AI backend is live, I'll break this down with specific numbers and trends.";
-  return "I hear you! The full AI advisor is coming soon — this is a preview of the chat experience. For now, I can show you how conversations will flow.";
-}
-
 export default function ChatScreen() {
   const styles = useThemedStyles(createStyles);
   const { colors } = useTheme();
@@ -49,8 +37,10 @@ export default function ChatScreen() {
   const [isTyping, setIsTyping] = useState(false);
   const flatListRef = useRef<FlatList<ChatMessage>>(null);
 
+  const sendChatMessage = useAppStore((s) => s.sendChatMessage);
+
   const sendMessage = useCallback(
-    (text: string) => {
+    async (text: string) => {
       const trimmed = text.trim();
       if (!trimmed) return;
 
@@ -61,23 +51,40 @@ export default function ChatScreen() {
         timestamp: Date.now(),
       };
 
-      setMessages((prev) => [...prev, userMsg]);
+      const updatedMessages = [...messages, userMsg];
+      setMessages(updatedMessages);
       setInputText("");
       setIsTyping(true);
 
-      // Simulate AI response delay
-      setTimeout(() => {
+      try {
+        // Build conversation history for the Cloud Function
+        const history: ChatMessageEntry[] = updatedMessages.map((m) => ({
+          role: m.role,
+          content: m.content,
+        }));
+
+        const result = await sendChatMessage(history);
+
         const aiMsg: ChatMessage = {
           id: makeId(),
           role: "assistant",
-          content: mockResponse(trimmed),
+          content: result.reply,
           timestamp: Date.now(),
         };
         setMessages((prev) => [...prev, aiMsg]);
+      } catch {
+        const errorMsg: ChatMessage = {
+          id: makeId(),
+          role: "assistant",
+          content: "Sorry, I wasn't able to respond right now. Please try again in a moment.",
+          timestamp: Date.now(),
+        };
+        setMessages((prev) => [...prev, errorMsg]);
+      } finally {
         setIsTyping(false);
-      }, 800 + Math.random() * 600);
+      }
     },
-    [],
+    [messages, sendChatMessage],
   );
 
   const handleChipSelect = useCallback(

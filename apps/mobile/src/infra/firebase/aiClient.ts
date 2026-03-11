@@ -1,6 +1,6 @@
 import { getFunctions, httpsCallable } from "firebase/functions";
 import { getFirebase, ensureAnonAuth } from "./firebaseClient";
-import type { AiContextPayload, AnalyzeSpendingResponse, SuggestAllocationsPayload, SuggestAllocationsResponse, CategorizeTransactionsPayload, CategorizeTransactionsResponse, MonthlyReviewResponse } from "./aiTypes";
+import type { AiContextPayload, AnalyzeSpendingResponse, SuggestAllocationsPayload, SuggestAllocationsResponse, CategorizeTransactionsPayload, CategorizeTransactionsResponse, MonthlyReviewResponse, ChatMessageEntry, ChatMessageResponse } from "./aiTypes";
 
 const functions = getFunctions(getFirebase().app);
 
@@ -74,5 +74,24 @@ export async function callMonthlyReview(
   >(functions, "monthlyReview");
 
   const result = await fn({ householdId, currentMonth, previousMonth });
+  return result.data;
+}
+
+/**
+ * Calls the chatMessage Cloud Function.
+ * Sends multi-turn conversation + budget context, receives natural-language reply.
+ */
+export async function callChatMessage(
+  householdId: string,
+  messages: ChatMessageEntry[],
+  context: AiContextPayload,
+): Promise<ChatMessageResponse> {
+  await ensureAnonAuth();
+  const fn = httpsCallable<
+    { householdId: string; messages: ChatMessageEntry[]; context: AiContextPayload },
+    ChatMessageResponse
+  >(functions, "chatMessage");
+
+  const result = await fn({ householdId, messages, context });
   return result.data;
 }

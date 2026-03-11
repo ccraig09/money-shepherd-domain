@@ -8,6 +8,7 @@ import {
   Alert,
   ActivityIndicator,
   Linking,
+  Platform,
 } from "react-native";
 
 const PRIVACY_POLICY_URL = "https://ccraig09.github.io/money-shepherd-domain/privacy.html";
@@ -39,7 +40,15 @@ function requestConsent(): Promise<"continue" | "cancel"> {
     );
   });
 }
-import { usePlaidEmitter, type LinkEvent, LinkEventName } from "react-native-plaid-link-sdk";
+// Type-only import (safe — stripped at compile time)
+import type { LinkEvent } from "react-native-plaid-link-sdk";
+
+// Runtime import only on native — Plaid SDK crashes the web bundler
+// because TurboModuleRegistry.get() is undefined in web.
+const PlaidModule = Platform.OS !== "web"
+  ? require("react-native-plaid-link-sdk")
+  : { usePlaidEmitter: () => {}, LinkEventName: {} };
+const { usePlaidEmitter, LinkEventName } = PlaidModule;
 import { loadSyncMeta, type SyncMeta } from "../../src/infra/local/syncMeta";
 import { plaidConfigured } from "../../src/infra/plaid/config";
 import { requestLinkToken, openPlaidLink, exchangePublicToken, fetchAccounts, removeItem } from "../../src/infra/plaid/plaidClient";

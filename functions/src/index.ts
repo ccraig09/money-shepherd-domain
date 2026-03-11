@@ -14,6 +14,7 @@ export { analyzeSpending } from "./ai/analyzeSpending";
 export { suggestAllocations } from "./ai/suggestAllocations";
 export { categorizeTransactions } from "./ai/categorizeTransactions";
 export { monthlyReview } from "./ai/monthlyReview";
+export { chatMessage } from "./ai/chatMessage";
 
 function makePlaidClient(clientId: string, secret: string): PlaidApi {
   const config = new Configuration({

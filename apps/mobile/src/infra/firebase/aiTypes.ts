@@ -84,6 +84,25 @@ export interface CategorizeTransactionsResponse {
   categorizations: MerchantCategorization[];
 }
 
+// ── Chat ──────────────────────────────────────────────────
+
+export interface ChatMessageEntry {
+  role: "user" | "assistant";
+  content: string;
+}
+
+export interface ChatMessageRequest {
+  householdId: string;
+  messages: ChatMessageEntry[];
+  context: AiContextPayload;
+}
+
+export interface ChatMessageResponse {
+  reply: string;
+  /** Present when AI usage is ≥75% of the monthly budget cap */
+  warning?: "budget_warning";
+}
+
 // ── Monthly review ────────────────────────────────────────
 
 export interface EnvelopeHighlight {
