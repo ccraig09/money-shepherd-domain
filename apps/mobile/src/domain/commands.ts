@@ -267,13 +267,25 @@ export function deleteTransaction(
     state.inbox.assignmentsByTransactionId[args.transactionId];
 
   if (assignment && tx.amount.cents < 0) {
-    // Assigned expense: restore envelope balance
-    const restoreAmount = Money.fromCents(Math.abs(tx.amount.cents));
+    // Assigned expense: reverse the budget effect.
+    // For debt envelopes the original action was an ADD (payment),
+    // so reversal subtracts. For normal envelopes it was a SUBTRACT
+    // (spending), so reversal adds.
+    const absAmount = Money.fromCents(Math.abs(tx.amount.cents));
+    const targetEnv = nextBudget.envelopes.find(
+      (e) => e.id === assignment.envelopeId,
+    );
+    const isDebt = targetEnv?.type === "debt";
     nextBudget = {
       ...nextBudget,
       envelopes: nextBudget.envelopes.map((env) =>
         env.id === assignment.envelopeId
-          ? { ...env, balance: env.balance.add(restoreAmount) }
+          ? {
+              ...env,
+              balance: isDebt
+                ? env.balance.subtract(absAmount)
+                : env.balance.add(absAmount),
+            }
           : env,
       ),
     };
@@ -427,16 +439,27 @@ export function unassignTransaction(
     transactionId: args.transactionId,
   });
 
-  // Restore envelope balance: add the expense amount back
+  // Restore envelope balance: reverse the original budget effect.
+  // For debt envelopes the original was an ADD (payment) → subtract.
+  // For normal envelopes the original was a SUBTRACT (spend) → add.
   const assignment = state.inbox.assignmentsByTransactionId[args.transactionId];
   let nextBudget = state.budget;
   if (assignment && tx.amount.cents < 0) {
-    const restoreAmount = Money.fromCents(Math.abs(tx.amount.cents));
+    const absAmount = Money.fromCents(Math.abs(tx.amount.cents));
+    const targetEnv = nextBudget.envelopes.find(
+      (e) => e.id === assignment.envelopeId,
+    );
+    const isDebt = targetEnv?.type === "debt";
     nextBudget = {
       ...nextBudget,
       envelopes: nextBudget.envelopes.map((env) =>
         env.id === assignment.envelopeId
-          ? { ...env, balance: env.balance.add(restoreAmount) }
+          ? {
+              ...env,
+              balance: isDebt
+                ? env.balance.subtract(absAmount)
+                : env.balance.add(absAmount),
+            }
           : env,
       ),
     };

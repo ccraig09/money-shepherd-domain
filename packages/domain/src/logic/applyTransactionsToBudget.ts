@@ -41,8 +41,24 @@ export function applyTransactionsToBudget(
     const envelopeId = assignments[tx.id]?.envelopeId ?? tx.envelopeId;
     if (!envelopeId) continue;
 
-    const spendAmount = Money.fromCents(Math.abs(tx.amount.cents));
-    nextBudget = spendFromEnvelope(nextBudget, envelopeId, spendAmount);
+    const absCents = Math.abs(tx.amount.cents);
+    const envelope = nextBudget.envelopes.find((e) => e.id === envelopeId);
+
+    if (envelope?.type === "debt") {
+      // Debt envelope: expense assigned here is a PAYMENT — increases
+      // the envelope balance (progress toward payoff), not a spend.
+      nextBudget = {
+        ...nextBudget,
+        envelopes: nextBudget.envelopes.map((e) =>
+          e.id === envelopeId
+            ? { ...e, balance: e.balance.add(Money.fromCents(absCents)) }
+            : e,
+        ),
+      };
+    } else {
+      // Normal envelope: deduct from balance (spending)
+      nextBudget = spendFromEnvelope(nextBudget, envelopeId, Money.fromCents(absCents));
+    }
 
     nextAppliedIds.add(tx.id);
   }

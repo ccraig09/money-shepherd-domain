@@ -326,6 +326,7 @@ export default function EnvelopeDetailScreen() {
             contentContainerStyle={styles.list}
             renderItem={({ item }) => {
               const isExpense = item.amount.cents < 0;
+              const isDebt = envelope.type === "debt";
               const desc = item.description || "Manual transaction";
               const assignedByUserId = assignmentByTxId[item.id]?.assignedByUserId;
               const assignedByName = assignedByUserId
@@ -341,6 +342,16 @@ export default function EnvelopeDetailScreen() {
                       <Text style={styles.rowDescription} numberOfLines={1}>
                         {desc}
                       </Text>
+                      {isDebt && isExpense && (
+                        <View style={styles.paymentBadge} accessibilityLabel="Debt payment">
+                          <Text style={styles.paymentBadgeText}>Payment</Text>
+                        </View>
+                      )}
+                      {isDebt && !isExpense && (
+                        <View style={styles.chargeBadge} accessibilityLabel="Debt charge">
+                          <Text style={styles.chargeBadgeText}>Charge</Text>
+                        </View>
+                      )}
                       {item.id.startsWith("plaid-") && (
                         <View style={styles.bankBadge} accessibilityLabel="Bank transaction">
                           <Text style={styles.bankBadgeText}>Bank</Text>
@@ -359,10 +370,14 @@ export default function EnvelopeDetailScreen() {
                   <Text
                     style={[
                       styles.rowAmount,
-                      isExpense ? styles.expense : styles.income,
+                      isDebt
+                        ? (isExpense ? styles.income : styles.expense)
+                        : (isExpense ? styles.expense : styles.income),
                     ]}
                   >
-                    {isExpense ? "-" : "+"}${formatMoney(Math.abs(item.amount.cents))}
+                    {isDebt
+                      ? (isExpense ? "+" : "-")
+                      : (isExpense ? "-" : "+")}${formatMoney(Math.abs(item.amount.cents))}
                   </Text>
                 </View>
               );
@@ -815,6 +830,24 @@ const createStyles = (c: ColorTokens) => StyleSheet.create({
   rowMain: { flex: 1, gap: Spacing.xs, paddingRight: Spacing.sm },
   descRow: { flexDirection: "row", alignItems: "center", gap: Spacing.xs },
   rowDescription: { fontSize: FontSize.body, fontWeight: FontWeight.medium, color: c.textDark, flexShrink: 1 },
+  paymentBadge: {
+    paddingHorizontal: 5,
+    paddingVertical: 1,
+    borderRadius: Radius.sm,
+    backgroundColor: c.successSurface,
+    borderWidth: 1,
+    borderColor: c.success,
+  },
+  paymentBadgeText: { fontSize: 10, fontWeight: FontWeight.semibold, color: c.success },
+  chargeBadge: {
+    paddingHorizontal: 5,
+    paddingVertical: 1,
+    borderRadius: Radius.sm,
+    backgroundColor: c.debtSurface,
+    borderWidth: 1,
+    borderColor: c.debt,
+  },
+  chargeBadgeText: { fontSize: 10, fontWeight: FontWeight.semibold, color: c.debt },
   bankBadge: {
     paddingHorizontal: 5,
     paddingVertical: 1,
