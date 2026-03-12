@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { ChatBubble, type ChatMessage } from "../src/ui/components/ChatBubble";
+import { ShepherdAvatar } from "../src/ui/components/ShepherdAvatar";
 import { SuggestedChips } from "../src/ui/components/SuggestedChips";
 import { FollowUpChips } from "../src/ui/components/FollowUpChips";
 import { useAppStore } from "../src/store/useAppStore";
@@ -288,9 +289,7 @@ export default function ChatScreen() {
     >
       {isEmpty ? (
         <View style={styles.emptyState}>
-          <View style={styles.shepherdIcon}>
-            <Text style={styles.shepherdIconText}>MS</Text>
-          </View>
+          <ShepherdAvatar size={56} />
           <Text style={styles.emptyTitle}>Ask Money Shepherd</Text>
           <Text style={styles.emptySubtitle}>
             Your personal budget advisor. Ask about your spending, get
@@ -341,9 +340,7 @@ export default function ChatScreen() {
             <>
               {isTyping && (
                 <View style={styles.typingRow}>
-                  <View style={styles.typingAvatar}>
-                    <Text style={styles.typingAvatarText}>MS</Text>
-                  </View>
+                  <ShepherdAvatar size={28} />
                   <View style={styles.typingBubble}>
                     <Text style={styles.typingDots}>...</Text>
                   </View>
@@ -419,22 +416,6 @@ const createStyles = (c: ColorTokens) =>
       paddingHorizontal: Spacing.lg,
       gap: Spacing.md,
     },
-    shepherdIcon: {
-      width: 56,
-      height: 56,
-      borderRadius: 28,
-      backgroundColor: c.primarySurface,
-      borderWidth: 2,
-      borderColor: c.primary,
-      alignItems: "center",
-      justifyContent: "center",
-      marginBottom: Spacing.sm,
-    },
-    shepherdIconText: {
-      fontSize: FontSize.subtitle,
-      fontWeight: FontWeight.bold,
-      color: c.primary,
-    },
     emptyTitle: {
       fontSize: 22,
       fontWeight: FontWeight.bold,
@@ -498,21 +479,6 @@ const createStyles = (c: ColorTokens) =>
       paddingHorizontal: Spacing.base,
       gap: Spacing.sm,
       marginBottom: Spacing.md,
-    },
-    typingAvatar: {
-      width: 28,
-      height: 28,
-      borderRadius: 14,
-      backgroundColor: c.primarySurface,
-      borderWidth: 1,
-      borderColor: c.borderLight,
-      alignItems: "center",
-      justifyContent: "center",
-    },
-    typingAvatarText: {
-      fontSize: 10,
-      fontWeight: FontWeight.bold,
-      color: c.primary,
     },
     typingBubble: {
       backgroundColor: c.surfaceLight,

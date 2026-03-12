@@ -28,6 +28,7 @@ import type { InsightType } from "@money-shepherd/domain";
 import { MonthlyReviewCard } from "../../src/ui/components/MonthlyReviewCard";
 import { WeeklyNudgeCard } from "../../src/ui/components/WeeklyNudgeCard";
 import { CashFlowForecastCard } from "../../src/ui/components/CashFlowForecastCard";
+import { ShepherdAvatar } from "../../src/ui/components/ShepherdAvatar";
 import { Features } from "../../src/config/features";
 
 const SEVERITY_PRIORITY: Record<string, number> = { warning: 0, info: 1, success: 2 };
@@ -297,9 +298,7 @@ export default function DashboardScreen() {
           style={styles.chatCard}
           accessibilityLabel="Ask Money Shepherd"
         >
-          <View style={styles.chatCardIcon}>
-            <Text style={styles.chatCardIconText}>MS</Text>
-          </View>
+          <ShepherdAvatar size={36} />
           <View style={styles.chatCardBody}>
             <Text style={styles.chatCardTitle}>Ask Money Shepherd</Text>
             <Text style={styles.chatCardSub}>
@@ -747,19 +746,6 @@ const createStyles = (c: ColorTokens) => StyleSheet.create({
     borderWidth: 1,
     borderColor: c.borderWarning,
     gap: Spacing.md,
-  },
-  chatCardIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: c.primary,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  chatCardIconText: {
-    fontSize: FontSize.small,
-    fontWeight: FontWeight.bold,
-    color: c.textOnColor,
   },
   chatCardBody: { flex: 1, gap: 2 },
   chatCardTitle: {

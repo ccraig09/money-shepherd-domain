@@ -6,6 +6,7 @@ import { Spacing, Radius, FontSize, FontWeight, LineHeight, type ColorTokens } f
 import { useThemedStyles, useTheme } from "../ThemeProvider";
 import type { ChatAction } from "../../infra/firebase/aiTypes";
 import { ActionPreviewCard } from "./ActionPreviewCard";
+import { ShepherdAvatar } from "./ShepherdAvatar";
 
 export type ActionStatus = "pending" | "executing" | "executed" | "dismissed" | "error";
 
@@ -74,11 +75,7 @@ export function ChatBubble({
 
   return (
     <View style={[styles.row, isUser && styles.rowUser]}>
-      {!isUser && (
-        <View style={styles.avatar}>
-          <Text style={styles.avatarText}>MS</Text>
-        </View>
-      )}
+      {!isUser && <ShepherdAvatar size={28} />}
       <View
         style={[
           styles.bubble,
@@ -133,22 +130,6 @@ const createStyles = (c: ColorTokens) =>
     },
     rowUser: {
       justifyContent: "flex-end",
-    },
-    avatar: {
-      width: 28,
-      height: 28,
-      borderRadius: 14,
-      backgroundColor: c.primarySurface,
-      borderWidth: 1,
-      borderColor: c.borderLight,
-      alignItems: "center",
-      justifyContent: "center",
-      marginBottom: 2,
-    },
-    avatarText: {
-      fontSize: 10,
-      fontWeight: FontWeight.bold,
-      color: c.primary,
     },
     bubble: {
       maxWidth: "78%",

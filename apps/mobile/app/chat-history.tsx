@@ -18,6 +18,7 @@ import {
   type ColorTokens,
 } from "../src/ui/tokens";
 import { useThemedStyles } from "@/src/ui/ThemeProvider";
+import { ShepherdAvatar } from "@/src/ui/components/ShepherdAvatar";
 import {
   loadSessions,
   deleteSession,
@@ -165,9 +166,7 @@ export default function ChatHistoryScreen() {
               onPress={() => handleOpen(item)}
               accessibilityLabel={`Open conversation: ${item.title}`}
             >
-              <View style={styles.rowIcon}>
-                <Text style={styles.rowIconText}>MS</Text>
-              </View>
+              <ShepherdAvatar size={36} />
               <View style={styles.rowBody}>
                 <Text style={styles.rowTitle} numberOfLines={1}>
                   {item.title}
@@ -223,21 +222,6 @@ const createStyles = (c: ColorTokens) =>
       paddingVertical: Spacing.md,
       backgroundColor: c.surface,
       gap: Spacing.md,
-    },
-    rowIcon: {
-      width: 36,
-      height: 36,
-      borderRadius: 18,
-      backgroundColor: c.primarySurface,
-      borderWidth: 1,
-      borderColor: c.borderLight,
-      alignItems: "center",
-      justifyContent: "center",
-    },
-    rowIconText: {
-      fontSize: FontSize.caption,
-      fontWeight: FontWeight.bold,
-      color: c.primary,
     },
     rowBody: {
       flex: 1,
