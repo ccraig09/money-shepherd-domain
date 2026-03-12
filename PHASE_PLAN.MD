@@ -874,7 +874,7 @@ Plaid access tokens are stored in `expo-secure-store` (device keychain) and neve
 - [x] MS-31.4 Available to Assign explainer — tap to see breakdown modal (#168)
 - [x] MS-31.5 Forecast card info hints — tap (i) icons for calculation explainers (#178)
 - [x] MS-31.6 Improve remaining spend projection — exclude one-time large purchases from daily pace (#179)
-- [ ] MS-31.7 Dual-purpose debt assignment — expenses assigned to debt envelopes count as payments (#131)
+- [x] MS-31.7 Dual-purpose debt assignment — expenses assigned to debt envelopes count as payments (#131)
 - [ ] MS-31.8 Replace plain MS text icon with branded logo/symbol (#180)
 
 ### Phase 31 Smoke Check
