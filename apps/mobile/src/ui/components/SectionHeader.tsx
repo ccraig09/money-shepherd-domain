@@ -38,11 +38,11 @@ const createStyles = (c: ColorTokens) => StyleSheet.create({
     marginBottom: Spacing.sm,
   },
   title: {
-    fontSize: FontSize.small,
+    fontSize: 11,
     fontWeight: FontWeight.semibold,
-    color: c.textMid,
+    color: c.textMuted,
     textTransform: "uppercase",
-    letterSpacing: 0.5,
+    letterSpacing: 1.5,
   },
   action: {
     fontSize: FontSize.small,
