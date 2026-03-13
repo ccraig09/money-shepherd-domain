@@ -211,22 +211,22 @@ export const Color = lightColors;
 export const Shadow = {
   sm: {
     shadowColor: "#2c2416",
-    shadowOpacity: 0.06,
+    shadowOpacity: 0.08,
     shadowRadius: 4,
     shadowOffset: { width: 0, height: 1 },
     elevation: 2,
   },
   md: {
     shadowColor: "#2c2416",
-    shadowOpacity: 0.10,
-    shadowRadius: 16,
-    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 3 },
     elevation: 5,
   },
   lg: {
     shadowColor: "#2c2416",
-    shadowOpacity: 0.12,
-    shadowRadius: 20,
+    shadowOpacity: 0.20,
+    shadowRadius: 16,
     shadowOffset: { width: 0, height: 6 },
     elevation: 8,
   },
