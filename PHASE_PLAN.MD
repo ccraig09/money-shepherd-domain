@@ -543,9 +543,9 @@ Template:
 
 ### Phase 24 Smoke Check
 
-- [ ] Face ID / Touch ID prompts on app unlock
-- [ ] Failed biometric falls back to PIN
-- [ ] Biometric can be toggled on/off in settings
+- [x] Face ID / Touch ID prompts on app unlock
+- [x] Failed biometric falls back to PIN
+- [x] Biometric can be toggled on/off in settings
 
 ---
 
@@ -601,9 +601,9 @@ Template:
 
 ### Phase 27 Smoke Check
 
-- [ ] Plaid tokens stored in SecureStore (not AsyncStorage)
-- [ ] Real bank connected via production Plaid Link
-- [ ] Transactions from real bank sync into app
+- [x] Plaid tokens stored in SecureStore (not AsyncStorage)
+- [x] Real bank connected via production Plaid Link
+- [x] Transactions from real bank sync into app
 - [ ] Both household members can connect their own banks
 
 ---
@@ -668,7 +668,7 @@ Pull the latest Firestore state inside `importPlaidAccounts` before merging, so 
 
 ### Phase 27.6 Smoke Check
 
-- [ ] Los connects bank on Device A → state syncs to Firestore
+- [x] Los connects bank on Device A → state syncs to Firestore
 - [ ] Jackia connects bank on Device B → both Los's and Jackia's accounts preserved
 - [ ] Budget totals reflect all household accounts combined
 
@@ -698,9 +698,9 @@ Plaid access tokens are stored in `expo-secure-store` (device keychain) and neve
 
 ### Phase 27.7 Smoke Check
 
-- [ ] Connect bank on Device A → Device B shows bank as "Connected" (without local token)
-- [ ] Device B cannot trigger transaction sync for Device A's bank (no local token)
-- [ ] Disconnect on Device A → Device B shows "Not connected"
+- [x] Connect bank on Device A → Device B shows bank as "Connected" (without local token)
+- [x] Device B cannot trigger transaction sync for Device A's bank (no local token)
+- [x] Disconnect on Device A → Device B shows "Not connected"
 
 ---
 
@@ -810,13 +810,13 @@ Plaid access tokens are stored in `expo-secure-store` (device keychain) and neve
 
 ### Phase 29 Smoke Check
 
-- [ ] Start of month → monthly review card appears on dashboard
-- [ ] Review shows per-envelope highlights (over/under budget) with month-over-month deltas
-- [ ] Budget adjustments can be previewed and applied in one tap
-- [ ] AI insights blend with rule-based insights on dashboard
-- [ ] Unusual spending triggers an alert
-- [ ] Weekly nudge card appears on Home (top spend categories this week)
-- [ ] Cash flow forecast shows projected month-end balance
+- [x] Start of month → monthly review card appears on dashboard
+- [x] Review shows per-envelope highlights (over/under budget) with month-over-month deltas
+- [x] Budget adjustments can be previewed and applied in one tap
+- [x] AI insights blend with rule-based insights on dashboard
+- [x] Unusual spending triggers an alert
+- [x] Weekly nudge card appears on Home (top spend categories this week)
+- [x] Cash flow forecast shows projected month-end balance
 
 ---
 
@@ -848,17 +848,17 @@ Plaid access tokens are stored in `expo-secure-store` (device keychain) and neve
 
 ### Phase 30 Smoke Check
 
-- [ ] Tap "Ask Money Shepherd" → chat screen opens with suggested question chips
-- [ ] Ask "How am I doing this month?" → get spending summary response (warm, concise tone)
-- [ ] Ask "Create a Vacation savings envelope for $2000" → action card appears → confirm → envelope created
-- [ ] Ask "Move $50 from Dining to Groceries" → transfer action card → confirm → balances update
-- [ ] Ask "Set a $500 goal on my Emergency Fund" → goal action card → confirm → goal set
-- [ ] Chat persists across app relaunches (within 24h)
-- [ ] Start new conversation → old one appears in history list
-- [ ] Tap old conversation → view past messages (read-only)
-- [ ] AI unavailable → graceful error message, no crash
-- [ ] TTS toggle in Settings → player controls on chat bubbles → play/pause/rewind/skip work
-- [ ] AI tone is warm and encouraging, not preachy or overly religious
+- [x] Tap "Ask Money Shepherd" → chat screen opens with suggested question chips
+- [x] Ask "How am I doing this month?" → get spending summary response (warm, concise tone)
+- [x] Ask "Create a Vacation savings envelope for $2000" → action card appears → confirm → envelope created
+- [x] Ask "Move $50 from Dining to Groceries" → transfer action card → confirm → balances update
+- [x] Ask "Set a $500 goal on my Emergency Fund" → goal action card → confirm → goal set
+- [x] Chat persists across app relaunches (within 24h)
+- [x] Start new conversation → old one appears in history list
+- [x] Tap old conversation → view past messages (read-only)
+- [x] AI unavailable → graceful error message, no crash
+- [x] TTS toggle in Settings → player controls on chat bubbles → play/pause/rewind/skip work
+- [x] AI tone is warm and encouraging, not preachy or overly religious
 
 ---
 
@@ -879,14 +879,14 @@ Plaid access tokens are stored in `expo-secure-store` (device keychain) and neve
 
 ### Phase 31 Smoke Check
 
-- [ ] Inbox and Transactions show bank account names (not Plaid IDs)
-- [ ] Settings allows removing stale/sandbox accounts
-- [ ] Transactions list has sticky date section headers
-- [ ] Tapping Available to Assign shows breakdown modal
-- [ ] Forecast card (i) icons show calculation explanations
-- [ ] Large one-time purchases don't inflate remaining spend projection
-- [ ] Assigning expense to debt envelope counts as payment
-- [ ] Chat and typing indicators show branded icon (not plain "MS" text)
+- [x] Inbox and Transactions show bank account names (not Plaid IDs)
+- [x] Settings allows removing stale/sandbox accounts
+- [x] Transactions list has sticky date section headers
+- [x] Tapping Available to Assign shows breakdown modal
+- [x] Forecast card (i) icons show calculation explanations
+- [x] Large one-time purchases don't inflate remaining spend projection
+- [x] Assigning expense to debt envelope counts as payment
+- [x] Chat and typing indicators show branded icon (not plain "MS" text)
 
 ---
 
