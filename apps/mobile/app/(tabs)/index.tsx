@@ -20,7 +20,7 @@ import { InsightCard } from "../../src/ui/components/InsightCard";
 import { Spacing, Radius, FontSize, FontWeight, type ColorTokens } from "../../src/ui/tokens";
 import { useTheme, useThemedStyles } from "@/src/ui/ThemeProvider";
 import { getThisMonthSummary } from "../../src/lib/periodSummary";
-import { getCurrentPeriod, getFundingInPeriod, getSpendingInPeriod, generateInsights } from "@money-shepherd/domain";
+import { getCurrentPeriod, getFundingInPeriod, generateInsights } from "@money-shepherd/domain";
 import type { InsightType } from "@money-shepherd/domain";
 
 const SEVERITY_PRIORITY: Record<string, number> = { warning: 0, info: 1, success: 2 };
@@ -85,17 +85,6 @@ export default function DashboardScreen() {
     const totalDebt = debts.reduce((sum, e) => sum + (e.target?.cents ?? 0), 0);
     const totalSetAside = debts.reduce((sum, e) => sum + e.balance.cents, 0);
     return { count: debts.length, totalDebt, totalSetAside };
-  }, [state]);
-
-  const givingThisMonthCents = useMemo(() => {
-    if (!state) return 0;
-    const givingEnvelopes = state.budget.envelopes.filter((e) => e.type === "giving");
-    if (givingEnvelopes.length === 0) return 0;
-    const period = getCurrentPeriod(new Date().toISOString());
-    const assignments = Object.values(state.inbox.assignmentsByTransactionId);
-    return givingEnvelopes.reduce((sum, env) => {
-      return sum + getSpendingInPeriod(state.transactions, assignments, env.id, period).cents;
-    }, 0);
   }, [state]);
 
   // Insights engine
@@ -267,68 +256,48 @@ export default function DashboardScreen() {
         </Pressable>
       </Modal>
 
+      {/* Quick stats — Income | Spent | Net */}
+      {monthSummary && (monthSummary.incomeCents > 0 || monthSummary.spendingCents > 0) && (
+        <Pressable
+          style={styles.statsRow}
+          onPress={() => router.push("/period-summary")}
+          accessibilityLabel="View monthly summary"
+          accessibilityRole="button"
+        >
+          <View style={styles.statCell}>
+            <Text style={styles.statLabel}>Income</Text>
+            <Text style={[styles.statValue, styles.statIncome]}>
+              +${formatMoney(monthSummary.incomeCents)}
+            </Text>
+          </View>
+          <View style={styles.statDivider} />
+          <View style={styles.statCell}>
+            <Text style={styles.statLabel}>Spent</Text>
+            <Text style={[styles.statValue, styles.statSpending]}>
+              -${formatMoney(monthSummary.spendingCents)}
+            </Text>
+          </View>
+          <View style={styles.statDivider} />
+          <View style={styles.statCell}>
+            <Text style={styles.statLabel}>Net</Text>
+            <Text
+              style={[
+                styles.statValue,
+                monthSummary.netCents >= 0 ? styles.statIncome : styles.statSpending,
+              ]}
+            >
+              {monthSummary.netCents >= 0 ? "+" : "-"}${formatMoney(Math.abs(monthSummary.netCents))}
+            </Text>
+          </View>
+        </Pressable>
+      )}
+
       {/* Daily scripture */}
       <ScriptureStrip />
 
       {/* Insight card — Money Shepherd says... */}
       {topInsight && (
         <InsightCard insight={topInsight} onDismiss={dismissInsight} />
-      )}
-
-      {/* This Month summary */}
-      {monthSummary && (monthSummary.incomeCents > 0 || monthSummary.spendingCents > 0) && (
-        <Card style={styles.monthCard} onPress={() => router.push("/period-summary")} accessibilityLabel="View monthly summary">
-          <Text style={styles.monthTitle}>This Month</Text>
-          <View style={styles.monthRow}>
-            <View style={styles.monthStat}>
-              <Text style={styles.monthStatLabel}>Income</Text>
-              <Text style={[styles.monthStatValue, styles.monthIncome]}>
-                +${formatMoney(monthSummary.incomeCents)}
-              </Text>
-            </View>
-            <View style={styles.monthStat}>
-              <Text style={styles.monthStatLabel}>Spending</Text>
-              <Text style={[styles.monthStatValue, styles.monthSpending]}>
-                -${formatMoney(monthSummary.spendingCents)}
-              </Text>
-            </View>
-            <View style={styles.monthStat}>
-              <Text style={styles.monthStatLabel}>Net</Text>
-              <Text
-                style={[
-                  styles.monthStatValue,
-                  monthSummary.netCents >= 0 ? styles.monthIncome : styles.monthSpending,
-                ]}
-              >
-                {monthSummary.netCents >= 0 ? "+" : "-"}${formatMoney(Math.abs(monthSummary.netCents))}
-              </Text>
-            </View>
-          </View>
-          {/* Income vs Spending ratio bar */}
-          {(() => {
-            const total = monthSummary.incomeCents + monthSummary.spendingCents;
-            if (total <= 0) return null;
-            const incomePct = Math.round((monthSummary.incomeCents / total) * 100);
-            return (
-              <View style={styles.ratioBarSection}>
-                <View style={styles.ratioBarTrack}>
-                  <View style={[styles.ratioBarIncome, { flex: incomePct }]} />
-                  <View style={[styles.ratioBarSpending, { flex: 100 - incomePct }]} />
-                </View>
-                <View style={styles.ratioBarLabels}>
-                  <Text style={styles.ratioBarLabelIncome}>Income {incomePct}%</Text>
-                  <Text style={styles.ratioBarLabelSpending}>Spending {100 - incomePct}%</Text>
-                </View>
-              </View>
-            );
-          })()}
-          {givingThisMonthCents > 0 && (
-            <View style={styles.givingRow}>
-              <Text style={styles.givingRowLabel}>Giving this month</Text>
-              <Text style={styles.givingRowValue}>${formatMoney(givingThisMonthCents)}</Text>
-            </View>
-          )}
-        </Card>
       )}
 
       {/* Debt Freedom card */}
@@ -573,78 +542,37 @@ const createStyles = (c: ColorTokens) => StyleSheet.create({
     color: c.primary,
   },
 
-  // This Month card
-  monthCard: {
+  // Quick stats row
+  statsRow: {
+    flexDirection: "row",
     marginHorizontal: Spacing.base,
     marginBottom: Spacing.base,
-    padding: Spacing.base,
-  },
-  monthTitle: {
-    fontSize: FontSize.small,
-    fontWeight: FontWeight.semibold,
-    color: c.textMuted,
-    textTransform: "uppercase" as const,
-    letterSpacing: 0.5,
-    marginBottom: Spacing.md,
-  },
-  monthRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-  },
-  monthStat: { alignItems: "center", flex: 1 },
-  monthStatLabel: { fontSize: FontSize.caption, color: c.textMuted, marginBottom: Spacing.xs },
-  monthStatValue: { fontSize: FontSize.body, fontWeight: FontWeight.bold },
-  monthIncome: { color: c.success },
-  monthSpending: { color: c.error },
-
-  // Income vs Spending ratio bar
-  ratioBarSection: {
-    marginTop: Spacing.md,
-    gap: Spacing.xs,
-  },
-  ratioBarTrack: {
-    flexDirection: "row",
-    height: 8,
-    borderRadius: 4,
-    overflow: "hidden",
-  },
-  ratioBarIncome: {
-    backgroundColor: c.success,
-    borderTopLeftRadius: 4,
-    borderBottomLeftRadius: 4,
-  },
-  ratioBarSpending: {
-    backgroundColor: c.error,
-    borderTopRightRadius: 4,
-    borderBottomRightRadius: 4,
-  },
-  ratioBarLabels: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-  },
-  ratioBarLabelIncome: {
-    fontSize: FontSize.caption,
-    fontWeight: FontWeight.semibold,
-    color: c.success,
-  },
-  ratioBarLabelSpending: {
-    fontSize: FontSize.caption,
-    fontWeight: FontWeight.semibold,
-    color: c.error,
-  },
-
-  // Giving row in This Month card
-  givingRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginTop: Spacing.md,
-    paddingTop: Spacing.md,
-    borderTopWidth: StyleSheet.hairlineWidth,
+    backgroundColor: c.cardSurface,
+    borderRadius: Radius.lg,
+    paddingVertical: Spacing.md,
+    borderWidth: StyleSheet.hairlineWidth,
     borderColor: c.borderLight,
   },
-  givingRowLabel: { fontSize: FontSize.small, color: c.giving, fontWeight: FontWeight.semibold },
-  givingRowValue: { fontSize: FontSize.body, fontWeight: FontWeight.bold, color: c.giving },
+  statCell: {
+    flex: 1,
+    alignItems: "center",
+    gap: 2,
+  },
+  statDivider: {
+    width: StyleSheet.hairlineWidth,
+    backgroundColor: c.borderLight,
+    marginVertical: 2,
+  },
+  statLabel: {
+    fontSize: FontSize.caption,
+    color: c.textMuted,
+  },
+  statValue: {
+    fontSize: FontSize.body,
+    fontWeight: FontWeight.bold,
+  },
+  statIncome: { color: c.success },
+  statSpending: { color: c.error },
 
   // Debt Freedom card
   debtCard: {
