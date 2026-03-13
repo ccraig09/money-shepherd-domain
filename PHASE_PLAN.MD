@@ -907,13 +907,60 @@ Plaid access tokens are stored in `expo-secure-store` (device keychain) and neve
 - [x] MS-32.7 Refine SuggestedChips with gold outline style (#196)
 - [x] MS-32.8 Phase A final verification and smoke test (#197)
 
-### Phase B: Tab Bar + Navigation Wiring _(plan + tickets TBD)_
-### Phase C: Home Screen Redesign _(plan + tickets TBD)_
-### Phase D: Envelopes Screen _(plan + tickets TBD)_
-### Phase E: Activity Screen _(plan + tickets TBD)_
-### Phase F: Insights Tab (new) _(plan + tickets TBD)_
-### Phase G: Chat Screen (FAB modal) _(plan + tickets TBD)_
-### Phase H: Celebrations + Animations _(plan + tickets TBD)_
+### Phase B: Tab Bar + Navigation Wiring _(plan TBD)_
+
+- [ ] MS-32.B1 Build custom floating pill tab bar component (#198)
+- [ ] MS-32.B2 Build TopBar component — logo, inbox badge, profile avatar (#199)
+- [ ] MS-32.B3 Build FAB component — gold sparkle button (#200)
+- [ ] MS-32.B4 Restructure tab layout from 5 tabs to 4 (#201)
+- [ ] MS-32.B5 Inbox as modal/sheet from top bar (#202)
+- [ ] MS-32.B6 Phase B verification and smoke test (#203)
+
+### Phase C: Home Screen Redesign _(plan TBD)_
+
+- [ ] MS-32.C1 Remove analytics cards from Home screen (#204)
+- [ ] MS-32.C2 Redesign hero card with 3 states (#205)
+- [ ] MS-32.C3 Add quick stats row — Income | Spent | Net (#206)
+- [ ] MS-32.C4 Reorder and polish remaining Home sections (#207)
+- [ ] MS-32.C5 Phase C verification and smoke test (#208)
+
+### Phase D: Envelopes Screen _(plan TBD)_
+
+- [ ] MS-32.D1 Card-based envelope rows with amount badge (#209)
+- [ ] MS-32.D2 Gradient progress bars with glow (#210)
+- [ ] MS-32.D3 Collapsible group headers with chevron (#211)
+- [ ] MS-32.D4 Goal celebration confetti on 100% (#212)
+- [ ] MS-32.D5 Phase D verification and smoke test (#213)
+
+### Phase E: Activity Screen _(plan TBD)_
+
+- [ ] MS-32.E1 Rename Transactions to Activity (#214)
+- [ ] MS-32.E2 Filter chips row (#215)
+- [ ] MS-32.E3 Month picker and envelope name on rows (#216)
+- [ ] MS-32.E4 Phase E verification and smoke test (#217)
+
+### Phase F: Insights Tab (new) _(plan TBD)_
+
+- [ ] MS-32.F1 Create Insights tab screen scaffold (#218)
+- [ ] MS-32.F2 Fix spending donut and move analytics cards (#219)
+- [ ] MS-32.F3 Weekly nudge and debt progress on Insights (#220)
+- [ ] MS-32.F4 Cash flow forecast on Insights (#221)
+- [ ] MS-32.F5 Phase F verification and smoke test (#222)
+
+### Phase G: Chat Screen (FAB modal) _(plan TBD)_
+
+- [ ] MS-32.G1 Full-screen modal with spring animation (#223)
+- [ ] MS-32.G2 Chat history icon in header (#224)
+- [ ] MS-32.G3 Animated gold dots typing indicator (#225)
+- [ ] MS-32.G4 Phase G verification and smoke test (#226)
+
+### Phase H: Celebrations + Animations _(plan TBD)_
+
+- [ ] MS-32.H1 Confetti animation utility (#227)
+- [ ] MS-32.H2 Envelope goal reached celebration (#228)
+- [ ] MS-32.H3 Inbox cleared celebration (#229)
+- [ ] MS-32.H4 Debt paid off and first budget celebrations (#230)
+- [ ] MS-32.H5 Phase H verification and smoke test (#231)
 
 ### Phase 32 Smoke Check (Phase A)
 - [x] Buttons are pill-shaped with press animation across all screens
