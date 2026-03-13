@@ -43,11 +43,9 @@ export function TopBar({ onInboxPress, onProfilePress }: Props) {
         >
           <IconSymbol name="tray.fill" size={22} color={colors.textMid} />
           {inboxCount > 0 && (
-            <View style={styles.badge}>
-              <Text style={styles.badgeText}>
-                {inboxCount > 99 ? "99+" : inboxCount}
-              </Text>
-            </View>
+            <Text style={styles.badge}>
+              {inboxCount > 99 ? "99+" : inboxCount}
+            </Text>
           )}
         </Pressable>
 
@@ -92,18 +90,16 @@ const createStyles = (c: ColorTokens) =>
     badge: {
       position: "absolute",
       top: -6,
-      right: -8,
-      minWidth: 16,
-      height: 16,
-      borderRadius: 8,
+      right: -10,
+      borderRadius: 9,
       backgroundColor: c.error,
-      alignItems: "center",
-      justifyContent: "center",
-      paddingHorizontal: 3,
-    },
-    badgeText: {
-      fontSize: 9,
+      textAlign: "center",
+      overflow: "hidden",
+      paddingHorizontal: 4,
+      paddingVertical: 2,
+      fontSize: 10,
       fontWeight: FontWeight.bold,
       color: "#fff",
+      width: 30, // explicit — absolute pos inside 22pt icon constrains auto-width
     },
   });
