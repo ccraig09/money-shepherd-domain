@@ -1,5 +1,6 @@
-import React from "react";
+import React, { useRef } from "react";
 import {
+  Animated,
   Pressable,
   Text,
   ActivityIndicator,
@@ -9,6 +10,8 @@ import {
 } from "react-native";
 import { Spacing, Radius, FontSize, FontWeight, type ColorTokens } from "../tokens";
 import { useThemedStyles, useTheme } from "../ThemeProvider";
+
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 type Variant = "primary" | "secondary" | "destructive" | "outline";
 
@@ -31,17 +34,32 @@ export function Button({
 }: Props) {
   const styles = useThemedStyles(createStyles);
   const { colors } = useTheme();
+  const scale = useRef(new Animated.Value(1)).current;
+
+  const onPressIn = () => {
+    Animated.spring(scale, {
+      toValue: 0.97,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const onPressOut = () => {
+    Animated.spring(scale, {
+      toValue: 1,
+      useNativeDriver: true,
+    }).start();
+  };
 
   const bgMap: Record<Variant, string> = {
     primary: colors.primary,
-    secondary: colors.surfaceLight,
+    secondary: colors.primarySurface,
     destructive: colors.error,
     outline: "transparent",
   };
 
   const textMap: Record<Variant, string> = {
     primary: colors.textOnColor,
-    secondary: colors.textDark,
+    secondary: colors.primary,
     destructive: colors.textOnColor,
     outline: colors.primary,
   };
@@ -53,6 +71,8 @@ export function Button({
     outline: colors.primary,
   };
 
+  const hasShadow = variant === "primary" || variant === "destructive";
+
   const bg = bgMap[variant];
   const textColor = textMap[variant];
   const border = borderMap[variant];
@@ -60,7 +80,8 @@ export function Button({
   const containerStyle: ViewStyle[] = [
     styles.base,
     { backgroundColor: bg },
-    border ? { borderWidth: 1, borderColor: border } : undefined,
+    hasShadow ? styles.shadow : undefined,
+    border ? { borderWidth: 1.5, borderColor: border } : undefined,
     disabled ? styles.disabled : undefined,
     style,
   ].filter(Boolean) as ViewStyle[];
@@ -72,10 +93,12 @@ export function Button({
   ].filter(Boolean) as TextStyle[];
 
   return (
-    <Pressable
+    <AnimatedPressable
       onPress={onPress}
+      onPressIn={onPressIn}
+      onPressOut={onPressOut}
       disabled={disabled || loading}
-      style={containerStyle}
+      style={[containerStyle, { transform: [{ scale }] }]}
       accessibilityLabel={label}
       accessibilityRole="button"
       accessibilityState={{ disabled: disabled || loading }}
@@ -85,18 +108,25 @@ export function Button({
       ) : (
         <Text style={labelStyle}>{label}</Text>
       )}
-    </Pressable>
+    </AnimatedPressable>
   );
 }
 
 const createStyles = (c: ColorTokens) => StyleSheet.create({
   base: {
-    borderRadius: Radius.lg,
+    borderRadius: Radius.pill,
     paddingVertical: Spacing.md,
     paddingHorizontal: Spacing.lg,
     minHeight: 44,
     alignItems: "center",
     justifyContent: "center",
+  },
+  shadow: {
+    shadowColor: c.primary,
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 3,
   },
   label: {
     fontSize: FontSize.body,
