@@ -22,7 +22,7 @@ export const Radius = {
   sm: 8,
   md: 10,
   lg: 12,
-  xl: 14,
+  xl: 18,
   hero: 20,
   /** True pill / full-round */
   pill: 999,
@@ -112,6 +112,21 @@ export const lightColors = {
 
   // ── Shadow ────────────────────────────────
   shadowColor: "#2c2416",
+
+  // ── Gradient endpoints ────────────────────
+  primaryGradientEnd: "#d4a017",
+  successGradientStart: "#b8860b",
+  successGradientEnd: "#2d8a4e",
+
+  // ── Component-specific ────────────────────
+  /** Warm white for upgraded cards */
+  cardSurface: "#fdf9f0",
+  /** Dark warm for active filter chips */
+  filterChipActive: "#2c2416",
+  /** Gold border on active filter chips */
+  filterChipActiveBorder: "#b8860b",
+  /** Red for over-assigned hero card state */
+  heroOverAssigned: "#e84040",
 } as const;
 
 /** Color token shape — used by ThemeProvider. Keys match lightColors, values are hex strings. */
@@ -173,6 +188,17 @@ export const darkColors: ColorTokens = {
 
   // ── Shadow ────────────────────────────────
   shadowColor: "#000000",
+
+  // ── Gradient endpoints ────────────────────
+  primaryGradientEnd: "#e8b830",
+  successGradientStart: "#d4a017",
+  successGradientEnd: "#4caf6a",
+
+  // ── Component-specific ────────────────────
+  cardSurface: "#201c16",
+  filterChipActive: "#f0ebe4",
+  filterChipActiveBorder: "#d4a017",
+  heroOverAssigned: "#ef5350",
 } as const;
 
 /**
@@ -192,16 +218,16 @@ export const Shadow = {
   },
   md: {
     shadowColor: "#2c2416",
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 4,
+    shadowOpacity: 0.10,
+    shadowRadius: 16,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 5,
   },
   lg: {
     shadowColor: "#2c2416",
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 6,
+    shadowOpacity: 0.12,
+    shadowRadius: 20,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 8,
   },
 } as const;

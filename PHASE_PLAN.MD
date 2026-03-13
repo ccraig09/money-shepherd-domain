@@ -890,6 +890,40 @@ Plaid access tokens are stored in `expo-secure-store` (device keychain) and neve
 
 ---
 
+## Phase 32: UI Polish & Navigation Redesign
+
+> **Goal:** Make Money Shepherd visually competitive with modern fintech apps (YNAB, Copilot, Monarch) — warm-premium look, floating pill tab bar, streamlined navigation, celebration moments.
+> **Design spec:** `docs/superpowers/specs/2026-03-12-ui-polish-design.md`
+
+### Phase A: Foundational Component Upgrades
+**Plan:** `docs/superpowers/plans/2026-03-13-ui-polish-phase-a.md`
+
+- [x] MS-32.1 Update design tokens for UI polish (#190)
+- [ ] MS-32.2 Upgrade Button to pill shape with press animation (#191)
+- [ ] MS-32.3 Upgrade Card with shadow, warm bg, hero variant (#192)
+- [ ] MS-32.4 Upgrade ProgressBar with 6px height, animation, glow (#193)
+- [ ] MS-32.5 Refine SectionHeader with tighter size and wider tracking (#194)
+- [ ] MS-32.6 Add FilterChip component (#195)
+- [ ] MS-32.7 Refine SuggestedChips with gold outline style (#196)
+- [ ] MS-32.8 Phase A final verification and smoke test (#197)
+
+### Phase B: Tab Bar + Navigation Wiring _(plan + tickets TBD)_
+### Phase C: Home Screen Redesign _(plan + tickets TBD)_
+### Phase D: Envelopes Screen _(plan + tickets TBD)_
+### Phase E: Activity Screen _(plan + tickets TBD)_
+### Phase F: Insights Tab (new) _(plan + tickets TBD)_
+### Phase G: Chat Screen (FAB modal) _(plan + tickets TBD)_
+### Phase H: Celebrations + Animations _(plan + tickets TBD)_
+
+### Phase 32 Smoke Check (Phase A)
+- [ ] Buttons are pill-shaped with press animation across all screens
+- [ ] Cards have warm shadow and rounded corners (18px)
+- [ ] Progress bars are 6px with animated entrance and gold/green color
+- [ ] Section headers are refined (smaller, wider tracking)
+- [ ] No visual regressions on any existing screen
+
+---
+
 ## Future UX Backlog (unscheduled)
 
 - [ ] Subscription intelligence (detect new/unused/price-changed recurring charges)
