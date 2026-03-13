@@ -146,6 +146,8 @@ export default function DashboardScreen() {
   }
 
   const availableCents = state.budget.availableToAssign.cents;
+  const heroState: "over-assigned" | "surplus" | "normal" =
+    availableCents < 0 ? "over-assigned" : availableCents > 0 ? "surplus" : "normal";
 
   return (
     <ScrollView
@@ -169,12 +171,35 @@ export default function DashboardScreen() {
       {/* Greeting + envelope health */}
       <GreetingCard envelopes={state.budget.envelopes} />
 
-      {/* Available to Assign — hero card */}
-      <View style={styles.heroCard}>
+      {/* Available to Assign — hero card with 3 states */}
+      <Pressable
+        style={[
+          styles.heroCard,
+          heroState === "over-assigned" && styles.heroCardOverAssigned,
+        ]}
+        onPress={() => {
+          if (heroState === "over-assigned") {
+            setAtaModalVisible(true);
+          } else {
+            router.push("/fill-envelopes");
+          }
+        }}
+        accessibilityLabel={
+          heroState === "over-assigned"
+            ? "Over-assigned — tap for details"
+            : "Available to assign — tap to fill envelopes"
+        }
+        accessibilityRole="button"
+      >
         <View style={styles.heroLabelRow}>
-          <Text style={styles.heroLabel}>Available to Assign</Text>
+          <Text style={styles.heroLabel}>
+            {heroState === "over-assigned" ? "⚠ Assigned Too Much" : "Available to Assign"}
+          </Text>
           <Pressable
-            onPress={() => setAtaModalVisible(true)}
+            onPress={(e) => {
+              e.stopPropagation();
+              setAtaModalVisible(true);
+            }}
             hitSlop={8}
             accessibilityLabel="How is this calculated?"
             accessibilityRole="button"
@@ -184,21 +209,24 @@ export default function DashboardScreen() {
             </View>
           </Pressable>
         </View>
-        <Text
-          style={[
-            styles.heroAmount,
-            availableCents < 0 && styles.heroAmountNegative,
-          ]}
-        >
+        <Text style={styles.heroAmount}>
           ${formatMoney(availableCents)}
         </Text>
         <View style={styles.heroStat}>
-          <Text style={styles.heroStatLabel}>Total in envelopes</Text>
+          <Text style={styles.heroStatLabel}>
+            {heroState === "over-assigned"
+              ? "Review your envelopes"
+              : heroState === "surplus"
+                ? "✦ Ready to Fill"
+                : "Total in envelopes"}
+          </Text>
           <Text style={styles.heroStatValue}>
-            ${formatMoney(totalEnvelopeCents)}
+            {heroState === "over-assigned"
+              ? `−$${formatMoney(Math.abs(availableCents))} over`
+              : `$${formatMoney(totalEnvelopeCents)}`}
           </Text>
         </View>
-      </View>
+      </Pressable>
 
       {/* ATA Explainer Modal */}
       <Modal
@@ -432,7 +460,7 @@ const createStyles = (c: ColorTokens) => StyleSheet.create({
   },
   appName: { fontSize: FontSize.small, fontWeight: FontWeight.semibold, color: c.primary, textTransform: "uppercase" as const, letterSpacing: 1 },
 
-  // Hero card
+  // Hero card — 3 states: normal (gold), surplus (deep gold), over-assigned (red)
   heroCard: {
     marginHorizontal: Spacing.base,
     marginBottom: Spacing.base,
@@ -442,10 +470,12 @@ const createStyles = (c: ColorTokens) => StyleSheet.create({
     paddingHorizontal: Spacing.lg,
     gap: Spacing.xs,
   },
+  heroCardOverAssigned: {
+    backgroundColor: c.heroOverAssigned,
+  },
   heroLabelRow: { flexDirection: "row", alignItems: "center", gap: Spacing.xs },
-  heroLabel: { fontSize: FontSize.small, color: "rgba(255,255,255,0.75)", fontWeight: FontWeight.semibold, textTransform: "uppercase" as const, letterSpacing: 0.5 },
+  heroLabel: { fontSize: FontSize.small, color: "rgba(255,255,255,0.85)", fontWeight: FontWeight.semibold, textTransform: "uppercase" as const, letterSpacing: 0.5 },
   heroAmount: { fontSize: FontSize.hero, fontWeight: FontWeight.extrabold, color: c.textOnColor, marginTop: Spacing.xs },
-  heroAmountNegative: { color: c.heroNegative },
   heroStat: {
     flexDirection: "row",
     justifyContent: "space-between",
