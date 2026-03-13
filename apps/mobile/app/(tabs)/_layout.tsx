@@ -1,59 +1,88 @@
-import { Tabs } from 'expo-router';
-import React from 'react';
+import { Tabs, router } from "expo-router";
+import { View, StyleSheet } from "react-native";
+import React from "react";
 
-import { HapticTab } from '@/components/haptic-tab';
-import { IconSymbol } from '@/components/ui/icon-symbol';
-import { useTheme } from '@/src/ui/ThemeProvider';
+import { IconSymbol } from "@/components/ui/icon-symbol";
+import { FloatingTabBar } from "@/src/ui/components/FloatingTabBar";
+import { TopBar } from "@/src/ui/components/TopBar";
+import { FAB } from "@/src/ui/components/FAB";
+import { useTheme } from "@/src/ui/ThemeProvider";
 
 export default function TabLayout() {
   const { colors } = useTheme();
+
   return (
-    <Tabs
-      screenOptions={{
-        tabBarActiveTintColor: colors.primary,
-        tabBarInactiveTintColor: colors.textMuted,
-        tabBarStyle: {
-          backgroundColor: colors.surface,
-          borderTopColor: colors.borderLight,
-        },
-        headerShown: false,
-        tabBarButton: HapticTab,
-      }}>
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: 'Home',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
-        }}
+    <View style={[styles.root, { backgroundColor: colors.surface }]}>
+      <TopBar
+        onInboxPress={() => router.push("/inbox")}
+        onProfilePress={() => router.push("/settings")}
       />
-      <Tabs.Screen
-        name="inbox"
-        options={{
-          title: 'Inbox',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="tray.fill" color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="envelopes"
-        options={{
-          title: 'Envelopes',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="envelope.fill" color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="transactions"
-        options={{
-          title: 'Transactions',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="list.bullet" color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="settings"
-        options={{
-          title: 'Settings',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="gearshape.fill" color={color} />,
-        }}
-      />
-    </Tabs>
+
+      <View style={styles.content}>
+        <Tabs
+          screenOptions={{ headerShown: false }}
+          tabBar={(props) => <FloatingTabBar {...props} />}
+        >
+          <Tabs.Screen
+            name="index"
+            options={{
+              title: "Home",
+              tabBarIcon: ({ color, size }) => (
+                <IconSymbol name="house.fill" size={size} color={color} />
+              ),
+            }}
+          />
+          <Tabs.Screen
+            name="envelopes"
+            options={{
+              title: "Envelopes",
+              tabBarIcon: ({ color, size }) => (
+                <IconSymbol name="envelope.fill" size={size} color={color} />
+              ),
+            }}
+          />
+          <Tabs.Screen
+            name="transactions"
+            options={{
+              title: "Activity",
+              tabBarIcon: ({ color, size }) => (
+                <IconSymbol name="list.bullet" size={size} color={color} />
+              ),
+            }}
+          />
+          <Tabs.Screen
+            name="insights"
+            options={{
+              title: "Insights",
+              tabBarIcon: ({ color, size }) => (
+                <IconSymbol name="chart.bar.fill" size={size} color={color} />
+              ),
+            }}
+          />
+
+          {/* Hidden tabs — accessible via TopBar icons, not shown in tab bar */}
+          <Tabs.Screen name="inbox" options={{ href: null }} />
+          <Tabs.Screen name="settings" options={{ href: null }} />
+        </Tabs>
+      </View>
+
+      <View style={styles.fabContainer}>
+        <FAB onPress={() => router.push("/chat")} />
+      </View>
+    </View>
   );
 }
+
+const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+  },
+  content: {
+    flex: 1,
+  },
+  fabContainer: {
+    position: "absolute",
+    right: 20,
+    bottom: 80,
+  },
+});

@@ -19,6 +19,10 @@ export function FloatingTabBar({ state, descriptors, navigation }: BottomTabBarP
     <View style={[styles.container, { bottom: Math.max(insets.bottom, 12) }]}>
       {state.routes.map((route, index) => {
         const { options } = descriptors[route.key];
+
+        // Skip tabs without an icon (hidden via href: null, e.g. inbox, settings)
+        if (!options.tabBarIcon) return null;
+
         const label = options.title ?? route.name;
         const isFocused = state.index === index;
 

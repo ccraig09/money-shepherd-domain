@@ -22,6 +22,7 @@ const MAPPING = {
   'envelope.fill': 'mail',
   'list.bullet': 'format-list-bulleted',
   'gearshape.fill': 'settings',
+  'chart.bar.fill': 'bar-chart',
 } as IconMapping;
 
 /**
