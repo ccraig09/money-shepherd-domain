@@ -918,7 +918,7 @@ Plaid access tokens are stored in `expo-secure-store` (device keychain) and neve
 
 ### Phase C: Home Screen Redesign _(plan TBD)_
 
-- [ ] MS-32.C1 Remove analytics cards from Home screen (#204)
+- [x] MS-32.C1 Remove analytics cards from Home screen (#204)
 - [ ] MS-32.C2 Redesign hero card with 3 states (#205)
 - [ ] MS-32.C3 Add quick stats row — Income | Spent | Net (#206)
 - [ ] MS-32.C4 Reorder and polish remaining Home sections (#207)

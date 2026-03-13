@@ -15,21 +15,13 @@ import { SyncIndicator } from "../../src/ui/components/SyncIndicator";
 import { ScriptureStrip } from "../../src/ui/components/ScriptureStrip";
 import { GreetingCard } from "../../src/ui/components/GreetingCard";
 import { Card } from "../../src/ui/components/Card";
-import { ProgressBar } from "../../src/ui/components/ProgressBar";
-import { SectionHeader } from "../../src/ui/components/SectionHeader";
 import { AccountsCard } from "../../src/ui/components/AccountsCard";
 import { InsightCard } from "../../src/ui/components/InsightCard";
-import { SpendingDonutCard, MonthlyTrendCard } from "../../src/ui/components/charts";
 import { Spacing, Radius, FontSize, FontWeight, type ColorTokens } from "../../src/ui/tokens";
 import { useTheme, useThemedStyles } from "@/src/ui/ThemeProvider";
-import { getThisMonthSummary, getMonthlyTrend } from "../../src/lib/periodSummary";
-import { getCurrentPeriod, getFundingInPeriod, getSpendingInPeriod, generateInsights, groupEnvelopes, getWeeklySummary, getCashFlowForecast } from "@money-shepherd/domain";
+import { getThisMonthSummary } from "../../src/lib/periodSummary";
+import { getCurrentPeriod, getFundingInPeriod, getSpendingInPeriod, generateInsights } from "@money-shepherd/domain";
 import type { InsightType } from "@money-shepherd/domain";
-import { MonthlyReviewCard } from "../../src/ui/components/MonthlyReviewCard";
-import { WeeklyNudgeCard } from "../../src/ui/components/WeeklyNudgeCard";
-import { CashFlowForecastCard } from "../../src/ui/components/CashFlowForecastCard";
-import { ShepherdAvatar } from "../../src/ui/components/ShepherdAvatar";
-import { Features } from "../../src/config/features";
 
 const SEVERITY_PRIORITY: Record<string, number> = { warning: 0, info: 1, success: 2 };
 
@@ -106,29 +98,6 @@ export default function DashboardScreen() {
     }, 0);
   }, [state]);
 
-  const monthlyTrend = useMemo(() => {
-    if (!state) return [];
-    const now = new Date().toISOString().slice(0, 10);
-    return getMonthlyTrend(state.transactions, now, 6);
-  }, [state]);
-
-  const weeklySummary = useMemo(() => {
-    if (!state) return null;
-    const now = new Date().toISOString().slice(0, 10);
-    return getWeeklySummary(
-      state.transactions,
-      state.inbox.assignmentsByTransactionId,
-      state.budget.envelopes,
-      now,
-    );
-  }, [state]);
-
-  const cashFlowForecast = useMemo(() => {
-    if (!state) return null;
-    const now = new Date().toISOString().slice(0, 10);
-    return getCashFlowForecast(state.transactions, now);
-  }, [state]);
-
   // Insights engine
   const [dismissedTypes, setDismissedTypes] = useState<Set<InsightType>>(new Set());
 
@@ -168,17 +137,6 @@ export default function DashboardScreen() {
     }
   }, [refreshFromPlaid, syncNow]);
 
-  const hasGroups = (state?.envelopeGroups ?? []).length > 0;
-  const groupedPreview = useMemo(() => {
-    if (!state || !hasGroups) return [];
-    const groups = state.envelopeGroups ?? [];
-    return groupEnvelopes(state.budget.envelopes, groups).map((g) => ({
-      group: g.group,
-      count: g.envelopes.length,
-      totalCents: g.envelopes.reduce((sum, e) => sum + e.balance.cents, 0),
-    }));
-  }, [state, hasGroups]);
-
   if (!state) {
     return (
       <View style={styles.center}>
@@ -188,8 +146,6 @@ export default function DashboardScreen() {
   }
 
   const availableCents = state.budget.availableToAssign.cents;
-
-  const envelopes = state.budget.envelopes.slice(0, 5);
 
   return (
     <ScrollView
@@ -291,35 +247,6 @@ export default function DashboardScreen() {
         <InsightCard insight={topInsight} onDismiss={dismissInsight} />
       )}
 
-      {/* Ask Money Shepherd — chat entry point */}
-      {Features.AI_CHAT && (
-        <Pressable
-          onPress={() => router.push("/chat")}
-          style={styles.chatCard}
-          accessibilityLabel="Ask Money Shepherd"
-        >
-          <ShepherdAvatar size={36} />
-          <View style={styles.chatCardBody}>
-            <Text style={styles.chatCardTitle}>Ask Money Shepherd</Text>
-            <Text style={styles.chatCardSub}>
-              Get advice, make changes, or ask about your budget
-            </Text>
-          </View>
-          <Text style={styles.chatCardArrow}>›</Text>
-        </Pressable>
-      )}
-
-      {/* Monthly Review nudge — AI-powered month-over-month comparison */}
-      {Features.AI_ADVISOR && monthSummary && monthSummary.spendingCents > 0 && (
-        <MonthlyReviewCard onPress={() => router.push("/monthly-review")} />
-      )}
-
-      {/* Weekly spending nudge */}
-      {weeklySummary && <WeeklyNudgeCard summary={weeklySummary} />}
-
-      {/* Cash flow forecast */}
-      {cashFlowForecast && <CashFlowForecastCard forecast={cashFlowForecast} />}
-
       {/* This Month summary */}
       {monthSummary && (monthSummary.incomeCents > 0 || monthSummary.spendingCents > 0) && (
         <Card style={styles.monthCard} onPress={() => router.push("/period-summary")} accessibilityLabel="View monthly summary">
@@ -375,17 +302,6 @@ export default function DashboardScreen() {
           )}
         </Card>
       )}
-
-      {/* Spending breakdown donut */}
-      {monthSummary && monthSummary.spendingCents > 0 && (
-        <SpendingDonutCard
-          envelopes={state.budget.envelopes}
-          spentByEnvelope={monthSummary.spentByEnvelope}
-        />
-      )}
-
-      {/* Monthly income vs expense trend */}
-      <MonthlyTrendCard trend={monthlyTrend} />
 
       {/* Debt Freedom card */}
       {debtSummary && (() => {
@@ -498,113 +414,6 @@ export default function DashboardScreen() {
         </View>
       )}
 
-      {/* Envelopes preview */}
-      <SectionHeader
-        title="Envelopes"
-        actionLabel={state.budget.envelopes.length > 0 ? "See all" : undefined}
-        onAction={state.budget.envelopes.length > 0 ? () => router.push("/(tabs)/envelopes") : undefined}
-      />
-
-      {state.budget.envelopes.length === 0 ? (
-        <Card style={styles.emptyEnvelopes}>
-          <Text style={styles.emptyText}>No envelopes yet.</Text>
-          <Pressable
-            onPress={() => router.push("/create-envelope")}
-            style={styles.emptyEnvelopeBtn}
-            accessibilityLabel="Create your first envelope"
-            accessibilityRole="button"
-          >
-            <Text style={styles.emptyEnvelopeBtnText}>Create your first envelope</Text>
-          </Pressable>
-        </Card>
-      ) : hasGroups ? (
-        <Card>
-          {groupedPreview.map((g) => {
-            const isUngrouped = g.group.id === "__ungrouped__";
-            const isZero = g.totalCents === 0;
-            const isNegative = g.totalCents < 0;
-            return (
-              <Pressable
-                key={g.group.id}
-                style={styles.groupRow}
-                onPress={() => router.push("/(tabs)/envelopes")}
-                accessibilityLabel={`${g.group.name} group, ${g.count} envelopes`}
-                accessibilityRole="button"
-              >
-                <View style={styles.groupRowLeft}>
-                  <Text style={[styles.groupRowName, isUngrouped && styles.groupRowNameMuted]}>
-                    {g.group.name}
-                  </Text>
-                  <Text style={styles.groupRowCount}>{g.count}</Text>
-                </View>
-                <Text
-                  style={[
-                    styles.groupRowBalance,
-                    isZero && styles.groupRowBalanceZero,
-                    isNegative && styles.groupRowBalanceNegative,
-                  ]}
-                >
-                  ${formatMoney(g.totalCents)}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </Card>
-      ) : (
-        <Card>
-          {envelopes.map((env) => {
-            const isNegative = env.balance.cents < 0;
-            return (
-              <Pressable
-                key={env.id}
-                style={styles.envelopeRow}
-                onPress={() =>
-                  router.push({
-                    pathname: "/envelope/[envelopeId]",
-                    params: { envelopeId: env.id },
-                  })
-                }
-                accessibilityLabel={`${env.name} envelope`}
-                accessibilityRole="button"
-              >
-                <View style={styles.envelopeRowContent}>
-                  <View style={styles.envelopeRowTop}>
-                    <View style={styles.envelopeNameRow}>
-                      <Text style={styles.envelopeName} numberOfLines={1}>
-                        {env.name}
-                      </Text>
-                      {env.type === "giving" && (
-                        <View style={styles.givingBadge} accessibilityLabel="Giving envelope">
-                          <Text style={styles.givingBadgeText}>GIVING</Text>
-                        </View>
-                      )}
-                      {isNegative && (
-                        <View style={styles.overspentBadge} accessibilityLabel="Overspent">
-                          <Text style={styles.overspentBadgeText}>OVERSPENT</Text>
-                        </View>
-                      )}
-                    </View>
-                    <Text
-                      style={[
-                        styles.envelopeBalance,
-                        isNegative && styles.envelopeBalanceNegative,
-                      ]}
-                    >
-                      ${formatMoney(env.balance.cents)}
-                    </Text>
-                  </View>
-                  {monthSummary && (monthSummary.spentByEnvelope[env.id] ?? 0) > 0 && (
-                    <Text style={styles.envelopeSpentMonth}>
-                      ${formatMoney(monthSummary.spentByEnvelope[env.id])} spent this month
-                    </Text>
-                  )}
-                  <ProgressBar balance={env.balance.cents} goal={env.goal?.cents} />
-                </View>
-              </Pressable>
-            );
-          })}
-        </Card>
-      )}
     </ScrollView>
   );
 }
@@ -732,35 +541,6 @@ const createStyles = (c: ColorTokens) => StyleSheet.create({
     fontSize: FontSize.body,
     fontWeight: FontWeight.semibold,
     color: c.primary,
-  },
-
-  // Ask Money Shepherd card
-  chatCard: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginHorizontal: Spacing.base,
-    marginBottom: Spacing.base,
-    padding: Spacing.base,
-    borderRadius: Radius.xl,
-    backgroundColor: c.primarySurface,
-    borderWidth: 1,
-    borderColor: c.borderWarning,
-    gap: Spacing.md,
-  },
-  chatCardBody: { flex: 1, gap: 2 },
-  chatCardTitle: {
-    fontSize: FontSize.body,
-    fontWeight: FontWeight.semibold,
-    color: c.textDark,
-  },
-  chatCardSub: {
-    fontSize: FontSize.caption,
-    color: c.textMuted,
-  },
-  chatCardArrow: {
-    fontSize: 22,
-    color: c.primary,
-    fontWeight: FontWeight.bold,
   },
 
   // This Month card
@@ -971,83 +751,4 @@ const createStyles = (c: ColorTokens) => StyleSheet.create({
   // Accounts
   accountsSection: { marginBottom: Spacing.lg },
 
-  // Grouped envelope preview
-  groupRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: Spacing.base,
-    paddingVertical: Spacing.md,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderColor: c.borderLight,
-  },
-  groupRowLeft: { flexDirection: "row", alignItems: "center", gap: Spacing.sm, flex: 1 },
-  groupRowName: {
-    fontSize: FontSize.small,
-    fontWeight: FontWeight.bold,
-    color: c.textDark,
-    textTransform: "uppercase" as const,
-    letterSpacing: 0.5,
-  },
-  groupRowNameMuted: { color: c.textMuted, fontWeight: FontWeight.semibold },
-  groupRowCount: {
-    fontSize: FontSize.caption,
-    color: c.textMuted,
-    backgroundColor: c.borderLight,
-    paddingHorizontal: 6,
-    paddingVertical: 1,
-    borderRadius: Radius.sm,
-    overflow: "hidden" as const,
-  },
-  groupRowBalance: { fontSize: FontSize.subtitle, fontWeight: FontWeight.bold, color: c.textDark, marginLeft: Spacing.md },
-  groupRowBalanceZero: { color: c.textSubtle },
-  groupRowBalanceNegative: { color: c.error },
-
-  // Envelopes
-  emptyEnvelopes: {
-    padding: Spacing.lg,
-    backgroundColor: c.surfaceLight,
-    alignItems: "center",
-    gap: Spacing.sm,
-  },
-  emptyText: { fontSize: FontSize.body, color: c.textMuted, textAlign: "center" },
-  emptyEnvelopeBtn: {
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.md,
-    borderRadius: Radius.md,
-    backgroundColor: c.primary,
-  },
-  emptyEnvelopeBtnText: { color: c.textOnColor, fontWeight: FontWeight.semibold, fontSize: FontSize.body },
-  envelopeRow: {
-    paddingHorizontal: Spacing.base,
-    paddingVertical: Spacing.md,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderColor: c.borderLight,
-    backgroundColor: c.surface,
-  },
-  envelopeRowContent: { gap: Spacing.sm },
-  envelopeRowTop: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  envelopeNameRow: { flexDirection: "row", alignItems: "center", gap: Spacing.xs, flex: 1 },
-  envelopeName: { fontSize: FontSize.body, fontWeight: FontWeight.medium, color: c.textDark, flexShrink: 1 },
-  overspentBadge: {
-    paddingHorizontal: 5,
-    paddingVertical: 1,
-    borderRadius: Radius.sm,
-    backgroundColor: c.errorSurface,
-  },
-  overspentBadgeText: { fontSize: 9, fontWeight: FontWeight.bold, color: c.error, letterSpacing: 0.5 },
-  givingBadge: {
-    paddingHorizontal: 5,
-    paddingVertical: 1,
-    borderRadius: Radius.sm,
-    backgroundColor: c.givingSurface,
-  },
-  givingBadgeText: { fontSize: 9, fontWeight: FontWeight.bold, color: c.giving, letterSpacing: 0.5 },
-  envelopeSpentMonth: { fontSize: FontSize.caption, color: c.textMuted },
-  envelopeBalance: { fontSize: FontSize.body, fontWeight: FontWeight.semibold, color: c.success, marginLeft: Spacing.md },
-  envelopeBalanceNegative: { color: c.error },
 });
