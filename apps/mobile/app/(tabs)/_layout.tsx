@@ -60,8 +60,7 @@ export default function TabLayout() {
             }}
           />
 
-          {/* Hidden tabs — accessible via TopBar icons, not shown in tab bar */}
-          <Tabs.Screen name="inbox" options={{ href: null }} />
+          {/* Hidden tab — accessible via TopBar profile icon, not shown in tab bar */}
           <Tabs.Screen name="settings" options={{ href: null }} />
         </Tabs>
       </View>

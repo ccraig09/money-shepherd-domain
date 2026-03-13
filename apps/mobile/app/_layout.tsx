@@ -123,6 +123,10 @@ function RootLayoutInner() {
           </Stack.Protected>
 
           <Stack.Screen
+            name="inbox"
+            options={{ presentation: "modal", headerShown: false }}
+          />
+          <Stack.Screen
             name="add-transaction"
             options={{ presentation: "modal", title: "Add Transaction" }}
           />

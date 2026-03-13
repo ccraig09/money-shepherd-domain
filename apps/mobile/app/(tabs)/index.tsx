@@ -451,7 +451,7 @@ export default function DashboardScreen() {
       {unassignedExpenseCount > 0 && (
         <Pressable
           style={styles.nudge}
-          onPress={() => router.push("/(tabs)/inbox")}
+          onPress={() => router.push("/inbox")}
           accessibilityLabel="Go to inbox to assign transactions"
           accessibilityRole="button"
         >

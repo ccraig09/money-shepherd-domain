@@ -913,7 +913,7 @@ Plaid access tokens are stored in `expo-secure-store` (device keychain) and neve
 - [x] MS-32.B2 Build TopBar component — logo, inbox badge, profile avatar (#199)
 - [x] MS-32.B3 Build FAB component — gold sparkle button (#200)
 - [x] MS-32.B4 Restructure tab layout from 5 tabs to 4 (#201)
-- [ ] MS-32.B5 Inbox as modal/sheet from top bar (#202)
+- [x] MS-32.B5 Inbox as modal/sheet from top bar (#202)
 - [ ] MS-32.B6 Phase B verification and smoke test (#203)
 
 ### Phase C: Home Screen Redesign _(plan TBD)_
