@@ -51,16 +51,16 @@ const createStyles = (c: ColorTokens) =>
       paddingHorizontal: Spacing.base,
       paddingVertical: Spacing.sm,
       borderRadius: Radius.pill,
-      borderWidth: 1,
+      borderWidth: 1.5,
       borderColor: c.primary,
-      backgroundColor: c.primarySurface,
+      backgroundColor: "transparent",
     },
     chipPressed: {
-      backgroundColor: c.primary,
+      backgroundColor: c.primarySurface,
     },
     chipText: {
       fontSize: FontSize.small,
-      fontWeight: FontWeight.medium,
+      fontWeight: FontWeight.semibold,
       color: c.primary,
     },
   });
