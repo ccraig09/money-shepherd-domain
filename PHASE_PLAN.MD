@@ -903,8 +903,8 @@ Plaid access tokens are stored in `expo-secure-store` (device keychain) and neve
 - [x] MS-32.3 Upgrade Card with shadow, warm bg, hero variant (#192)
 - [x] MS-32.4 Upgrade ProgressBar with 6px height, animation, glow (#193)
 - [x] MS-32.5 Refine SectionHeader with tighter size and wider tracking (#194)
-- [ ] MS-32.6 Add FilterChip component (#195)
-- [ ] MS-32.7 Refine SuggestedChips with gold outline style (#196)
+- [x] MS-32.6 Add FilterChip component (#195)
+- [x] MS-32.7 Refine SuggestedChips with gold outline style (#196)
 - [ ] MS-32.8 Phase A final verification and smoke test (#197)
 
 ### Phase B: Tab Bar + Navigation Wiring _(plan + tickets TBD)_
