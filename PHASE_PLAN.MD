@@ -905,7 +905,7 @@ Plaid access tokens are stored in `expo-secure-store` (device keychain) and neve
 - [x] MS-32.5 Refine SectionHeader with tighter size and wider tracking (#194)
 - [x] MS-32.6 Add FilterChip component (#195)
 - [x] MS-32.7 Refine SuggestedChips with gold outline style (#196)
-- [ ] MS-32.8 Phase A final verification and smoke test (#197)
+- [x] MS-32.8 Phase A final verification and smoke test (#197)
 
 ### Phase B: Tab Bar + Navigation Wiring _(plan + tickets TBD)_
 ### Phase C: Home Screen Redesign _(plan + tickets TBD)_
@@ -916,11 +916,11 @@ Plaid access tokens are stored in `expo-secure-store` (device keychain) and neve
 ### Phase H: Celebrations + Animations _(plan + tickets TBD)_
 
 ### Phase 32 Smoke Check (Phase A)
-- [ ] Buttons are pill-shaped with press animation across all screens
-- [ ] Cards have warm shadow and rounded corners (18px)
-- [ ] Progress bars are 6px with animated entrance and gold/green color
-- [ ] Section headers are refined (smaller, wider tracking)
-- [ ] No visual regressions on any existing screen
+- [x] Buttons are pill-shaped with press animation across all screens
+- [x] Cards have warm shadow and rounded corners (18px)
+- [x] Progress bars are 6px with animated entrance and gold/green color
+- [x] Section headers are refined (smaller, wider tracking)
+- [x] No visual regressions on any existing screen
 
 ---
 
