@@ -909,7 +909,7 @@ Plaid access tokens are stored in `expo-secure-store` (device keychain) and neve
 
 ### Phase B: Tab Bar + Navigation Wiring _(plan TBD)_
 
-- [ ] MS-32.B1 Build custom floating pill tab bar component (#198)
+- [x] MS-32.B1 Build custom floating pill tab bar component (#198)
 - [ ] MS-32.B2 Build TopBar component — logo, inbox badge, profile avatar (#199)
 - [ ] MS-32.B3 Build FAB component — gold sparkle button (#200)
 - [ ] MS-32.B4 Restructure tab layout from 5 tabs to 4 (#201)
