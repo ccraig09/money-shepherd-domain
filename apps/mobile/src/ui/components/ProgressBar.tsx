@@ -1,5 +1,5 @@
-import React from "react";
-import { View, StyleSheet } from "react-native";
+import React, { useRef, useEffect } from "react";
+import { Animated, View, StyleSheet } from "react-native";
 import { Radius, type ColorTokens } from "../tokens";
 import { useThemedStyles, useTheme } from "../ThemeProvider";
 
@@ -12,14 +12,15 @@ type Props = {
 
 function getColor(ratio: number, isNegative: boolean, colors: ColorTokens): string {
   if (isNegative) return colors.error;
-  if (ratio > 0.3) return colors.success;
-  if (ratio > 0.1) return colors.warning;
-  return colors.error;
+  if (ratio > 0.7) return colors.success;
+  if (ratio > 0.3) return colors.primary;
+  return colors.warning;
 }
 
 export function ProgressBar({ balance, goal }: Props) {
   const styles = useThemedStyles(createStyles);
   const { colors } = useTheme();
+  const anim = useRef(new Animated.Value(0)).current;
 
   const isNegative = balance < 0;
 
@@ -27,11 +28,9 @@ export function ProgressBar({ balance, goal }: Props) {
   let color: string;
 
   if (goal && goal > 0) {
-    // Goal mode: balance / goal, clamped 0–1
     ratio = Math.max(0, Math.min(1, balance / goal));
     color = getColor(ratio, isNegative, colors);
   } else {
-    // Status mode: full if positive, empty if zero, full red if negative
     if (isNegative) {
       ratio = 1;
       color = colors.error;
@@ -44,13 +43,30 @@ export function ProgressBar({ balance, goal }: Props) {
     }
   }
 
+  useEffect(() => {
+    Animated.timing(anim, {
+      toValue: 1,
+      duration: 600,
+      useNativeDriver: false,
+    }).start();
+  }, [anim]);
+
+  const widthPercent = Math.round(ratio * 100);
+
   return (
     <View style={styles.track}>
       {ratio > 0 && (
-        <View
+        <Animated.View
           style={[
             styles.fill,
-            { width: `${Math.round(ratio * 100)}%`, backgroundColor: color },
+            {
+              backgroundColor: color,
+              shadowColor: color,
+              width: anim.interpolate({
+                inputRange: [0, 1],
+                outputRange: ["0%", `${widthPercent}%`],
+              }),
+            },
           ]}
         />
       )}
@@ -60,13 +76,16 @@ export function ProgressBar({ balance, goal }: Props) {
 
 const createStyles = (c: ColorTokens) => StyleSheet.create({
   track: {
-    height: 3,
+    height: 6,
     borderRadius: Radius.pill,
     backgroundColor: c.borderLight,
-    overflow: "hidden",
   },
   fill: {
-    height: 3,
+    height: 6,
     borderRadius: Radius.pill,
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 1 },
+    elevation: 2,
   },
 });
