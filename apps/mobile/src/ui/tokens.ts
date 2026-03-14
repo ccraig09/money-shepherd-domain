@@ -115,8 +115,8 @@ export const lightColors = {
 
   // ── Gradient endpoints ────────────────────
   primaryGradientEnd: "#d4a017",
-  successGradientStart: "#b8860b",
-  successGradientEnd: "#2d8a4e",
+  successGradientStart: "#d4a017",
+  successGradientEnd: "#38a55c",
 
   // ── Component-specific ────────────────────
   /** Warm white for upgraded cards */

@@ -1,5 +1,6 @@
-import React, { useRef, useEffect } from "react";
-import { Animated, View, StyleSheet } from "react-native";
+import React, { useRef, useEffect, useState } from "react";
+import { Animated, View, StyleSheet, type LayoutChangeEvent } from "react-native";
+import Svg, { Defs, LinearGradient as SvgGradient, Stop, Rect } from "react-native-svg";
 import { Radius, type ColorTokens } from "../tokens";
 import { useThemedStyles, useTheme } from "../ThemeProvider";
 
@@ -10,38 +11,31 @@ type Props = {
   goal?: number;
 };
 
-function getColor(ratio: number, isNegative: boolean, colors: ColorTokens): string {
-  if (isNegative) return colors.error;
-  if (ratio > 0.7) return colors.success;
-  if (ratio > 0.3) return colors.primary;
-  return colors.warning;
-}
-
 export function ProgressBar({ balance, goal }: Props) {
   const styles = useThemedStyles(createStyles);
   const { colors } = useTheme();
   const anim = useRef(new Animated.Value(0)).current;
+  const [trackWidth, setTrackWidth] = useState(0);
 
   const isNegative = balance < 0;
 
   let ratio: number;
-  let color: string;
 
   if (goal && goal > 0) {
     ratio = Math.max(0, Math.min(1, balance / goal));
-    color = getColor(ratio, isNegative, colors);
   } else {
     if (isNegative) {
       ratio = 1;
-      color = colors.error;
     } else if (balance === 0) {
       ratio = 0;
-      color = colors.success;
     } else {
       ratio = 1;
-      color = colors.success;
     }
   }
+
+  const useGrad = !isNegative && ratio > 0;
+  const solidColor = isNegative ? colors.error : colors.success;
+  const glowColor = isNegative ? colors.error : colors.successGradientEnd;
 
   useEffect(() => {
     Animated.timing(anim, {
@@ -53,22 +47,38 @@ export function ProgressBar({ balance, goal }: Props) {
 
   const widthPercent = Math.round(ratio * 100);
 
+  const onLayout = (e: LayoutChangeEvent) => {
+    setTrackWidth(e.nativeEvent.layout.width);
+  };
+
   return (
-    <View style={styles.track}>
-      {ratio > 0 && (
+    <View style={styles.track} onLayout={onLayout}>
+      {ratio > 0 && trackWidth > 0 && (
         <Animated.View
           style={[
             styles.fill,
             {
-              backgroundColor: color,
-              shadowColor: color,
+              shadowColor: glowColor,
               width: anim.interpolate({
                 inputRange: [0, 1],
-                outputRange: ["0%", `${widthPercent}%`],
+                outputRange: [0, (widthPercent / 100) * trackWidth],
               }),
             },
+            !useGrad && { backgroundColor: solidColor },
           ]}
-        />
+        >
+          {useGrad && (
+            <Svg width={trackWidth} height={6}>
+              <Defs>
+                <SvgGradient id="barGrad" x1="0" y1="0" x2="1" y2="0">
+                  <Stop offset="0" stopColor={colors.successGradientStart} />
+                  <Stop offset="1" stopColor={colors.successGradientEnd} />
+                </SvgGradient>
+              </Defs>
+              <Rect x="0" y="0" width={trackWidth} height={6} rx={3} fill="url(#barGrad)" />
+            </Svg>
+          )}
+        </Animated.View>
       )}
     </View>
   );
@@ -83,9 +93,10 @@ const createStyles = (c: ColorTokens) => StyleSheet.create({
   fill: {
     height: 6,
     borderRadius: Radius.pill,
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
+    overflow: "hidden",
+    shadowOpacity: 0.4,
+    shadowRadius: 6,
     shadowOffset: { width: 0, height: 1 },
-    elevation: 2,
+    elevation: 3,
   },
 });
