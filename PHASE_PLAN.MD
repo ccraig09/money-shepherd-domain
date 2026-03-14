@@ -961,7 +961,7 @@ Plaid access tokens are stored in `expo-secure-store` (device keychain) and neve
 
 ### Phase H: Celebrations + Animations _(plan TBD)_
 
-- [ ] MS-32.H1 Confetti animation utility (#227)
+- [x] MS-32.H1 Confetti animation utility (#227)
 - [ ] MS-32.H2 Envelope goal reached celebration (#228)
 - [ ] MS-32.H3 Inbox cleared celebration (#229)
 - [ ] MS-32.H4 Debt paid off and first budget celebrations (#230)
