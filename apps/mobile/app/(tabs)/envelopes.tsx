@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   View,
   Text,
@@ -8,7 +8,9 @@ import {
   Alert,
   Modal,
   TextInput,
+  Animated,
 } from "react-native";
+import ReAnimated, { FadeIn, FadeOut } from "react-native-reanimated";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router } from "expo-router";
 import { useAppStore } from "../../src/store/useAppStore";
@@ -48,6 +50,15 @@ export default function EnvelopesScreen() {
   const [groupModalInput, setGroupModalInput] = useState("");
   const [groupModalTarget, setGroupModalTarget] = useState<EnvelopeGroup | null>(null);
 
+  // Chevron rotation animations — one per group
+  const chevronAnims = useRef(new Map<string, Animated.Value>()).current;
+  const getChevronAnim = useCallback((groupId: string, isCollapsed: boolean) => {
+    if (!chevronAnims.has(groupId)) {
+      chevronAnims.set(groupId, new Animated.Value(isCollapsed ? 0 : 1));
+    }
+    return chevronAnims.get(groupId)!;
+  }, [chevronAnims]);
+
   useEffect(() => {
     AsyncStorage.getItem(SORT_KEY).then((v) => {
       if (v === "alpha" || v === "balance" || v === "giving") setSortOrder(v);
@@ -62,8 +73,21 @@ export default function EnvelopesScreen() {
   function toggleCollapse(groupId: string) {
     setCollapsed((prev) => {
       const next = new Set(prev);
-      if (next.has(groupId)) next.delete(groupId);
-      else next.add(groupId);
+      const willCollapse = !next.has(groupId);
+      if (willCollapse) next.add(groupId);
+      else next.delete(groupId);
+
+      // Animate chevron
+      const anim = chevronAnims.get(groupId);
+      if (anim) {
+        Animated.spring(anim, {
+          toValue: willCollapse ? 0 : 1,
+          useNativeDriver: true,
+          speed: 20,
+          bounciness: 4,
+        }).start();
+      }
+
       return next;
     });
   }
@@ -238,6 +262,11 @@ export default function EnvelopesScreen() {
               renderSectionHeader={({ section }) => {
                 const isCollapsed = collapsed.has(section.group.id);
                 const isUngrouped = section.group.id === "__ungrouped__";
+                const chevronAnim = getChevronAnim(section.group.id, isCollapsed);
+                const chevronRotate = chevronAnim.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: ["0deg", "90deg"],
+                });
                 return (
                   <Pressable
                     style={styles.sectionHeader}
@@ -247,9 +276,14 @@ export default function EnvelopesScreen() {
                     accessibilityRole="button"
                   >
                     <View style={styles.sectionHeaderLeft}>
-                      <Text style={styles.chevron}>
-                        {isCollapsed ? "\u25B8" : "\u25BE"}
-                      </Text>
+                      <Animated.Text
+                        style={[
+                          styles.chevron,
+                          { transform: [{ rotate: chevronRotate }] },
+                        ]}
+                      >
+                        {"\u25B8"}
+                      </Animated.Text>
                       <Text style={[styles.sectionHeaderName, isUngrouped && styles.sectionHeaderNameMuted]}>
                         {section.group.name}
                       </Text>
@@ -271,6 +305,7 @@ export default function EnvelopesScreen() {
                 const isDebt = item.type === "debt";
                 const isSavings = item.type === "savings";
                 return (
+                  <ReAnimated.View entering={FadeIn.duration(250)} exiting={FadeOut.duration(150)}>
                   <Pressable
                     style={styles.row}
                     onPress={() => {
@@ -339,6 +374,7 @@ export default function EnvelopesScreen() {
                       ) : null}
                     </View>
                   </Pressable>
+                  </ReAnimated.View>
                 );
               }}
             />
