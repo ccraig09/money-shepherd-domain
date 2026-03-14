@@ -69,22 +69,22 @@ const createStyles = (c: ColorTokens) => StyleSheet.create({
     gap: Spacing.sm,
   },
   iconBadge: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
     alignItems: "center",
     justifyContent: "center",
   },
   iconText: {
     color: c.textOnColor,
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: FontWeight.bold,
   },
   title: {
     flex: 1,
     fontSize: FontSize.small,
-    fontWeight: FontWeight.semibold,
-    color: c.textMid,
+    fontWeight: FontWeight.bold,
+    color: c.textDark,
     letterSpacing: 0.3,
   },
   dismiss: {
