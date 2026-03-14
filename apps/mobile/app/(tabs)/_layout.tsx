@@ -1,4 +1,4 @@
-import { Tabs, router } from "expo-router";
+import { Tabs, router, usePathname } from "expo-router";
 import { View, StyleSheet } from "react-native";
 import React from "react";
 
@@ -10,6 +10,8 @@ import { useTheme } from "@/src/ui/ThemeProvider";
 
 export default function TabLayout() {
   const { colors } = useTheme();
+  const pathname = usePathname();
+  const isChatOpen = pathname.startsWith("/chat");
 
   return (
     <View style={[styles.root, { backgroundColor: colors.surface }]}>
@@ -65,9 +67,11 @@ export default function TabLayout() {
         </Tabs>
       </View>
 
-      <View style={styles.fabContainer}>
-        <FAB onPress={() => router.push("/chat")} />
-      </View>
+      {!isChatOpen && (
+        <View style={styles.fabContainer}>
+          <FAB onPress={() => router.push("/chat")} />
+        </View>
+      )}
     </View>
   );
 }

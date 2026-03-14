@@ -954,7 +954,7 @@ Plaid access tokens are stored in `expo-secure-store` (device keychain) and neve
 
 ### Phase G: Chat Screen (FAB modal) _(plan TBD)_
 
-- [ ] MS-32.G1 Full-screen modal with spring animation (#223)
+- [x] MS-32.G1 Full-screen modal with spring animation (#223)
 - [ ] MS-32.G2 Chat history icon in header (#224)
 - [ ] MS-32.G3 Animated gold dots typing indicator (#225)
 - [ ] MS-32.G4 Phase G verification and smoke test (#226)

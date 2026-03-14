@@ -192,7 +192,7 @@ function RootLayoutInner() {
           />
           <Stack.Screen
             name="chat"
-            options={{ title: "Money Shepherd", headerBackTitle: "Home" }}
+            options={{ presentation: "modal", headerShown: false, gestureEnabled: true }}
           />
           <Stack.Screen
             name="chat-history"

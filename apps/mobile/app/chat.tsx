@@ -9,6 +9,7 @@ import {
   Platform,
   StyleSheet,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router, useLocalSearchParams } from "expo-router";
 import { ChatBubble, type ChatMessage } from "../src/ui/components/ChatBubble";
 import { ShepherdAvatar } from "../src/ui/components/ShepherdAvatar";
@@ -37,9 +38,12 @@ import type { ChatSession } from "@/src/infra/local/chatSessions";
 import { useTTS } from "@/src/lib/useTTS";
 import { FloatingTTSBar } from "@/src/ui/components/FloatingTTSBar";
 
+const HEADER_H = 52;
+
 export default function ChatScreen() {
   const styles = useThemedStyles(createStyles);
   const { colors } = useTheme();
+  const insets = useSafeAreaInsets();
   const { sessionId } = useLocalSearchParams<{ sessionId?: string }>();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputText, setInputText] = useState("");
@@ -282,122 +286,139 @@ export default function ChatScreen() {
     lastExecutedAction;
 
   return (
-    <KeyboardAvoidingView
-      style={styles.root}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-      keyboardVerticalOffset={100}
-    >
-      {isEmpty ? (
-        <View style={styles.emptyState}>
-          <ShepherdAvatar size={56} />
-          <Text style={styles.emptyTitle}>Ask Money Shepherd</Text>
-          <Text style={styles.emptySubtitle}>
-            Your personal budget advisor. Ask about your spending, get
-            suggestions, or make changes — all through conversation.
-          </Text>
-          <View style={styles.chipsContainer}>
-            <Text style={styles.chipsLabel}>Try asking:</Text>
-            <SuggestedChips onSelect={handleChipSelect} />
+    <View style={styles.root}>
+      {/* Custom header — replaces native Stack header */}
+      <View style={[styles.chatHeader, { paddingTop: insets.top }]}>
+        <ShepherdAvatar size={28} />
+        <Text style={styles.chatTitle}>Money Shepherd</Text>
+        <Pressable
+          onPress={() => router.back()}
+          hitSlop={8}
+          style={styles.closeBtn}
+          accessibilityLabel="Close chat"
+          accessibilityRole="button"
+        >
+          <Text style={styles.closeBtnText}>✕</Text>
+        </Pressable>
+      </View>
+
+      <KeyboardAvoidingView
+        style={styles.messageArea}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={insets.top + HEADER_H}
+      >
+        {isEmpty ? (
+          <View style={styles.emptyState}>
+            <ShepherdAvatar size={56} />
+            <Text style={styles.emptyTitle}>Ask Money Shepherd</Text>
+            <Text style={styles.emptySubtitle}>
+              Your personal budget advisor. Ask about your spending, get
+              suggestions, or make changes — all through conversation.
+            </Text>
+            <View style={styles.chipsContainer}>
+              <Text style={styles.chipsLabel}>Try asking:</Text>
+              <SuggestedChips onSelect={handleChipSelect} />
+            </View>
+            <Pressable
+              style={styles.historyLink}
+              onPress={() => router.push("/chat-history")}
+              accessibilityLabel="View past conversations"
+            >
+              <Text style={styles.historyLinkText}>View past conversations</Text>
+            </Pressable>
           </View>
-          <Pressable
-            style={styles.historyLink}
-            onPress={() => router.push("/chat-history")}
-            accessibilityLabel="View past conversations"
-          >
-            <Text style={styles.historyLinkText}>View past conversations</Text>
-          </Pressable>
-        </View>
-      ) : (
-        <FlatList
-          ref={flatListRef}
-          data={messages}
-          keyExtractor={(m) => m.id}
-          renderItem={({ item }) => (
-            <ChatBubble
-              message={item}
-              onConfirmAction={handleConfirmAction}
-              onCancelAction={handleCancelAction}
-              envelopeLookup={envelopeLookup}
-              onTTSPlay={play}
-            />
-          )}
-          contentContainerStyle={styles.messageList}
-          onContentSizeChange={() =>
-            flatListRef.current?.scrollToEnd({ animated: true })
-          }
-          ListHeaderComponent={
-            isReadOnly ? null : (
-              <Pressable
-                style={styles.newChatBtn}
-                onPress={handleNewConversationWithTTS}
-                accessibilityLabel="Start new conversation"
-              >
-                <Text style={styles.newChatBtnText}>+ New conversation</Text>
-              </Pressable>
-            )
-          }
-          ListFooterComponent={
-            <>
-              {isTyping && (
-                <View style={styles.typingRow}>
-                  <ShepherdAvatar size={28} />
-                  <View style={styles.typingBubble}>
-                    <Text style={styles.typingDots}>...</Text>
+        ) : (
+          <FlatList
+            ref={flatListRef}
+            data={messages}
+            keyExtractor={(m) => m.id}
+            renderItem={({ item }) => (
+              <ChatBubble
+                message={item}
+                onConfirmAction={handleConfirmAction}
+                onCancelAction={handleCancelAction}
+                envelopeLookup={envelopeLookup}
+                onTTSPlay={play}
+              />
+            )}
+            contentContainerStyle={styles.messageList}
+            onContentSizeChange={() =>
+              flatListRef.current?.scrollToEnd({ animated: true })
+            }
+            ListHeaderComponent={
+              isReadOnly ? null : (
+                <Pressable
+                  style={styles.newChatBtn}
+                  onPress={handleNewConversationWithTTS}
+                  accessibilityLabel="Start new conversation"
+                >
+                  <Text style={styles.newChatBtnText}>+ New conversation</Text>
+                </Pressable>
+              )
+            }
+            ListFooterComponent={
+              <>
+                {isTyping && (
+                  <View style={styles.typingRow}>
+                    <ShepherdAvatar size={28} />
+                    <View style={styles.typingBubble}>
+                      <Text style={styles.typingDots}>...</Text>
+                    </View>
                   </View>
-                </View>
-              )}
-              {showFollowUp && lastExecutedAction && (
-                <FollowUpChips
-                  action={lastExecutedAction}
-                  onSelect={handleChipSelect}
-                />
-              )}
-            </>
-          }
-        />
-      )}
-
-      {/* Floating TTS bar — visible when playing/paused */}
-      <FloatingTTSBar
-        ttsState={ttsState}
-        currentSnippet={currentSnippet}
-        onPause={pause}
-        onResume={resume}
-        onSkipPrev={skipPrev}
-        onSkipNext={skipNext}
-        onStop={stop}
-      />
-
-      {/* Input bar — hidden in read-only mode */}
-      {!isReadOnly && (
-        <View style={styles.inputBar}>
-          <TextInput
-            style={styles.input}
-            placeholder="Ask anything about your budget..."
-            placeholderTextColor={colors.textSubtle}
-            value={inputText}
-            onChangeText={setInputText}
-            multiline
-            maxLength={500}
-            returnKeyType="send"
-            blurOnSubmit
-            onSubmitEditing={() => sendMessage(inputText)}
-            accessibilityLabel="Chat message input"
+                )}
+                {showFollowUp && lastExecutedAction && (
+                  <FollowUpChips
+                    action={lastExecutedAction}
+                    onSelect={handleChipSelect}
+                  />
+                )}
+              </>
+            }
           />
-          <Pressable
-            onPress={() => sendMessage(inputText)}
-            style={[
-              styles.sendBtn,
-              !inputText.trim() && styles.sendBtnDisabled,
-            ]}
-            disabled={!inputText.trim() || isTyping}
-            accessibilityLabel="Send message"
-          >
-            <Text style={styles.sendBtnText}>↑</Text>
-          </Pressable>
-        </View>
-      )}
-    </KeyboardAvoidingView>
+        )}
+
+        {/* Floating TTS bar — visible when playing/paused */}
+        <FloatingTTSBar
+          ttsState={ttsState}
+          currentSnippet={currentSnippet}
+          onPause={pause}
+          onResume={resume}
+          onSkipPrev={skipPrev}
+          onSkipNext={skipNext}
+          onStop={stop}
+        />
+
+        {/* Input bar — hidden in read-only mode */}
+        {!isReadOnly && (
+          <View style={styles.inputBar}>
+            <TextInput
+              style={styles.input}
+              placeholder="Ask anything about your budget..."
+              placeholderTextColor={colors.textSubtle}
+              value={inputText}
+              onChangeText={setInputText}
+              multiline
+              maxLength={500}
+              returnKeyType="send"
+              blurOnSubmit
+              onSubmitEditing={() => sendMessage(inputText)}
+              accessibilityLabel="Chat message input"
+            />
+            <Pressable
+              onPress={() => sendMessage(inputText)}
+              style={[
+                styles.sendBtn,
+                !inputText.trim() && styles.sendBtnDisabled,
+              ]}
+              disabled={!inputText.trim() || isTyping}
+              accessibilityLabel="Send message"
+            >
+              <Text style={styles.sendBtnText}>↑</Text>
+            </Pressable>
+          </View>
+        )}
+      </KeyboardAvoidingView>
+    </View>
   );
 }
 
@@ -406,6 +427,34 @@ const createStyles = (c: ColorTokens) =>
     root: {
       flex: 1,
       backgroundColor: c.surface,
+    },
+
+    // ── Modal header ───────────────────────────
+    chatHeader: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingHorizontal: Spacing.base,
+      paddingBottom: Spacing.sm,
+      minHeight: HEADER_H,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderColor: c.borderLight,
+      gap: Spacing.sm,
+    },
+    chatTitle: {
+      flex: 1,
+      fontSize: FontSize.subtitle,
+      fontWeight: FontWeight.semibold,
+      color: c.textDark,
+    },
+    closeBtn: {
+      padding: Spacing.xs,
+    },
+    closeBtnText: {
+      fontSize: 18,
+      color: c.textMuted,
+    },
+    messageArea: {
+      flex: 1,
     },
 
     // ── Empty state ────────────────────────────
