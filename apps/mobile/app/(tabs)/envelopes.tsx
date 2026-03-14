@@ -18,7 +18,7 @@ import type { Envelope, EnvelopeGroup } from "@money-shepherd/domain";
 import { Card } from "../../src/ui/components/Card";
 import { ProgressBar } from "../../src/ui/components/ProgressBar";
 import { HelpTooltip } from "../../src/ui/components/HelpTooltip";
-import { Spacing, Radius, FontSize, FontWeight, type ColorTokens } from "../../src/ui/tokens";
+import { Spacing, Radius, FontSize, FontWeight, Shadow, type ColorTokens } from "../../src/ui/tokens";
 import { useThemedStyles, useTheme } from "@/src/ui/ThemeProvider";
 
 type SortOrder = "alpha" | "balance" | "giving";
@@ -151,17 +151,19 @@ export default function EnvelopesScreen() {
         <View style={styles.headerActions}>
           <Pressable
             onPress={() => router.push("/allocate")}
-            style={styles.allocateBtn}
+            style={styles.actionChip}
             accessibilityLabel="Allocate funds"
           >
-            <Text style={styles.allocateBtnText}>$ Allocate</Text>
+            <Text style={styles.actionChipIcon}>$</Text>
+            <Text style={styles.actionChipLabel}>Allocate</Text>
           </Pressable>
           <Pressable
             onPress={openCreateGroupModal}
-            style={styles.groupBtn}
+            style={styles.actionChip}
             accessibilityLabel="Create group"
           >
-            <Text style={styles.groupBtnText}>+ Group</Text>
+            <Text style={styles.actionChipIcon}>⊞</Text>
+            <Text style={styles.actionChipLabel}>Group</Text>
           </Pressable>
           <Pressable
             onPress={() => router.push("/create-envelope")}
@@ -224,11 +226,11 @@ export default function EnvelopesScreen() {
             </Pressable>
           </View>
 
-          <Card style={styles.listCard}>
             <SectionList
+              style={styles.listCard}
+              contentContainerStyle={styles.listContent}
               sections={sections}
               keyExtractor={(e) => e.id}
-              scrollEnabled={false}
               stickySectionHeadersEnabled={false}
               SectionSeparatorComponent={({ leadingItem, leadingSection, trailingSection }) =>
                 leadingItem && trailingSection ? <View style={styles.sectionGap} /> : null
@@ -299,21 +301,37 @@ export default function EnvelopesScreen() {
                             </View>
                           )}
                         </View>
-                        <Text
+                        <View
                           style={[
-                            styles.rowBalance,
-                            isNegative && styles.rowBalanceNegative,
-                            isZero && styles.rowBalanceZero,
+                            styles.amountBadge,
+                            isNegative
+                              ? styles.amountBadgeNegative
+                              : isZero
+                                ? styles.amountBadgeZero
+                                : styles.amountBadgeFunded,
                           ]}
                         >
-                          ${formatMoney(item.balance.cents)}
-                        </Text>
+                          <Text
+                            style={[
+                              styles.amountBadgeText,
+                              isNegative
+                                ? styles.amountBadgeTextNegative
+                                : isZero
+                                  ? styles.amountBadgeTextZero
+                                  : styles.amountBadgeTextFunded,
+                            ]}
+                          >
+                            ${formatMoney(item.balance.cents)}
+                          </Text>
+                        </View>
                       </View>
                       {item.goal && item.goal.cents > 0 ? (
                         <View style={styles.progressArea}>
                           <ProgressBar balance={item.balance.cents} goal={item.goal.cents} />
-                          <Text style={styles.goalHint}>
-                            ${formatMoney(item.balance.cents)} of ${formatMoney(item.goal.cents)}
+                          <Text style={[styles.goalHint, item.balance.cents >= item.goal.cents && styles.goalHintFunded]}>
+                            {item.balance.cents >= item.goal.cents
+                              ? "Funded"
+                              : `$${formatMoney(item.goal.cents - item.balance.cents)} more needed`}
                           </Text>
                         </View>
                       ) : isZero ? (
@@ -324,7 +342,6 @@ export default function EnvelopesScreen() {
                 );
               }}
             />
-          </Card>
         </>
       )}
 
@@ -387,30 +404,33 @@ const createStyles = (c: ColorTokens) => StyleSheet.create({
   },
   titleRow: { flexDirection: "row", alignItems: "center", gap: Spacing.sm },
   title: { fontSize: FontSize.title, fontWeight: FontWeight.bold, color: c.textDark },
-  headerActions: { flexDirection: "row", gap: Spacing.sm },
-  allocateBtn: {
+  headerActions: { flexDirection: "row", alignItems: "center", gap: Spacing.sm },
+  actionChip: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.sm,
     borderRadius: Radius.pill,
-    borderWidth: 1,
-    borderColor: c.primary,
+    backgroundColor: c.surfaceLight,
   },
-  allocateBtnText: { color: c.primary, fontWeight: FontWeight.semibold, fontSize: FontSize.body },
-  groupBtn: {
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    borderRadius: Radius.pill,
-    borderWidth: 1,
-    borderColor: c.border,
+  actionChipIcon: {
+    fontSize: FontSize.small,
+    fontWeight: FontWeight.bold,
+    color: c.textMid,
   },
-  groupBtnText: { color: c.textMid, fontWeight: FontWeight.semibold, fontSize: FontSize.body },
+  actionChipLabel: {
+    fontSize: FontSize.small,
+    fontWeight: FontWeight.semibold,
+    color: c.textMid,
+  },
   addBtn: {
     paddingHorizontal: Spacing.base,
     paddingVertical: Spacing.sm,
     borderRadius: Radius.pill,
     backgroundColor: c.primary,
   },
-  addBtnText: { color: c.textOnColor, fontWeight: FontWeight.semibold, fontSize: FontSize.body },
+  addBtnText: { color: c.textOnColor, fontWeight: FontWeight.bold, fontSize: FontSize.small },
 
   // Sort toggle
   sortRow: {
@@ -485,12 +505,16 @@ const createStyles = (c: ColorTokens) => StyleSheet.create({
 
   // List
   listCard: { marginTop: Spacing.xs },
+  listContent: { paddingBottom: Spacing.bottomPad },
   row: {
+    marginHorizontal: Spacing.md,
+    marginVertical: Spacing.xs,
     paddingHorizontal: Spacing.base,
-    paddingVertical: Spacing.base,
+    paddingVertical: Spacing.md,
     minHeight: 44,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderColor: c.borderLight,
+    backgroundColor: c.cardSurface,
+    borderRadius: Radius.lg,
+    ...Shadow.sm,
   },
   rowContent: { gap: Spacing.sm },
   rowTop: {
@@ -500,13 +524,27 @@ const createStyles = (c: ColorTokens) => StyleSheet.create({
   },
   rowNameArea: { flexDirection: "row", alignItems: "center", gap: Spacing.xs, flex: 1 },
   rowName: { fontSize: FontSize.subtitle, fontWeight: FontWeight.medium, color: c.textDark, flexShrink: 1 },
-  rowBalance: { fontSize: FontSize.subtitle, fontWeight: FontWeight.semibold, color: c.textDark, marginLeft: Spacing.md },
-  rowBalanceNegative: { color: c.error },
-  rowBalanceZero: { color: c.textSubtle },
+  amountBadge: {
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.xs,
+    borderRadius: Radius.pill,
+    marginLeft: Spacing.sm,
+  },
+  amountBadgeFunded: { backgroundColor: c.primarySurface },
+  amountBadgeZero: { backgroundColor: c.surfaceLight },
+  amountBadgeNegative: { backgroundColor: c.errorSurface },
+  amountBadgeText: {
+    fontSize: FontSize.small,
+    fontWeight: FontWeight.bold,
+  },
+  amountBadgeTextFunded: { color: c.primaryDark },
+  amountBadgeTextZero: { color: c.textSubtle },
+  amountBadgeTextNegative: { color: c.error },
 
   // Progress + goal hint
   progressArea: { gap: 3 },
   goalHint: { fontSize: FontSize.caption, color: c.textMuted },
+  goalHintFunded: { color: c.success, fontWeight: FontWeight.semibold },
   needsFunding: { fontSize: FontSize.caption, color: c.textSubtle, fontStyle: "italic" },
 
   // Type badges

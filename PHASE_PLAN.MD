@@ -930,7 +930,7 @@ Plaid access tokens are stored in `expo-secure-store` (device keychain) and neve
 
 ### Phase D: Envelopes Screen _(plan TBD)_
 
-- [ ] MS-32.D1 Card-based envelope rows with amount badge (#209)
+- [x] MS-32.D1 Card-based envelope rows with amount badge (#209)
 - [ ] MS-32.D2 Gradient progress bars with glow (#210)
 - [ ] MS-32.D3 Collapsible group headers with chevron (#211)
 - [ ] MS-32.D4 Goal celebration confetti on 100% (#212)
