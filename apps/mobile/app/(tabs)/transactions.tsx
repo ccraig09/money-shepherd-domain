@@ -113,7 +113,7 @@ export default function TransactionsScreen() {
     <View style={styles.root}>
       <View style={styles.header}>
         <View>
-          <Text style={styles.title}>Transactions</Text>
+          <Text style={styles.title}>Activity</Text>
           {Features.PLAID && lastPlaidRefreshAt && (
             <Text style={styles.lastSynced}>
               Last synced {formatTimeAgo(lastPlaidRefreshAt)}
