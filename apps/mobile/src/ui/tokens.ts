@@ -120,7 +120,7 @@ export const lightColors = {
 
   // ── Component-specific ────────────────────
   /** Warm white for upgraded cards */
-  cardSurface: "#fdf9f0",
+  cardSurface: "#fef7ed",
   /** Dark warm for active filter chips */
   filterChipActive: "#2c2416",
   /** Gold border on active filter chips */
