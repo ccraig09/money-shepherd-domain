@@ -10,7 +10,6 @@ import {
   TextInput,
   Animated,
 } from "react-native";
-import ReAnimated, { FadeIn, FadeOut } from "react-native-reanimated";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router } from "expo-router";
 import { useAppStore } from "../../src/store/useAppStore";
@@ -20,6 +19,7 @@ import type { Envelope, EnvelopeGroup } from "@money-shepherd/domain";
 import { Card } from "../../src/ui/components/Card";
 import { ProgressBar } from "../../src/ui/components/ProgressBar";
 import { HelpTooltip } from "../../src/ui/components/HelpTooltip";
+import { Confetti, type ConfettiRef } from "../../src/ui/components/Confetti";
 import { Spacing, Radius, FontSize, FontWeight, Shadow, type ColorTokens } from "../../src/ui/tokens";
 import { useThemedStyles, useTheme } from "@/src/ui/ThemeProvider";
 
@@ -44,6 +44,23 @@ export default function EnvelopesScreen() {
 
   const [sortOrder, setSortOrder] = useState<SortOrder>("giving");
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
+
+  // Confetti + celebration tracking
+  const confettiRef = useRef<ConfettiRef>(null);
+  const celebrated = useRef(new Set<string>()).current;
+  const mountedRef = useRef(false);
+  const showToast = useAppStore((s) => s.showToast);
+
+  // Pre-populate celebrated set on first render so we don't fire for already-completed goals
+  useEffect(() => {
+    if (!state || mountedRef.current) return;
+    mountedRef.current = true;
+    for (const env of state.budget.envelopes) {
+      if (env.goal && env.goal.cents > 0 && env.balance.cents >= env.goal.cents) {
+        celebrated.add(env.id);
+      }
+    }
+  }, [state, celebrated]);
 
   // Group name modal state
   const [groupModalVisible, setGroupModalVisible] = useState(false);
@@ -164,6 +181,7 @@ export default function EnvelopesScreen() {
 
   return (
     <View style={styles.root}>
+      <Confetti ref={confettiRef} />
       <View style={styles.header}>
         <View style={styles.titleRow}>
           <Text style={styles.title}>Envelopes</Text>
@@ -304,8 +322,22 @@ export default function EnvelopesScreen() {
                 const isGiving = item.type === "giving";
                 const isDebt = item.type === "debt";
                 const isSavings = item.type === "savings";
+
+                // Celebrate goal completion (once per envelope)
+                if (
+                  item.goal &&
+                  item.goal.cents > 0 &&
+                  item.balance.cents >= item.goal.cents &&
+                  !celebrated.has(item.id)
+                ) {
+                  celebrated.add(item.id);
+                  setTimeout(() => {
+                    confettiRef.current?.fire();
+                    showToast(`${item.name} goal reached!`, "success");
+                  }, 0);
+                }
+
                 return (
-                  <ReAnimated.View entering={FadeIn.duration(250)} exiting={FadeOut.duration(150)}>
                   <Pressable
                     style={styles.row}
                     onPress={() => {
@@ -374,7 +406,6 @@ export default function EnvelopesScreen() {
                       ) : null}
                     </View>
                   </Pressable>
-                  </ReAnimated.View>
                 );
               }}
             />
