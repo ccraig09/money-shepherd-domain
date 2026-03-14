@@ -4,6 +4,7 @@ import {
   Text,
   TextInput,
   SectionList,
+  ScrollView,
   Pressable,
   StyleSheet,
   ActivityIndicator,
@@ -31,7 +32,9 @@ export default function TransactionsScreen() {
   const showToast = useAppStore((s) => s.showToast);
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [showTransfers, setShowTransfers] = useState(false);
+
+  type FilterKey = "all" | "expenses" | "income" | "transfers" | "pending" | "unassigned";
+  const [activeFilter, setActiveFilter] = useState<FilterKey>("all");
 
   // Re-render every 30s so "Xm ago" stays fresh
   const [, setTick] = useState(0);
@@ -61,18 +64,49 @@ export default function TransactionsScreen() {
     return accounts.find((a) => a.id === accountId)?.name ?? accountId;
   }
 
-  const transferCount = useMemo(
-    () => state?.transactions.filter((tx) => tx.isTransfer).length ?? 0,
-    [state],
-  );
+  const filterCounts = useMemo(() => {
+    if (!state) return { all: 0, expenses: 0, income: 0, transfers: 0, pending: 0, unassigned: 0 };
+    const assigned = new Set(
+      Object.values(state.inbox.assignmentsByTransactionId).map((a) => a.transactionId),
+    );
+    const txs = state.transactions;
+    return {
+      all: txs.filter((tx) => !tx.isTransfer).length,
+      expenses: txs.filter((tx) => tx.amount.cents < 0 && !tx.isTransfer).length,
+      income: txs.filter((tx) => tx.amount.cents >= 0 && !tx.isTransfer).length,
+      transfers: txs.filter((tx) => tx.isTransfer).length,
+      pending: txs.filter((tx) => tx.isPending).length,
+      unassigned: txs.filter((tx) => tx.amount.cents < 0 && !tx.isTransfer && !assigned.has(tx.id)).length,
+    };
+  }, [state]);
 
   const sections = useMemo(() => {
     if (!state) return [];
+    const assigned = new Set(
+      Object.values(state.inbox.assignmentsByTransactionId).map((a) => a.transactionId),
+    );
     let txs = [...state.transactions];
 
-    // Hide transfers by default
-    if (!showTransfers) {
-      txs = txs.filter((tx) => !tx.isTransfer);
+    // Apply active filter
+    switch (activeFilter) {
+      case "expenses":
+        txs = txs.filter((tx) => tx.amount.cents < 0 && !tx.isTransfer);
+        break;
+      case "income":
+        txs = txs.filter((tx) => tx.amount.cents >= 0 && !tx.isTransfer);
+        break;
+      case "transfers":
+        txs = txs.filter((tx) => tx.isTransfer);
+        break;
+      case "pending":
+        txs = txs.filter((tx) => tx.isPending);
+        break;
+      case "unassigned":
+        txs = txs.filter((tx) => tx.amount.cents < 0 && !tx.isTransfer && !assigned.has(tx.id));
+        break;
+      default: // "all" — hide transfers by default
+        txs = txs.filter((tx) => !tx.isTransfer);
+        break;
     }
 
     if (searchQuery.trim()) {
@@ -89,7 +123,7 @@ export default function TransactionsScreen() {
     );
     return groupByDate(sorted);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state, searchQuery, showTransfers]);
+  }, [state, searchQuery, activeFilter]);
 
   const assignedTxIds = useMemo(
     () => {
@@ -164,7 +198,7 @@ export default function TransactionsScreen() {
         />
       )}
 
-      {/* Search bar */}
+      {/* Search bar + filter chips */}
       {state.transactions.length > 0 && (
         <View style={styles.searchBar}>
           <TextInput
@@ -179,27 +213,36 @@ export default function TransactionsScreen() {
             returnKeyType="search"
             accessibilityLabel="Search transactions"
           />
-          {transferCount > 0 && (
-            <View style={styles.filterRow}>
-              <Pressable
-                onPress={() => setShowTransfers((v) => !v)}
-                style={[
-                  styles.filterChip,
-                  showTransfers && styles.filterChipActive,
-                ]}
-                accessibilityLabel={showTransfers ? "Hide transfers" : "Show transfers"}
-              >
-                <Text
-                  style={[
-                    styles.filterChipText,
-                    showTransfers && styles.filterChipTextActive,
-                  ]}
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.chipRow}
+            style={styles.chipScroll}
+          >
+            {([
+              ["all", "All", filterCounts.all],
+              ["expenses", "Expenses", filterCounts.expenses],
+              ["income", "Income", filterCounts.income],
+              ["transfers", "Transfers", filterCounts.transfers],
+              ["pending", "Pending", filterCounts.pending],
+              ["unassigned", "Unassigned", filterCounts.unassigned],
+            ] as const).map(([key, label, count]) => {
+              const isActive = activeFilter === key;
+              return (
+                <Pressable
+                  key={key}
+                  onPress={() => setActiveFilter(key as FilterKey)}
+                  style={[styles.filterChip, isActive && styles.filterChipActive]}
+                  accessibilityLabel={`Filter by ${label}`}
+                  accessibilityState={{ selected: isActive }}
                 >
-                  Transfers ({transferCount})
-                </Text>
-              </Pressable>
-            </View>
-          )}
+                  <Text style={[styles.filterChipText, isActive && styles.filterChipTextActive]}>
+                    {label} {count > 0 ? `(${count})` : ""}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </ScrollView>
         </View>
       )}
 
@@ -214,9 +257,13 @@ export default function TransactionsScreen() {
             <Text style={styles.emptyBtnText}>Add your first transaction</Text>
           </Pressable>
         </Card>
-      ) : sections.length === 0 && searchQuery.trim() ? (
+      ) : sections.length === 0 ? (
         <View style={styles.noResults}>
-          <Text style={styles.noResultsText}>No transactions match your search.</Text>
+          <Text style={styles.noResultsText}>
+            {searchQuery.trim()
+              ? "No transactions match your search."
+              : `No ${activeFilter === "all" ? "" : activeFilter + " "}transactions.`}
+          </Text>
         </View>
       ) : (
         <SectionList
@@ -386,22 +433,25 @@ const createStyles = (c: ColorTokens) => StyleSheet.create({
     paddingVertical: Spacing.sm,
     fontSize: FontSize.body,
     color: c.textDark,
+    letterSpacing: 0,
   },
-  filterRow: {
-    flexDirection: "row",
-    gap: Spacing.xs,
-    marginTop: Spacing.xs,
+  chipScroll: {
+    marginTop: Spacing.sm,
+  },
+  chipRow: {
+    gap: Spacing.sm,
+    paddingRight: Spacing.base,
   },
   filterChip: {
     paddingHorizontal: Spacing.md,
-    paddingVertical: 4,
+    paddingVertical: 6,
     borderRadius: Radius.pill,
-    borderWidth: 1,
+    borderWidth: 1.5,
     borderColor: c.borderLight,
     backgroundColor: c.surfaceLight,
   },
   filterChipActive: {
-    backgroundColor: c.primary,
+    backgroundColor: c.primarySurface,
     borderColor: c.primary,
   },
   filterChipText: {
@@ -410,7 +460,8 @@ const createStyles = (c: ColorTokens) => StyleSheet.create({
     color: c.textMuted,
   },
   filterChipTextActive: {
-    color: c.textOnColor,
+    color: c.primaryDark,
+    fontWeight: FontWeight.bold,
   },
   noResults: {
     flex: 1,

@@ -677,6 +677,7 @@ const createStyles = (c: ColorTokens) => StyleSheet.create({
     borderWidth: 1,
     borderColor: c.border,
     borderRadius: Radius.md,
+    letterSpacing: 0,
   },
   modalSaveBtn: {
     backgroundColor: c.primary,
