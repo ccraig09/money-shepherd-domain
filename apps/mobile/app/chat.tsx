@@ -1,4 +1,13 @@
 import React, { useState, useRef, useCallback, useMemo, useEffect } from "react";
+import Reanimated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withRepeat,
+  withSequence,
+  withTiming,
+  withDelay,
+  Easing,
+} from "react-native-reanimated";
 import {
   View,
   Text,
@@ -40,6 +49,58 @@ import { useTTS } from "@/src/lib/useTTS";
 import { FloatingTTSBar } from "@/src/ui/components/FloatingTTSBar";
 
 const HEADER_H = 52;
+const DOT_SIZE = 8;
+const DOT_COLOR = "#b8860b"; // dark gold
+
+function TypingDots() {
+  const y0 = useSharedValue(0);
+  const y1 = useSharedValue(0);
+  const y2 = useSharedValue(0);
+
+  const bounce = withRepeat(
+    withSequence(
+      withTiming(-6, { duration: 280, easing: Easing.out(Easing.quad) }),
+      withTiming(0, { duration: 280, easing: Easing.in(Easing.quad) }),
+      withTiming(0, { duration: 160 }), // brief pause before next cycle
+    ),
+    -1,
+    false,
+  );
+
+  useEffect(() => {
+    y0.value = bounce;
+    y1.value = withDelay(150, bounce);
+    y2.value = withDelay(300, bounce);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const s0 = useAnimatedStyle(() => ({ transform: [{ translateY: y0.value }] }));
+  const s1 = useAnimatedStyle(() => ({ transform: [{ translateY: y1.value }] }));
+  const s2 = useAnimatedStyle(() => ({ transform: [{ translateY: y2.value }] }));
+
+  return (
+    <View style={dotStyles.row}>
+      <Reanimated.View style={[dotStyles.dot, s0]} />
+      <Reanimated.View style={[dotStyles.dot, s1]} />
+      <Reanimated.View style={[dotStyles.dot, s2]} />
+    </View>
+  );
+}
+
+const dotStyles = StyleSheet.create({
+  row: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+    paddingVertical: 4,
+  },
+  dot: {
+    width: DOT_SIZE,
+    height: DOT_SIZE,
+    borderRadius: DOT_SIZE / 2,
+    backgroundColor: DOT_COLOR,
+  },
+});
 
 export default function ChatScreen() {
   const styles = useThemedStyles(createStyles);
@@ -372,7 +433,7 @@ export default function ChatScreen() {
                   <View style={styles.typingRow}>
                     <ShepherdAvatar size={28} />
                     <View style={styles.typingBubble}>
-                      <Text style={styles.typingDots}>...</Text>
+                      <TypingDots />
                     </View>
                   </View>
                 )}
