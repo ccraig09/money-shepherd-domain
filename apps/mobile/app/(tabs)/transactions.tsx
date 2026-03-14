@@ -35,6 +35,22 @@ export default function TransactionsScreen() {
 
   type FilterKey = "all" | "expenses" | "income" | "transfers" | "pending" | "unassigned";
   const [activeFilter, setActiveFilter] = useState<FilterKey>("all");
+  const [selectedMonth, setSelectedMonth] = useState(() => {
+    const now = new Date();
+    return { year: now.getFullYear(), month: now.getMonth() };
+  });
+
+  const monthLabel = new Date(selectedMonth.year, selectedMonth.month).toLocaleDateString("en-US", {
+    month: "long",
+    year: "numeric",
+  });
+
+  function shiftMonth(delta: number) {
+    setSelectedMonth((prev) => {
+      const d = new Date(prev.year, prev.month + delta);
+      return { year: d.getFullYear(), month: d.getMonth() };
+    });
+  }
 
   // Re-render every 30s so "Xm ago" stays fresh
   const [, setTick] = useState(0);
@@ -64,12 +80,14 @@ export default function TransactionsScreen() {
     return accounts.find((a) => a.id === accountId)?.name ?? accountId;
   }
 
+  const monthPrefix = `${selectedMonth.year}-${String(selectedMonth.month + 1).padStart(2, "0")}`;
+
   const filterCounts = useMemo(() => {
     if (!state) return { all: 0, expenses: 0, income: 0, transfers: 0, pending: 0, unassigned: 0 };
     const assigned = new Set(
       Object.values(state.inbox.assignmentsByTransactionId).map((a) => a.transactionId),
     );
-    const txs = state.transactions;
+    const txs = state.transactions.filter((tx) => tx.postedAt.startsWith(monthPrefix));
     return {
       all: txs.filter((tx) => !tx.isTransfer).length,
       expenses: txs.filter((tx) => tx.amount.cents < 0 && !tx.isTransfer).length,
@@ -78,14 +96,14 @@ export default function TransactionsScreen() {
       pending: txs.filter((tx) => tx.isPending).length,
       unassigned: txs.filter((tx) => tx.amount.cents < 0 && !tx.isTransfer && !assigned.has(tx.id)).length,
     };
-  }, [state]);
+  }, [state, monthPrefix]);
 
   const sections = useMemo(() => {
     if (!state) return [];
     const assigned = new Set(
       Object.values(state.inbox.assignmentsByTransactionId).map((a) => a.transactionId),
     );
-    let txs = [...state.transactions];
+    let txs = state.transactions.filter((tx) => tx.postedAt.startsWith(monthPrefix));
 
     // Apply active filter
     switch (activeFilter) {
@@ -123,7 +141,7 @@ export default function TransactionsScreen() {
     );
     return groupByDate(sorted);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state, searchQuery, activeFilter]);
+  }, [state, searchQuery, activeFilter, monthPrefix]);
 
   const assignedTxIds = useMemo(
     () => {
@@ -197,6 +215,25 @@ export default function TransactionsScreen() {
           }}
         />
       )}
+
+      {/* Month picker */}
+      <View style={styles.monthPicker}>
+        <Pressable
+          onPress={() => shiftMonth(-1)}
+          style={styles.monthArrow}
+          accessibilityLabel="Previous month"
+        >
+          <Text style={styles.monthArrowText}>‹</Text>
+        </Pressable>
+        <Text style={styles.monthLabel}>{monthLabel}</Text>
+        <Pressable
+          onPress={() => shiftMonth(1)}
+          style={styles.monthArrow}
+          accessibilityLabel="Next month"
+        >
+          <Text style={styles.monthArrowText}>›</Text>
+        </Pressable>
+      </View>
 
       {/* Search bar + filter chips */}
       {state.transactions.length > 0 && (
@@ -289,6 +326,9 @@ export default function TransactionsScreen() {
               ? (state.users?.find((u) => u.id === item.createdByUserId)?.displayName ?? null)
               : null;
             const attributionName = assignedByName ?? createdByName;
+            const envelopeName = assignment
+              ? (state.budget.envelopes.find((e) => e.id === assignment.envelopeId)?.name ?? null)
+              : null;
             const isBnpl = isBnplTransaction(item.description ?? "");
             const isTransfer = !!item.isTransfer;
             return (
@@ -341,6 +381,11 @@ export default function TransactionsScreen() {
                       </Text>
                     )}
                   </View>
+                  {envelopeName && (
+                    <Text style={styles.envelopeName} numberOfLines={1}>
+                      → {envelopeName}
+                    </Text>
+                  )}
                   {isUnassigned && (
                     <View style={styles.unassignedBadge} accessibilityLabel="Unassigned">
                       <Text style={styles.unassignedBadgeText}>Unassigned</Text>
@@ -419,6 +464,29 @@ const createStyles = (c: ColorTokens) => StyleSheet.create({
     backgroundColor: c.primary,
   },
   emptyBtnText: { color: c.textOnColor, fontWeight: FontWeight.semibold, fontSize: FontSize.body },
+  // Month picker
+  monthPicker: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: Spacing.sm,
+    gap: Spacing.base,
+  },
+  monthArrow: {
+    padding: Spacing.sm,
+  },
+  monthArrowText: {
+    fontSize: 22,
+    color: c.textMid,
+    fontWeight: FontWeight.medium,
+  },
+  monthLabel: {
+    fontSize: FontSize.subtitle,
+    fontWeight: FontWeight.semibold,
+    color: c.textDark,
+    minWidth: 140,
+    textAlign: "center",
+  },
   // Search
   searchBar: {
     paddingHorizontal: Spacing.base,
@@ -514,6 +582,7 @@ const createStyles = (c: ColorTokens) => StyleSheet.create({
   metaRow: { flexDirection: "row", alignItems: "center" },
   rowAccountName: { fontSize: FontSize.caption, color: c.textMuted, flexShrink: 1 },
   metaAttribution: { fontSize: FontSize.caption, color: c.textMuted, flexShrink: 0 },
+  envelopeName: { fontSize: FontSize.caption, color: c.primary, flexShrink: 1 },
   pendingBadge: {
     paddingHorizontal: 5,
     paddingVertical: 1,
