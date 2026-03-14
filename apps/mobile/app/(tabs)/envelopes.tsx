@@ -463,7 +463,7 @@ const createStyles = (c: ColorTokens) => StyleSheet.create({
   center: { flex: 1, alignItems: "center", justifyContent: "center" },
   header: {
     paddingHorizontal: Spacing.base,
-    paddingTop: 60,
+    paddingTop: Spacing.sm,
     paddingBottom: Spacing.md,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderColor: c.border,
