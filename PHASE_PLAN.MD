@@ -934,7 +934,7 @@ Plaid access tokens are stored in `expo-secure-store` (device keychain) and neve
 - [x] MS-32.D2 Gradient progress bars with glow (#210)
 - [x] MS-32.D3 Collapsible group headers with chevron (#211)
 - [x] MS-32.D4 Goal celebration confetti on 100% (#212)
-- [ ] MS-32.D5 Phase D verification and smoke test (#213)
+- [x] MS-32.D5 Phase D verification and smoke test (#213)
 
 ### Phase E: Activity Screen _(plan TBD)_
 
