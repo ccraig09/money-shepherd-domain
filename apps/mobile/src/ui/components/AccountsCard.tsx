@@ -95,7 +95,7 @@ export function AccountsCard({ accounts, users }: Props) {
 
 function OwnerSection({ group }: { group: OwnerGroup }) {
   const styles = useThemedStyles(createStyles);
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(true);
   // Show cash total on the header (what matters day-to-day), net total only when expanded
   const cashTotal = group.accounts.filter(isCashAccount).reduce((sum, a) => sum + a.balance.cents, 0);
 

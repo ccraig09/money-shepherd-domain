@@ -921,8 +921,12 @@ Plaid access tokens are stored in `expo-secure-store` (device keychain) and neve
 - [x] MS-32.C1 Remove analytics cards from Home screen (#204)
 - [x] MS-32.C2 Redesign hero card with 3 states (#205)
 - [x] MS-32.C3 Add quick stats row — Income | Spent | Net (#206)
-- [ ] MS-32.C4 Reorder and polish remaining Home sections (#207)
+- [x] MS-32.C4 Reorder and polish remaining Home sections (#207)
 - [ ] MS-32.C5 Phase C verification and smoke test (#208)
+- [ ] MS-32.C6 Enlarge InsightCard icon badge and title weight (#232)
+- [ ] MS-32.C7 Reduce AccountsCard visual density (#233)
+- [ ] MS-32.C8 Polish ScriptureStrip and GreetingCard (#234)
+- [ ] MS-32.C9 Increase Card background contrast (#235)
 
 ### Phase D: Envelopes Screen _(plan TBD)_
 

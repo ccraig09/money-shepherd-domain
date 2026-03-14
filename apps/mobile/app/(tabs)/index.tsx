@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useMemo, useRef, useState } from "react";
 import {
   View,
   Text,
@@ -7,21 +7,25 @@ import {
   ScrollView,
   RefreshControl,
   Modal,
+  Animated,
 } from "react-native";
+import ReAnimated, { FadeInDown } from "react-native-reanimated";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useAppStore } from "../../src/store/useAppStore";
 import { formatMoney } from "../../src/lib/moneyFormat";
-import { SyncIndicator } from "../../src/ui/components/SyncIndicator";
 import { ScriptureStrip } from "../../src/ui/components/ScriptureStrip";
 import { GreetingCard } from "../../src/ui/components/GreetingCard";
 import { Card } from "../../src/ui/components/Card";
 import { AccountsCard } from "../../src/ui/components/AccountsCard";
 import { InsightCard } from "../../src/ui/components/InsightCard";
-import { Spacing, Radius, FontSize, FontWeight, type ColorTokens } from "../../src/ui/tokens";
+import { Spacing, Radius, FontSize, FontWeight, Shadow, type ColorTokens } from "../../src/ui/tokens";
 import { useTheme, useThemedStyles } from "@/src/ui/ThemeProvider";
 import { getThisMonthSummary } from "../../src/lib/periodSummary";
 import { getCurrentPeriod, getFundingInPeriod, generateInsights } from "@money-shepherd/domain";
 import type { InsightType } from "@money-shepherd/domain";
+
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 const SEVERITY_PRIORITY: Record<string, number> = { warning: 0, info: 1, success: 2 };
 
@@ -114,6 +118,13 @@ export default function DashboardScreen() {
     setDismissedTypes((prev) => new Set(prev).add(topInsight.type));
   }, [topInsight]);
 
+  // Press scale animation for nudge cards
+  const nudgeScale1 = useRef(new Animated.Value(1)).current;
+  const nudgeScale2 = useRef(new Animated.Value(1)).current;
+  const nudgeScale3 = useRef(new Animated.Value(1)).current;
+  const animatePress = (scale: Animated.Value, toValue: number) =>
+    Animated.spring(scale, { toValue, useNativeDriver: true, speed: 50, bounciness: 4 }).start();
+
   const [refreshing, setRefreshing] = useState(false);
   const refreshFromPlaid = useAppStore((s) => s.refreshFromPlaid);
   const syncNow = useAppStore((s) => s.syncNow);
@@ -151,16 +162,13 @@ export default function DashboardScreen() {
         />
       }
     >
-      {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.appName}>Money Shepherd</Text>
-        <SyncIndicator />
-      </View>
-
       {/* Greeting + envelope health */}
-      <GreetingCard envelopes={state.budget.envelopes} />
+      <ReAnimated.View entering={FadeInDown.delay(0).duration(400).springify()}>
+        <GreetingCard envelopes={state.budget.envelopes} />
+      </ReAnimated.View>
 
       {/* Available to Assign — hero card with 3 states */}
+      <ReAnimated.View entering={FadeInDown.delay(50).duration(400).springify()}>
       <Pressable
         style={[
           styles.heroCard,
@@ -216,6 +224,7 @@ export default function DashboardScreen() {
           </Text>
         </View>
       </Pressable>
+      </ReAnimated.View>
 
       {/* ATA Explainer Modal */}
       <Modal
@@ -258,70 +267,55 @@ export default function DashboardScreen() {
 
       {/* Quick stats — Income | Spent | Net */}
       {monthSummary && (monthSummary.incomeCents > 0 || monthSummary.spendingCents > 0) && (
-        <Pressable
-          style={styles.statsRow}
-          onPress={() => router.push("/period-summary")}
-          accessibilityLabel="View monthly summary"
-          accessibilityRole="button"
-        >
-          <View style={styles.statCell}>
-            <Text style={styles.statLabel}>Income</Text>
-            <Text style={[styles.statValue, styles.statIncome]}>
-              +${formatMoney(monthSummary.incomeCents)}
-            </Text>
-          </View>
-          <View style={styles.statDivider} />
-          <View style={styles.statCell}>
-            <Text style={styles.statLabel}>Spent</Text>
-            <Text style={[styles.statValue, styles.statSpending]}>
-              -${formatMoney(monthSummary.spendingCents)}
-            </Text>
-          </View>
-          <View style={styles.statDivider} />
-          <View style={styles.statCell}>
-            <Text style={styles.statLabel}>Net</Text>
-            <Text
-              style={[
-                styles.statValue,
-                monthSummary.netCents >= 0 ? styles.statIncome : styles.statSpending,
-              ]}
-            >
-              {monthSummary.netCents >= 0 ? "+" : "-"}${formatMoney(Math.abs(monthSummary.netCents))}
-            </Text>
-          </View>
-        </Pressable>
+        <ReAnimated.View entering={FadeInDown.delay(100).duration(400).springify()}>
+          <Pressable
+            style={styles.statsRow}
+            onPress={() => router.push("/period-summary")}
+            accessibilityLabel="View monthly summary"
+            accessibilityRole="button"
+          >
+            <View style={styles.statCell}>
+              <Text style={styles.statLabel}>Income</Text>
+              <Text style={[styles.statValue, styles.statIncome]}>
+                +${formatMoney(monthSummary.incomeCents)}
+              </Text>
+            </View>
+            <View style={styles.statDivider} />
+            <View style={styles.statCell}>
+              <Text style={styles.statLabel}>Spent</Text>
+              <Text style={[styles.statValue, styles.statSpending]}>
+                -${formatMoney(monthSummary.spendingCents)}
+              </Text>
+            </View>
+            <View style={styles.statDivider} />
+            <View style={styles.statCell}>
+              <Text style={styles.statLabel}>Net</Text>
+              <Text
+                style={[
+                  styles.statValue,
+                  monthSummary.netCents >= 0 ? styles.statIncome : styles.statSpending,
+                ]}
+              >
+                {monthSummary.netCents >= 0 ? "+" : "-"}${formatMoney(Math.abs(monthSummary.netCents))}
+              </Text>
+            </View>
+          </Pressable>
+        </ReAnimated.View>
       )}
 
       {/* Daily scripture */}
-      <ScriptureStrip />
+      <ReAnimated.View entering={FadeInDown.delay(150).duration(400).springify()}>
+        <ScriptureStrip />
+      </ReAnimated.View>
 
       {/* Insight card — Money Shepherd says... */}
       {topInsight && (
-        <InsightCard insight={topInsight} onDismiss={dismissInsight} />
+        <ReAnimated.View entering={FadeInDown.delay(200).duration(400).springify()}>
+          <InsightCard insight={topInsight} onDismiss={dismissInsight} />
+        </ReAnimated.View>
       )}
 
-      {/* Debt Freedom card */}
-      {debtSummary && (() => {
-        const pct = debtSummary.totalDebt > 0
-          ? Math.min(100, Math.round((debtSummary.totalSetAside / debtSummary.totalDebt) * 100))
-          : 0;
-        return (
-          <Card style={styles.debtCard} onPress={() => router.push("/debt-overview")} accessibilityLabel="View debt overview">
-            <View style={styles.debtCardHeader}>
-              <Text style={styles.debtCardTitle}>Debt Freedom</Text>
-              <Text style={styles.debtCardPct}>{pct}%</Text>
-            </View>
-            <View style={styles.debtProgressTrack}>
-              <View style={[styles.debtProgressFill, { width: `${pct}%` }]} />
-            </View>
-            <Text style={styles.debtCardSummary}>
-              ${formatMoney(debtSummary.totalSetAside)} set aside of ${formatMoney(debtSummary.totalDebt)}
-            </Text>
-          </Card>
-        );
-      })()}
-
-      {/* Seed budget nudge — show when not yet seeded, or when new accounts need seeding */}
+      {/* Seed budget nudge */}
       {state.accounts.length > 0 &&
         (() => {
           if (!state.budgetSeeded) return true;
@@ -332,84 +326,117 @@ export default function DashboardScreen() {
             .filter((a) => !a.accountType || a.accountType === "depository")
             .some((a) => !seededSet.has(a.id));
         })() && (
-          <Pressable
-            style={styles.seedNudge}
-            onPress={() => router.push("/seed-budget")}
-            accessibilityLabel={state.budgetSeeded ? "Add new account balances to budget" : "Seed your budget from bank balances"}
-            accessibilityRole="button"
-          >
-            <Text style={styles.seedNudgeText}>
-              {state.budgetSeeded
-                ? "New accounts — add balances to budget"
-                : "Seed your budget from bank balances"}
-            </Text>
-            <Text style={styles.nudgeArrow}>→</Text>
-          </Pressable>
+          <ReAnimated.View entering={FadeInDown.delay(250).duration(400).springify()}>
+            <AnimatedPressable
+              style={[styles.nudgeCard, { transform: [{ scale: nudgeScale1 }] }]}
+              onPress={() => router.push("/seed-budget")}
+              onPressIn={() => animatePress(nudgeScale1, 0.97)}
+              onPressOut={() => animatePress(nudgeScale1, 1)}
+              accessibilityLabel={state.budgetSeeded ? "Add new account balances to budget" : "Seed your budget from bank balances"}
+              accessibilityRole="button"
+            >
+              <View style={styles.nudgeIconBadge}>
+                <MaterialCommunityIcons name="bank-outline" size={20} color={colors.primary} />
+              </View>
+              <View style={styles.nudgeTextCol}>
+                <Text style={styles.nudgeTitle}>
+                  {state.budgetSeeded
+                    ? "New accounts — add balances"
+                    : "Seed your budget"}
+                </Text>
+                <Text style={styles.nudgeSubtitle}>
+                  {state.budgetSeeded
+                    ? "Review linked accounts"
+                    : "Start from your current balances"}
+                </Text>
+              </View>
+              <Text style={styles.nudgeChevron}>›</Text>
+            </AnimatedPressable>
+          </ReAnimated.View>
         )}
 
       {/* Fill envelopes nudge */}
       {hasUnfilledGoals && (
-        <Pressable
-          style={styles.fillNudge}
-          onPress={() => router.push("/fill-envelopes")}
-          accessibilityLabel="Fill your envelopes from available funds"
-          accessibilityRole="button"
-        >
-          <Text style={styles.fillNudgeText}>Ready to fill your envelopes?</Text>
-          <Text style={styles.nudgeArrow}>→</Text>
-        </Pressable>
+        <ReAnimated.View entering={FadeInDown.delay(300).duration(400).springify()}>
+          <AnimatedPressable
+            style={[styles.nudgeCard, { transform: [{ scale: nudgeScale2 }] }]}
+            onPress={() => router.push("/fill-envelopes")}
+            onPressIn={() => animatePress(nudgeScale2, 0.97)}
+            onPressOut={() => animatePress(nudgeScale2, 1)}
+            accessibilityLabel="Fill your envelopes from available funds"
+            accessibilityRole="button"
+          >
+            <View style={styles.nudgeIconBadge}>
+              <MaterialCommunityIcons name="target" size={20} color={colors.primary} />
+            </View>
+            <View style={styles.nudgeTextCol}>
+              <Text style={styles.nudgeTitle}>Ready to fill your envelopes</Text>
+              <Text style={styles.nudgeSubtitle}>
+                ${formatMoney(availableCents)} available to assign
+              </Text>
+            </View>
+            <Text style={styles.nudgeChevron}>›</Text>
+          </AnimatedPressable>
+        </ReAnimated.View>
       )}
 
       {/* Unassigned nudge */}
       {unassignedExpenseCount > 0 && (
-        <Pressable
-          style={styles.nudge}
-          onPress={() => router.push("/inbox")}
-          accessibilityLabel="Go to inbox to assign transactions"
-          accessibilityRole="button"
-        >
-          <Text style={styles.nudgeText}>
-            {unassignedExpenseCount}{" "}
-            {unassignedExpenseCount === 1 ? "transaction needs" : "transactions need"} a home
-          </Text>
-          <Text style={styles.nudgeArrow}>→</Text>
-        </Pressable>
+        <ReAnimated.View entering={FadeInDown.delay(350).duration(400).springify()}>
+          <AnimatedPressable
+            style={[styles.nudgeCard, styles.nudgeCardWarning, { transform: [{ scale: nudgeScale3 }] }]}
+            onPress={() => router.push("/inbox")}
+            onPressIn={() => animatePress(nudgeScale3, 0.97)}
+            onPressOut={() => animatePress(nudgeScale3, 1)}
+            accessibilityLabel="Go to inbox to assign transactions"
+            accessibilityRole="button"
+          >
+            <View style={[styles.nudgeIconBadge, styles.nudgeIconBadgeWarning]}>
+              <MaterialCommunityIcons name="email-open-outline" size={20} color={colors.warning} />
+            </View>
+            <View style={styles.nudgeTextCol}>
+              <Text style={styles.nudgeTitle}>
+                {unassignedExpenseCount}{" "}
+                {unassignedExpenseCount === 1 ? "transaction needs" : "transactions need"} a home
+              </Text>
+              <Text style={styles.nudgeSubtitle}>Tap to categorize</Text>
+            </View>
+            <Text style={styles.nudgeChevron}>›</Text>
+          </AnimatedPressable>
+        </ReAnimated.View>
       )}
-
-      {/* Quick actions */}
-      <View style={styles.ctaRow}>
-        <Pressable
-          style={styles.ctaExpense}
-          onPress={() => router.push({ pathname: "/add-transaction", params: { kind: "expense" } })}
-          accessibilityLabel="Add expense"
-          accessibilityRole="button"
-        >
-          <Text style={styles.ctaExpenseText}>− Expense</Text>
-        </Pressable>
-        <Pressable
-          style={styles.ctaIncome}
-          onPress={() => router.push({ pathname: "/add-transaction", params: { kind: "income" } })}
-          accessibilityLabel="Add income"
-          accessibilityRole="button"
-        >
-          <Text style={styles.ctaIncomeText}>+ Income</Text>
-        </Pressable>
-        <Pressable
-          style={styles.ctaAllocate}
-          onPress={() => router.push("/allocate")}
-          accessibilityLabel="Allocate funds"
-          accessibilityRole="button"
-        >
-          <Text style={styles.ctaAllocateText}>$ Allocate</Text>
-        </Pressable>
-      </View>
 
       {/* Accounts overview */}
       {state.accounts.length > 0 && (
-        <View style={styles.accountsSection}>
-          <AccountsCard accounts={state.accounts} users={state.users} />
-        </View>
+        <ReAnimated.View entering={FadeInDown.delay(400).duration(400).springify()}>
+          <View style={styles.accountsSection}>
+            <AccountsCard accounts={state.accounts} users={state.users} />
+          </View>
+        </ReAnimated.View>
       )}
+
+      {/* Debt Freedom bar */}
+      {debtSummary && (() => {
+        const pct = debtSummary.totalDebt > 0
+          ? Math.min(100, Math.round((debtSummary.totalSetAside / debtSummary.totalDebt) * 100))
+          : 0;
+        return (
+          <ReAnimated.View entering={FadeInDown.delay(450).duration(400).springify()}>
+            <Card style={styles.debtCard} onPress={() => router.push("/debt-overview")} accessibilityLabel="View debt overview">
+              <View style={styles.debtCardHeader}>
+                <Text style={styles.debtCardTitle}>Debt Freedom</Text>
+                <Text style={styles.debtCardPct}>{pct}%</Text>
+              </View>
+              <View style={styles.debtProgressTrack}>
+                <View style={[styles.debtProgressFill, { width: `${pct}%` }]} />
+              </View>
+              <Text style={styles.debtCardSummary}>
+                ${formatMoney(debtSummary.totalSetAside)} set aside of ${formatMoney(debtSummary.totalDebt)}
+              </Text>
+            </Card>
+          </ReAnimated.View>
+        );
+      })()}
 
     </ScrollView>
   );
@@ -419,16 +446,6 @@ const createStyles = (c: ColorTokens) => StyleSheet.create({
   root: { flex: 1, backgroundColor: c.surface },
   content: { paddingBottom: Spacing.bottomPad },
   center: { flex: 1, alignItems: "center", justifyContent: "center" },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: Spacing.base,
-    paddingTop: 60,
-    paddingBottom: Spacing.base,
-  },
-  appName: { fontSize: FontSize.small, fontWeight: FontWeight.semibold, color: c.primary, textTransform: "uppercase" as const, letterSpacing: 1 },
-
   // Hero card — 3 states: normal (gold), surplus (deep gold), over-assigned (red)
   heroCard: {
     marginHorizontal: Spacing.base,
@@ -615,96 +632,50 @@ const createStyles = (c: ColorTokens) => StyleSheet.create({
     color: c.textMuted,
   },
 
-  // Seed nudge
-  seedNudge: {
+  // Nudge cards — icon + pill style
+  nudgeCard: {
     marginHorizontal: Spacing.base,
     marginBottom: Spacing.md,
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
-    backgroundColor: c.primarySurface,
-    borderRadius: Radius.lg,
+    backgroundColor: c.cardSurface,
+    borderRadius: Radius.xl,
     paddingHorizontal: Spacing.base,
     paddingVertical: Spacing.md,
-    borderWidth: 1,
-    borderColor: c.primary,
+    gap: Spacing.md,
+    ...Shadow.sm,
   },
-  seedNudgeText: { fontSize: 14, fontWeight: FontWeight.medium, color: c.primaryDark, flex: 1 },
-
-  // Fill nudge
-  fillNudge: {
-    marginHorizontal: Spacing.base,
-    marginBottom: Spacing.md,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    backgroundColor: c.primarySurface,
-    borderRadius: Radius.lg,
-    paddingHorizontal: Spacing.base,
-    paddingVertical: Spacing.md,
-    borderWidth: 1,
-    borderColor: c.primary,
-  },
-  fillNudgeText: { fontSize: 14, fontWeight: FontWeight.medium, color: c.primaryDark, flex: 1 },
-
-  // Nudge
-  nudge: {
-    marginHorizontal: Spacing.base,
-    marginBottom: Spacing.md,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+  nudgeCardWarning: {
     backgroundColor: c.warningSurface,
-    borderRadius: Radius.lg,
-    paddingHorizontal: Spacing.base,
-    paddingVertical: Spacing.md,
-    borderWidth: 1,
-    borderColor: c.borderWarning,
   },
-  nudgeText: { fontSize: 14, fontWeight: FontWeight.medium, color: c.nudgeText },
-  nudgeArrow: { fontSize: FontSize.subtitle, color: c.nudgeText },
-
-  // Quick actions
-  ctaRow: {
-    flexDirection: "row",
-    gap: Spacing.sm,
-    marginHorizontal: Spacing.base,
-    marginBottom: Spacing.lg,
-  },
-  ctaExpense: {
-    flex: 1,
-    borderRadius: Radius.xl,
-    paddingVertical: Spacing.md,
-    minHeight: 44,
+  nudgeIconBadge: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     alignItems: "center",
     justifyContent: "center",
-    borderWidth: 1,
-    borderColor: c.error,
-    backgroundColor: c.errorSurface,
+    backgroundColor: c.primarySurface,
   },
-  ctaExpenseText: { color: c.error, fontWeight: FontWeight.bold, fontSize: FontSize.body },
-  ctaIncome: {
+  nudgeIconBadgeWarning: {
+    backgroundColor: c.borderWarning,
+  },
+  nudgeTextCol: {
     flex: 1,
-    borderRadius: Radius.xl,
-    paddingVertical: Spacing.md,
-    minHeight: 44,
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 1,
-    borderColor: c.success,
-    backgroundColor: c.successSurface,
+    gap: 2,
   },
-  ctaIncomeText: { color: c.success, fontWeight: FontWeight.bold, fontSize: FontSize.body },
-  ctaAllocate: {
-    flex: 1,
-    borderRadius: Radius.xl,
-    paddingVertical: Spacing.md,
-    minHeight: 44,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: c.primary,
+  nudgeTitle: {
+    fontSize: FontSize.body,
+    fontWeight: FontWeight.semibold,
+    color: c.textDark,
   },
-  ctaAllocateText: { color: c.textOnColor, fontWeight: FontWeight.bold, fontSize: FontSize.body },
+  nudgeSubtitle: {
+    fontSize: FontSize.caption,
+    color: c.textMuted,
+  },
+  nudgeChevron: {
+    fontSize: 22,
+    color: c.textSubtle,
+  },
 
   // Accounts
   accountsSection: { marginBottom: Spacing.lg },

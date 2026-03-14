@@ -14,7 +14,7 @@ export const Spacing = {
   lg: 24,
   xl: 32,
   /** Standard scroll-view bottom padding */
-  bottomPad: 40,
+  bottomPad: 100,
 } as const;
 
 /** Border radius scale */
