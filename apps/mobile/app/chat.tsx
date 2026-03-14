@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router, useLocalSearchParams } from "expo-router";
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { ChatBubble, type ChatMessage } from "../src/ui/components/ChatBubble";
 import { ShepherdAvatar } from "../src/ui/components/ShepherdAvatar";
 import { SuggestedChips } from "../src/ui/components/SuggestedChips";
@@ -291,6 +292,15 @@ export default function ChatScreen() {
       <View style={[styles.chatHeader, { paddingTop: insets.top }]}>
         <ShepherdAvatar size={28} />
         <Text style={styles.chatTitle}>Money Shepherd</Text>
+        <Pressable
+          onPress={() => router.push("/chat-history")}
+          hitSlop={8}
+          style={styles.closeBtn}
+          accessibilityLabel="View chat history"
+          accessibilityRole="button"
+        >
+          <MaterialIcons name="history" size={24} color={colors.textMuted} />
+        </Pressable>
         <Pressable
           onPress={() => router.back()}
           hitSlop={8}
