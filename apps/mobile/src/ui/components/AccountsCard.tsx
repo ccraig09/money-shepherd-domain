@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { View, Text, Pressable, StyleSheet } from "react-native";
 import { Card } from "./Card";
 import { SectionHeader } from "./SectionHeader";
-import { Spacing, FontSize, FontWeight, Radius, type ColorTokens } from "../tokens";
+import { Spacing, FontSize, FontWeight, type ColorTokens } from "../tokens";
 import { useThemedStyles } from "../ThemeProvider";
 import { formatMoney } from "../../lib/moneyFormat";
 import type { Account } from "@money-shepherd/domain";
@@ -199,13 +199,7 @@ function AccountRow({ account }: { account: Account }) {
         <Text style={styles.accountName} numberOfLines={1}>
           {account.name}
         </Text>
-        <View style={[styles.badge, plaid ? styles.badgePlaid : styles.badgeManual]}>
-          <Text
-            style={[styles.badgeText, plaid ? styles.badgeTextPlaid : styles.badgeTextManual]}
-          >
-            {plaid ? "Plaid" : "Manual"}
-          </Text>
-        </View>
+        <View style={[styles.dot, plaid ? styles.dotLinked : styles.dotManual]} />
       </View>
       <Text style={[styles.accountBalance, negative && styles.accountBalanceNegative]}>
         ${formatMoney(account.balance.cents)}
@@ -223,7 +217,7 @@ const createStyles = (c: ColorTokens) => StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: Spacing.base,
-    paddingVertical: Spacing.md,
+    paddingVertical: Spacing.base,
     backgroundColor: c.surface,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderColor: c.borderLight,
@@ -255,7 +249,7 @@ const createStyles = (c: ColorTokens) => StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: Spacing.base,
-    paddingVertical: Spacing.sm,
+    paddingVertical: Spacing.md,
     backgroundColor: c.surfaceLight,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderColor: c.borderLight,
@@ -280,8 +274,10 @@ const createStyles = (c: ColorTokens) => StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: Spacing.base,
-    paddingVertical: Spacing.md,
+    paddingVertical: Spacing.base,
     backgroundColor: c.surfaceLight,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderColor: c.borderLight,
   },
   totalLabel: {
     fontSize: FontSize.small,
@@ -291,8 +287,8 @@ const createStyles = (c: ColorTokens) => StyleSheet.create({
     letterSpacing: 0.5,
   },
   totalAmount: {
-    fontSize: FontSize.subtitle,
-    fontWeight: FontWeight.bold,
+    fontSize: FontSize.body,
+    fontWeight: FontWeight.extrabold,
     color: c.textDark,
   },
   totalAmountNegative: {
@@ -303,7 +299,7 @@ const createStyles = (c: ColorTokens) => StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: Spacing.base,
-    paddingVertical: Spacing.md,
+    paddingVertical: Spacing.base,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderColor: c.borderLight,
   },
@@ -319,26 +315,16 @@ const createStyles = (c: ColorTokens) => StyleSheet.create({
     color: c.textDark,
     flexShrink: 1,
   },
-  badge: {
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: 2,
-    borderRadius: Radius.pill,
+  dot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
   },
-  badgePlaid: {
-    backgroundColor: c.primarySurface,
+  dotLinked: {
+    backgroundColor: c.primary,
   },
-  badgeManual: {
-    backgroundColor: c.surfaceLight,
-  },
-  badgeText: {
-    fontSize: FontSize.caption,
-    fontWeight: FontWeight.semibold,
-  },
-  badgeTextPlaid: {
-    color: c.primaryDark,
-  },
-  badgeTextManual: {
-    color: c.textMuted,
+  dotManual: {
+    backgroundColor: c.textSubtle,
   },
   accountBalance: {
     fontSize: FontSize.body,
