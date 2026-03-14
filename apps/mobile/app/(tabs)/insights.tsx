@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import {
   View,
   Text,
@@ -8,17 +8,42 @@ import {
 import { useAppStore } from "../../src/store/useAppStore";
 import {
   Spacing,
-  Radius,
   FontSize,
   FontWeight,
-  Shadow,
   type ColorTokens,
 } from "../../src/ui/tokens";
 import { useThemedStyles } from "@/src/ui/ThemeProvider";
+import { SpendingDonutCard } from "../../src/ui/components/charts/SpendingDonutCard";
+import { MonthlyTrendCard } from "../../src/ui/components/charts/MonthlyTrendCard";
+import { CashFlowForecastCard } from "../../src/ui/components/CashFlowForecastCard";
+import { getThisMonthSummary, getMonthlyTrend } from "../../src/lib/periodSummary";
+import { getCashFlowForecast } from "@money-shepherd/domain";
 
 export default function InsightsScreen() {
   const styles = useThemedStyles(createStyles);
   const state = useAppStore((s) => s.state);
+
+  const now = useMemo(() => new Date().toISOString().slice(0, 10), []);
+
+  const monthSummary = useMemo(() => {
+    if (!state) return null;
+    return getThisMonthSummary(
+      state.transactions,
+      state.inbox.assignmentsByTransactionId,
+      state.budget.envelopes,
+      now,
+    );
+  }, [state, now]);
+
+  const trend = useMemo(() => {
+    if (!state) return null;
+    return getMonthlyTrend(state.transactions, now, 6);
+  }, [state, now]);
+
+  const forecast = useMemo(() => {
+    if (!state) return null;
+    return getCashFlowForecast(state.transactions, now);
+  }, [state, now]);
 
   if (!state) {
     return (
@@ -27,8 +52,6 @@ export default function InsightsScreen() {
       </View>
     );
   }
-
-  const hasTxns = state.transactions.length > 0;
 
   return (
     <View style={styles.root}>
@@ -44,33 +67,37 @@ export default function InsightsScreen() {
       >
         {/* Spending section */}
         <Text style={styles.sectionLabel}>SPENDING</Text>
-        <View style={styles.card}>
-          {hasTxns ? (
-            <Text style={styles.placeholderText}>
-              Spending breakdown coming soon.
-            </Text>
-          ) : (
-            <Text style={styles.placeholderText}>
-              Add transactions to see your spending breakdown.
-            </Text>
-          )}
-        </View>
-
-        {/* Progress section */}
-        <Text style={styles.sectionLabel}>PROGRESS</Text>
-        <View style={styles.card}>
+        {monthSummary ? (
+          <SpendingDonutCard
+            envelopes={state.budget.envelopes}
+            spentByEnvelope={monthSummary.spentByEnvelope}
+            now={now}
+          />
+        ) : (
           <Text style={styles.placeholderText}>
-            Weekly nudges and debt progress coming soon.
+            Add transactions to see your spending breakdown.
           </Text>
-        </View>
+        )}
+
+        {/* Trend section */}
+        <Text style={styles.sectionLabel}>TRENDS</Text>
+        {trend && trend.some((p) => p.incomeCents > 0 || p.spendingCents > 0) ? (
+          <MonthlyTrendCard trend={trend} />
+        ) : (
+          <Text style={styles.placeholderText}>
+            Transaction history will appear here.
+          </Text>
+        )}
 
         {/* Forecast section */}
         <Text style={styles.sectionLabel}>FORECAST</Text>
-        <View style={styles.card}>
+        {forecast ? (
+          <CashFlowForecastCard forecast={forecast} />
+        ) : (
           <Text style={styles.placeholderText}>
-            Cash flow forecast coming soon.
+            Cash flow forecast available after the 2nd of the month.
           </Text>
-        </View>
+        )}
       </ScrollView>
     </View>
   );
@@ -95,9 +122,8 @@ const createStyles = (c: ColorTokens) =>
     },
     scroll: { flex: 1 },
     content: {
-      padding: Spacing.base,
+      paddingVertical: Spacing.sm,
       paddingBottom: Spacing.bottomPad,
-      gap: Spacing.xs,
     },
     sectionLabel: {
       fontSize: FontSize.small,
@@ -107,17 +133,14 @@ const createStyles = (c: ColorTokens) =>
       textTransform: "uppercase",
       marginTop: Spacing.base,
       marginBottom: Spacing.xs,
-    },
-    card: {
-      backgroundColor: c.cardSurface,
-      borderRadius: Radius.lg,
-      padding: Spacing.lg,
-      ...Shadow.sm,
+      paddingHorizontal: Spacing.base,
     },
     placeholderText: {
       fontSize: FontSize.body,
       color: c.textSubtle,
       textAlign: "center",
       letterSpacing: 0,
+      marginHorizontal: Spacing.base,
+      marginBottom: Spacing.base,
     },
   });

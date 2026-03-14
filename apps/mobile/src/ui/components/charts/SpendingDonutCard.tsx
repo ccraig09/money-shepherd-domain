@@ -28,13 +28,15 @@ const CHART_STROKE = 22;
 type Props = {
   envelopes: Envelope[];
   spentByEnvelope: Record<string, number>;
+  /** Today's date string YYYY-MM-DD for computing days remaining */
+  now?: string;
 };
 
 /**
  * Dashboard card showing a donut chart of this month's spending by envelope.
  * Hidden when there is no spending data.
  */
-export function SpendingDonutCard({ envelopes, spentByEnvelope }: Props) {
+export function SpendingDonutCard({ envelopes, spentByEnvelope, now }: Props) {
   const styles = useThemedStyles(createStyles);
   const { colors } = useTheme();
 
@@ -49,6 +51,15 @@ export function SpendingDonutCard({ envelopes, spentByEnvelope }: Props) {
   if (sorted.length === 0) return null;
 
   const totalSpent = sorted.reduce((sum, e) => sum + e.spent, 0);
+
+  // Total monthly goals for the displayed envelopes (in cents)
+  const totalGoal = envelopes.reduce((sum, env) => sum + (env.goal?.cents ?? 0), 0);
+  const pctUsed = totalGoal > 0 ? Math.round((totalSpent / totalGoal) * 100) : null;
+
+  // Days remaining in the month
+  const today = now ? new Date(now + "T00:00:00") : new Date();
+  const daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
+  const daysRemaining = daysInMonth - today.getDate();
 
   // Group smaller slices into "Other" if we have too many
   let displayed = sorted;
@@ -90,7 +101,11 @@ export function SpendingDonutCard({ envelopes, spentByEnvelope }: Props) {
           <DonutChart segments={segments} size={CHART_SIZE} strokeWidth={CHART_STROKE} />
           <View style={styles.centerLabel} pointerEvents="none">
             <Text style={styles.centerAmount}>${formatMoney(totalSpent)}</Text>
-            <Text style={styles.centerCaption}>spent</Text>
+            {totalGoal > 0 ? (
+              <Text style={styles.centerCaption}>of ${formatMoney(totalGoal)}</Text>
+            ) : (
+              <Text style={styles.centerCaption}>spent</Text>
+            )}
           </View>
         </ChartErrorBoundary>
       </View>
@@ -111,6 +126,17 @@ export function SpendingDonutCard({ envelopes, spentByEnvelope }: Props) {
           );
         })}
       </View>
+
+      {/* Footer */}
+      {(pctUsed !== null || daysRemaining >= 0) && (
+        <View style={styles.footer}>
+          <Text style={styles.footerText}>
+            {pctUsed !== null ? `${pctUsed}% used` : ""}
+            {pctUsed !== null && " · "}
+            {daysRemaining > 0 ? `${daysRemaining} days remaining` : "Last day of month"}
+          </Text>
+        </View>
+      )}
     </Card>
   );
 }
@@ -184,5 +210,16 @@ const createStyles = (c: ColorTokens) => StyleSheet.create({
     color: c.textDark,
     minWidth: 80,
     textAlign: "right",
+  },
+  footer: {
+    marginTop: Spacing.md,
+    paddingTop: Spacing.sm,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderColor: c.borderLight,
+  },
+  footerText: {
+    fontSize: FontSize.small,
+    color: c.textMuted,
+    textAlign: "center",
   },
 });
