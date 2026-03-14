@@ -10,22 +10,34 @@ export function ScriptureStrip() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.verseText} numberOfLines={3}>
-        {`\u201C${verse.text}\u201D`}
-      </Text>
-      <Text style={styles.reference}>— {verse.reference}</Text>
+      <View style={styles.accentBar} />
+      <View style={styles.content}>
+        <Text style={styles.verseText} numberOfLines={3}>
+          {`\u201C${verse.text}\u201D`}
+        </Text>
+        <Text style={styles.reference}>— {verse.reference}</Text>
+      </View>
     </View>
   );
 }
 
 const createStyles = (c: ColorTokens) => StyleSheet.create({
   container: {
+    flexDirection: "row",
     marginHorizontal: Spacing.base,
     marginBottom: Spacing.base,
     backgroundColor: c.primarySurface,
     borderRadius: Radius.lg,
-    borderLeftWidth: 3,
-    borderLeftColor: c.primary,
+    overflow: "hidden",
+  },
+  accentBar: {
+    width: 3,
+    backgroundColor: c.primary,
+    borderTopLeftRadius: Radius.lg,
+    borderBottomLeftRadius: Radius.lg,
+  },
+  content: {
+    flex: 1,
     padding: Spacing.md,
     gap: Spacing.xs,
   },

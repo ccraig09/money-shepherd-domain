@@ -57,7 +57,7 @@ export function GreetingCard({ envelopes }: Props) {
 const createStyles = (c: ColorTokens) => StyleSheet.create({
   container: {
     paddingHorizontal: Spacing.base,
-    paddingBottom: Spacing.sm,
+    paddingBottom: Spacing.md,
     gap: 2,
   },
   greeting: {
