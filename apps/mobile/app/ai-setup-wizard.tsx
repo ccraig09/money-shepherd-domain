@@ -424,6 +424,7 @@ const createStyles = (c: ColorTokens) =>
       borderBottomWidth: 1,
       borderColor: c.borderLight,
       paddingVertical: Spacing.xs,
+      letterSpacing: 0,
     },
 
     goalRow: {
@@ -444,6 +445,7 @@ const createStyles = (c: ColorTokens) =>
       borderColor: c.borderLight,
       paddingVertical: Spacing.xs,
       minWidth: 80,
+      letterSpacing: 0,
     },
 
     reasonText: {

@@ -374,6 +374,7 @@ const createStyles = (c: ColorTokens) => StyleSheet.create({
     paddingVertical: Spacing.md,
     fontSize: FontSize.subtitle,
     color: c.textDark,
+    letterSpacing: 0,
   },
   saveBtn: {
     marginTop: Spacing.lg,

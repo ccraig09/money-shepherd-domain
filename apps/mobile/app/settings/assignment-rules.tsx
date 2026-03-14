@@ -318,6 +318,7 @@ const createStyles = (c: ColorTokens) => StyleSheet.create({
     fontSize: FontSize.body,
     color: c.textDark,
     backgroundColor: c.surfaceLight,
+    letterSpacing: 0,
   },
   toggleRow: { flexDirection: "row", gap: Spacing.sm },
   toggleBtn: {

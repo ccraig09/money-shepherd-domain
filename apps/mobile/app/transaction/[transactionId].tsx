@@ -511,6 +511,7 @@ const createStyles = (c: ColorTokens) => StyleSheet.create({
     paddingVertical: Spacing.sm,
     fontSize: FontSize.body,
     color: c.textDark,
+    letterSpacing: 0,
   },
   editAmountRow: {
     flexDirection: "row" as const,
@@ -521,6 +522,7 @@ const createStyles = (c: ColorTokens) => StyleSheet.create({
     fontWeight: FontWeight.extrabold,
     minWidth: 80,
     textAlign: "center" as const,
+    letterSpacing: 0,
   },
   editErrorText: {
     color: c.error,
@@ -551,6 +553,7 @@ const createStyles = (c: ColorTokens) => StyleSheet.create({
     color: c.textDark,
     minHeight: 80,
     textAlignVertical: "top",
+    letterSpacing: 0,
   },
   noteFooter: {
     flexDirection: "row",

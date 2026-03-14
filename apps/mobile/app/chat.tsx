@@ -519,6 +519,7 @@ const createStyles = (c: ColorTokens) =>
       maxHeight: 100,
       borderWidth: StyleSheet.hairlineWidth,
       borderColor: c.borderLight,
+      letterSpacing: 0,
     },
     sendBtn: {
       width: 36,

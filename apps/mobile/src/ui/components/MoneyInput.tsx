@@ -102,7 +102,7 @@ const createStyles = (c: ColorTokens) => StyleSheet.create({
   inputRowDisabled: { backgroundColor: c.surfaceLight },
   prefix: { fontSize: FontSize.subtitle, color: c.textMid, marginRight: 4 },
   prefixDisabled: { color: c.textSubtle },
-  input: { flex: 1, fontSize: FontSize.subtitle, color: c.textDark, padding: 0 },
+  input: { flex: 1, fontSize: FontSize.subtitle, color: c.textDark, padding: 0, letterSpacing: 0 },
   inputDisabled: { color: c.textDisabled },
   errorText: { fontSize: FontSize.small, color: c.error, marginTop: Spacing.xs },
 });

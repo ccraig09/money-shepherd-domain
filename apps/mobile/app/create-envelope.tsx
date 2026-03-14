@@ -270,6 +270,7 @@ const createStyles = (c: ColorTokens) => StyleSheet.create({
     paddingVertical: Spacing.md,
     fontSize: FontSize.subtitle,
     color: c.textDark,
+    letterSpacing: 0,
   },
   inputError: { borderColor: c.error },
   errorText: { fontSize: FontSize.small, color: c.error, marginTop: Spacing.xs },
@@ -366,6 +367,7 @@ const createStyles = (c: ColorTokens) => StyleSheet.create({
     paddingVertical: Spacing.md,
     fontSize: FontSize.body,
     color: c.textDark,
+    letterSpacing: 0,
   },
   modalSaveBtn: {
     backgroundColor: c.primary,

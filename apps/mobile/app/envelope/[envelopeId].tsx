@@ -685,6 +685,7 @@ const createStyles = (c: ColorTokens) => StyleSheet.create({
     paddingVertical: Spacing.md,
     fontSize: FontSize.body,
     color: c.textDark,
+    letterSpacing: 0,
   },
   newGroupSaveBtn: {
     backgroundColor: c.primary,
@@ -743,6 +744,7 @@ const createStyles = (c: ColorTokens) => StyleSheet.create({
     fontWeight: FontWeight.bold,
     color: c.textDark,
     paddingVertical: Spacing.md,
+    letterSpacing: 0,
   },
   modalSaveBtn: {
     backgroundColor: c.primary,

@@ -153,6 +153,7 @@ const createStyles = (c: ColorTokens) => StyleSheet.create({
     fontFamily: Platform.OS === "ios" ? "Menlo" : "monospace",
     color: c.textDark,
     backgroundColor: c.surfaceLight,
+    letterSpacing: 0,
   },
   error: {
     fontSize: FontSize.body,
