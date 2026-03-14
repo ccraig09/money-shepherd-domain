@@ -21,6 +21,7 @@ import { CashFlowForecastCard } from "../../src/ui/components/CashFlowForecastCa
 import { WeeklyNudgeCard } from "../../src/ui/components/WeeklyNudgeCard";
 import { DebtProgressBar } from "../../src/ui/components/DebtProgressBar";
 import { Card } from "../../src/ui/components/Card";
+import { HelpTooltip } from "../../src/ui/components/HelpTooltip";
 import { getThisMonthSummary, getMonthlyTrend } from "../../src/lib/periodSummary";
 import { getCashFlowForecast, getWeeklySummary } from "@money-shepherd/domain";
 
@@ -60,6 +61,13 @@ export default function InsightsScreen() {
     );
   }, [state, now]);
 
+  const spendingEnvelopes = useMemo(() => {
+    if (!state) return [];
+    return state.budget.envelopes.filter(
+      (e) => e.type === "spending" || e.type === "giving",
+    );
+  }, [state]);
+
   const debtEnvelopes = useMemo(() => {
     if (!state) return [];
     return state.budget.envelopes.filter(
@@ -88,10 +96,16 @@ export default function InsightsScreen() {
         showsVerticalScrollIndicator={false}
       >
         {/* Spending section */}
-        <Text style={styles.sectionLabel}>SPENDING</Text>
+        <View style={styles.sectionRow}>
+          <Text style={styles.sectionLabel}>SPENDING</Text>
+          <HelpTooltip
+            title="Spending Breakdown"
+            body="Shows spending by category this month. Each % is that category's share of your total spending."
+          />
+        </View>
         {monthSummary ? (
           <SpendingDonutCard
-            envelopes={state.budget.envelopes}
+            envelopes={spendingEnvelopes}
             spentByEnvelope={monthSummary.spentByEnvelope}
             now={now}
           />
@@ -104,7 +118,13 @@ export default function InsightsScreen() {
         {/* Weekly nudge section */}
         {weeklySummary && weeklySummary.totalSpentCents > 0 && (
           <>
-            <Text style={styles.sectionLabel}>THIS WEEK</Text>
+            <View style={styles.sectionRow}>
+              <Text style={styles.sectionLabel}>THIS WEEK</Text>
+              <HelpTooltip
+                title="This Week"
+                body="Your total discretionary spending over the last 7 days."
+              />
+            </View>
             <WeeklyNudgeCard summary={weeklySummary} />
           </>
         )}
@@ -112,7 +132,13 @@ export default function InsightsScreen() {
         {/* Debt progress section */}
         {debtEnvelopes.length > 0 && (
           <>
-            <Text style={styles.sectionLabel}>DEBT PROGRESS</Text>
+            <View style={styles.sectionRow}>
+              <Text style={styles.sectionLabel}>DEBT PROGRESS</Text>
+              <HelpTooltip
+                title="Debt Progress"
+                body="Tracks how much you've paid toward each debt goal. Balance shown is the amount paid so far."
+              />
+            </View>
             <Card style={styles.debtCard}>
               {debtEnvelopes.map((env, idx) => (
                 <View
@@ -136,7 +162,13 @@ export default function InsightsScreen() {
         )}
 
         {/* Trend section */}
-        <Text style={styles.sectionLabel}>TRENDS</Text>
+        <View style={styles.sectionRow}>
+          <Text style={styles.sectionLabel}>TRENDS</Text>
+          <HelpTooltip
+            title="Monthly Trends"
+            body="Income and spending over the past 6 months. Bars show the net difference each month."
+          />
+        </View>
         {trend && trend.some((p) => p.incomeCents > 0 || p.spendingCents > 0) ? (
           <MonthlyTrendCard trend={trend} />
         ) : (
@@ -146,7 +178,13 @@ export default function InsightsScreen() {
         )}
 
         {/* Forecast section */}
-        <Text style={styles.sectionLabel}>FORECAST</Text>
+        <View style={styles.sectionRow}>
+          <Text style={styles.sectionLabel}>FORECAST</Text>
+          <HelpTooltip
+            title="Cash Flow Forecast"
+            body="Projects your month-end balance using recurring bills and your recent 7-day spending pace."
+          />
+        </View>
         {forecast ? (
           <CashFlowForecastCard forecast={forecast} />
         ) : (
@@ -181,15 +219,20 @@ const createStyles = (c: ColorTokens) =>
       paddingVertical: Spacing.sm,
       paddingBottom: Spacing.bottomPad,
     },
+    sectionRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: Spacing.xs,
+      marginTop: Spacing.base,
+      marginBottom: Spacing.xs,
+      paddingHorizontal: Spacing.base,
+    },
     sectionLabel: {
       fontSize: FontSize.small,
       fontWeight: FontWeight.semibold,
       color: c.textMuted,
       letterSpacing: 0.5,
       textTransform: "uppercase",
-      marginTop: Spacing.base,
-      marginBottom: Spacing.xs,
-      paddingHorizontal: Spacing.base,
     },
     placeholderText: {
       fontSize: FontSize.body,
