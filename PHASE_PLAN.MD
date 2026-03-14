@@ -950,7 +950,7 @@ Plaid access tokens are stored in `expo-secure-store` (device keychain) and neve
 - [x] MS-32.F2 Fix spending donut and move analytics cards (#219)
 - [x] MS-32.F3 Weekly nudge and debt progress on Insights (#220)
 - [x] MS-32.F4 Cash flow forecast on Insights (#221)
-- [ ] MS-32.F5 Phase F verification and smoke test (#222)
+- [x] MS-32.F5 Phase F verification and smoke test (#222)
 
 ### Phase G: Chat Screen (FAB modal) _(plan TBD)_
 
