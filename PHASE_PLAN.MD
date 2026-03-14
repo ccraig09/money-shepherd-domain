@@ -942,6 +942,7 @@ Plaid access tokens are stored in `expo-secure-store` (device keychain) and neve
 - [ ] MS-32.E2 Filter chips row (#215)
 - [ ] MS-32.E3 Month picker and envelope name on rows (#216)
 - [ ] MS-32.E4 Phase E verification and smoke test (#217)
+- [ ] MS-32.E5 Fix TextInput letterSpacing across all screens (#236)
 
 ### Phase F: Insights Tab (new) _(plan TBD)_
 
