@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useRef, useEffect } from "react";
 import {
   View,
   Text,
@@ -19,6 +19,7 @@ import { SectionHeader } from "../../src/ui/components/SectionHeader";
 import { DebtProgressBar } from "../../src/ui/components/DebtProgressBar";
 import { Spacing, Radius, FontSize, FontWeight, type ColorTokens } from "../../src/ui/tokens";
 import { useThemedStyles, useTheme } from "@/src/ui/ThemeProvider";
+import { Confetti, type ConfettiRef } from "../../src/ui/components/Confetti";
 import type { Transaction, EnvelopeGroup } from "@money-shepherd/domain";
 
 export default function EnvelopeDetailScreen() {
@@ -42,6 +43,33 @@ export default function EnvelopeDetailScreen() {
 
   const styles = useThemedStyles(createStyles);
   const { colors } = useTheme();
+  const showToast = useAppStore((s) => s.showToast);
+
+  // ── Goal-reached celebration ────────────────────────────────────────────
+  const confettiRef = useRef<ConfettiRef>(null);
+  const prevBalanceRef = useRef<number | null>(null);
+  // Derive envelope for celebration hooks (safe before early returns)
+  const envForCelebration = state?.budget.envelopes.find((e) => e.id === envelopeId);
+
+  useEffect(() => {
+    if (!envForCelebration?.goal?.cents) return;
+    const goal = envForCelebration.goal.cents;
+    const balance = envForCelebration.balance.cents;
+    const prev = prevBalanceRef.current;
+
+    if (prev === null) {
+      // First render — pre-populate to avoid firing for already-completed goals
+      prevBalanceRef.current = balance;
+      return;
+    }
+
+    if (prev < goal && balance >= goal) {
+      confettiRef.current?.fire();
+      showToast(`${envForCelebration.name} goal reached! 🎉`, "info");
+    }
+    prevBalanceRef.current = balance;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [envForCelebration?.balance.cents, envForCelebration?.goal?.cents]);
 
   // Derive transactions assigned to this envelope
   const { assignmentByTxId, assignedTxs } = useMemo(() => {
@@ -107,7 +135,9 @@ export default function EnvelopeDetailScreen() {
   const isZeroBalance = envelope.balance.cents === 0;
 
   return (
-    <ScrollView style={styles.root} contentContainerStyle={styles.content}>
+    <View style={styles.root}>
+      <Confetti ref={confettiRef} />
+      <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
       <Stack.Screen options={{ title: envelope.name }} />
 
       {/* Hero balance card */}
@@ -600,12 +630,14 @@ export default function EnvelopeDetailScreen() {
           </Pressable>
         </Pressable>
       </Modal>
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 }
 
 const createStyles = (c: ColorTokens) => StyleSheet.create({
   root: { flex: 1, backgroundColor: c.surface },
+  scroll: { flex: 1 },
   content: { paddingBottom: Spacing.bottomPad },
   center: {
     flex: 1,

@@ -333,7 +333,7 @@ export default function EnvelopesScreen() {
                   celebrated.add(item.id);
                   setTimeout(() => {
                     confettiRef.current?.fire();
-                    showToast(`${item.name} goal reached!`, "success");
+                    showToast(`${item.name} goal reached! 🎉`, "info");
                   }, 0);
                 }
 
