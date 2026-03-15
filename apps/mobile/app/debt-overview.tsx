@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useRef, useEffect } from "react";
 import {
   View,
   Text,
@@ -11,11 +11,13 @@ import { useAppStore } from "../src/store/useAppStore";
 import { formatMoney } from "../src/lib/moneyFormat";
 import { Card } from "../src/ui/components/Card";
 import { DebtProgressBar } from "../src/ui/components/DebtProgressBar";
+import { Confetti, type ConfettiRef } from "../src/ui/components/Confetti";
 import { Spacing, Radius, FontSize, FontWeight, type ColorTokens } from "../src/ui/tokens";
 import { useThemedStyles } from "@/src/ui/ThemeProvider";
 
 export default function DebtOverviewScreen() {
   const state = useAppStore((s) => s.state);
+  const showToast = useAppStore((s) => s.showToast);
 
   const debtEnvelopes = useMemo(() => {
     if (!state) return [];
@@ -58,6 +60,22 @@ export default function DebtOverviewScreen() {
     return Math.ceil(remainingCents / totalMonthlyGoalCents);
   }, [debtEnvelopes, totalDebtCents, totalSetAsideCents]);
 
+  const confettiRef = useRef<ConfettiRef>(null);
+  const prevProgressRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    const prev = prevProgressRef.current;
+    if (prev === null) {
+      prevProgressRef.current = progressPct;
+      return;
+    }
+    if (prev < 100 && progressPct >= 100) {
+      confettiRef.current?.fire({ mode: "shower", duration: 3000, intensity: 1.5 });
+      showToast("Debt free! 🎉", "info");
+    }
+    prevProgressRef.current = progressPct;
+  }, [progressPct, showToast]);
+
   const styles = useThemedStyles(createStyles);
 
   if (!state) {
@@ -93,6 +111,7 @@ export default function DebtOverviewScreen() {
 
   return (
     <View style={styles.root}>
+      <Confetti ref={confettiRef} />
       <View style={styles.header}>
         <Text style={styles.title}>Debt Freedom</Text>
         <Text style={styles.subtitle}>

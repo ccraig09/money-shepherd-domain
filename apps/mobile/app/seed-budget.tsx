@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useRef, useState } from "react";
 import {
   View,
   Text,
@@ -7,10 +7,12 @@ import {
   StyleSheet,
   ActivityIndicator,
 } from "react-native";
+import Animated, { FadeIn, ZoomIn } from "react-native-reanimated";
 import { router } from "expo-router";
 import { useAppStore } from "../src/store/useAppStore";
 import { formatMoney } from "../src/lib/moneyFormat";
 import { Card } from "../src/ui/components/Card";
+import { Confetti, type ConfettiRef } from "../src/ui/components/Confetti";
 import { Spacing, Radius, FontSize, FontWeight, type ColorTokens } from "../src/ui/tokens";
 import { useThemedStyles, useTheme } from "@/src/ui/ThemeProvider";
 import { Features } from "../src/config/features";
@@ -22,6 +24,9 @@ export default function SeedBudgetScreen() {
   const state = useAppStore((s) => s.state);
   const seedBudgetFromBalances = useAppStore((s) => s.seedBudgetFromBalances);
   const [seeding, setSeeding] = React.useState(false);
+  const [showWelcome, setShowWelcome] = useState(false);
+  const confettiRef = useRef<ConfettiRef>(null);
+  const nextDestRef = useRef<() => void>(() => router.dismissAll());
 
   if (!state) {
     return (
@@ -73,6 +78,7 @@ export default function SeedBudgetScreen() {
           totalCents: reseedCorrectedCents,
           accountIds: allDepository.map((a) => a.id),
         });
+        router.dismissAll();
       } else {
         // First seed / reset: set Available to bank balances minus envelopes.
         // The command also marks income txs as applied (no double-counting).
@@ -80,12 +86,13 @@ export default function SeedBudgetScreen() {
           totalCents: Math.max(0, correctedCents),
           accountIds,
         });
-      }
-      // After first seed, offer AI envelope setup if flag is on
-      if (!isReseed && Features.AI_ADVISOR) {
-        router.replace("/ai-setup-wizard");
-      } else {
-        router.dismissAll();
+        // Determine destination after welcome dismissal
+        nextDestRef.current = Features.AI_ADVISOR
+          ? () => router.replace("/ai-setup-wizard")
+          : () => router.dismissAll();
+        // Fire confetti and show welcome overlay
+        confettiRef.current?.fire({ mode: "burst", duration: 2000 });
+        setShowWelcome(true);
       }
     } catch {
       // Error handled by store — toast will show
@@ -108,6 +115,7 @@ export default function SeedBudgetScreen() {
 
   return (
     <View style={styles.root}>
+      <Confetti ref={confettiRef} />
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.title}>
@@ -234,6 +242,36 @@ export default function SeedBudgetScreen() {
           <Text style={styles.skipText}>Skip for now</Text>
         </Pressable>
       </View>
+
+      {showWelcome && (
+        <Animated.View entering={FadeIn.duration(300)} style={styles.welcomeBackdrop}>
+          <Pressable
+            style={StyleSheet.absoluteFillObject}
+            onPress={() => {
+              setShowWelcome(false);
+              nextDestRef.current();
+            }}
+          />
+          <Animated.View entering={ZoomIn.duration(350)} style={styles.welcomeCard}>
+            <Text style={styles.welcomeIcon}>✨</Text>
+            <Text style={styles.welcomeTitle}>Budget Ready!</Text>
+            <Text style={styles.welcomeBody}>
+              Your budget is set up and ready to go. Start filling your envelopes!
+            </Text>
+            <Pressable
+              onPress={() => {
+                setShowWelcome(false);
+                nextDestRef.current();
+              }}
+              style={styles.welcomeBtn}
+              accessibilityLabel="Let's go"
+              accessibilityRole="button"
+            >
+              <Text style={styles.welcomeBtnText}>{"Let's Go!"}</Text>
+            </Pressable>
+          </Animated.View>
+        </Animated.View>
+      )}
     </View>
   );
 }
@@ -397,5 +435,59 @@ const createStyles = (c: ColorTokens) => StyleSheet.create({
   skipText: {
     fontSize: FontSize.body,
     color: c.textMuted,
+  },
+
+  // Welcome overlay
+  welcomeBackdrop: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    alignItems: "center" as const,
+    justifyContent: "center" as const,
+    paddingHorizontal: Spacing.lg,
+  },
+  welcomeCard: {
+    backgroundColor: c.surface,
+    borderRadius: Radius.xl,
+    padding: Spacing.xl,
+    alignItems: "center" as const,
+    gap: Spacing.md,
+    width: "100%" as const,
+    shadowColor: c.shadowColor,
+    shadowOpacity: 0.18,
+    shadowRadius: 20,
+    shadowOffset: { width: 0, height: 8 },
+    elevation: 12,
+  },
+  welcomeIcon: {
+    fontSize: 48,
+  },
+  welcomeTitle: {
+    fontSize: FontSize.hero,
+    fontWeight: FontWeight.extrabold,
+    color: c.textDark,
+    textAlign: "center" as const,
+  },
+  welcomeBody: {
+    fontSize: FontSize.body,
+    color: c.textMid,
+    textAlign: "center" as const,
+    lineHeight: 22,
+  },
+  welcomeBtn: {
+    backgroundColor: c.primary,
+    borderRadius: Radius.lg,
+    paddingHorizontal: Spacing.xl,
+    paddingVertical: Spacing.md,
+    marginTop: Spacing.sm,
+    shadowColor: c.shadowColor,
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 3,
+  },
+  welcomeBtnText: {
+    color: c.textOnColor,
+    fontSize: FontSize.subtitle,
+    fontWeight: FontWeight.bold,
   },
 });

@@ -964,7 +964,7 @@ Plaid access tokens are stored in `expo-secure-store` (device keychain) and neve
 - [x] MS-32.H1 Confetti animation utility (#227)
 - [x] MS-32.H2 Envelope goal reached celebration (#228)
 - [x] MS-32.H3 Inbox cleared celebration (#229)
-- [ ] MS-32.H4 Debt paid off and first budget celebrations (#230)
+- [x] MS-32.H4 Debt paid off and first budget celebrations (#230)
 - [ ] MS-32.H5 Phase H verification and smoke test (#231)
 
 ### Phase 32 Smoke Check (Phase A)
@@ -973,6 +973,66 @@ Plaid access tokens are stored in `expo-secure-store` (device keychain) and neve
 - [x] Progress bars are 6px with animated entrance and gold/green color
 - [x] Section headers are refined (smaller, wider tracking)
 - [x] No visual regressions on any existing screen
+
+---
+
+## Phase 33: AI-Powered First Run Experience
+
+> **Goal:** Make the from-scratch experience smooth — new users connect Plaid, AI creates envelopes, fills them, and assigns all transactions with a clear review-before-commit step. No manual busywork on day one.
+
+### Recommended build order
+
+- [ ] MS-33.1 AI Assignment Review Screen — grouped summary modal (#237)
+- [ ] MS-33.2 Wire review screen into inbox flow (#238)
+- [ ] MS-33.3 First-run guided nudge on Home screen (#239)
+- [ ] MS-33.4 Phase 33 verification and smoke test (#240)
+
+### Ticket Details
+
+**MS-33.1 — AI Assignment Review Screen**
+After AI categorizes merchants, show a full-screen review modal grouped by envelope:
+- Each group shows: envelope name, transaction count, total amount
+- Expand/collapse per group to see individual transactions
+- Toggle per item to exclude from bulk assign
+- "Assign All (N)" and "Assign Selected (N)" buttons at bottom
+- Replaces the current blind "Confirm All (N)" behavior
+
+**MS-33.2 — Wire review screen into inbox flow**
+- Replace current "Confirm All" button with "Review & Assign" → opens review screen
+- AI Categorize → Review Screen → Assign flow
+- Uncategorized items (no AI suggestion) remain in inbox for manual assignment
+- Show toast with summary after bulk assign ("Assigned 47 transactions to 6 envelopes")
+
+**MS-33.3 — First-run guided nudge on Home screen**
+After Plaid connect, show a persistent "Getting Started" checklist card on Home:
+1. ✦ Set up envelopes (→ AI Setup Wizard)
+2. Seed your budget (→ seed-budget flow)
+3. Fill envelopes (→ fill-envelopes + AI Suggest)
+4. Review & assign transactions (→ Inbox + AI Categorize + Review)
+Steps complete as user finishes each one. Card disappears when all done.
+Stored in AppState so it doesn't reappear after dismissal.
+
+**MS-33.4 — Phase 33 verification and smoke test**
+
+### Architecture Notes
+
+- Review screen is a new route (`app/inbox-review.tsx`) presented as modal
+- Reuses existing `suggestEnvelope` + `aiPayeeMappings` — no new AI calls needed
+- Bulk assign calls existing `confirmAllSuggestions` (or filtered subset)
+- Getting Started card reads from AppState flags (budgetSeeded, envelopes.length > 0, etc.)
+- No new Cloud Functions — purely client-side UX
+
+### Phase 33 Smoke Check
+
+- [ ] Connect Plaid → Getting Started card appears on Home
+- [ ] AI Setup Wizard creates envelopes → step 1 checks off
+- [ ] Seed budget + AI fill → steps 2-3 check off
+- [ ] Inbox → AI Categorize → "Review & Assign" opens grouped summary
+- [ ] Can expand groups, toggle off individual transactions
+- [ ] "Assign All" assigns everything and shows confirmation toast
+- [ ] Excluded items remain in inbox
+- [ ] Getting Started card disappears after all steps complete
+- [ ] Works cleanly on fresh install (no prior state)
 
 ---
 
