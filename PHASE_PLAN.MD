@@ -965,7 +965,7 @@ Plaid access tokens are stored in `expo-secure-store` (device keychain) and neve
 - [x] MS-32.H2 Envelope goal reached celebration (#228)
 - [x] MS-32.H3 Inbox cleared celebration (#229)
 - [x] MS-32.H4 Debt paid off and first budget celebrations (#230)
-- [ ] MS-32.H5 Phase H verification and smoke test (#231)
+- [x] MS-32.H5 Phase H verification and smoke test (#231)
 
 ### Phase 32 Smoke Check (Phase A)
 - [x] Buttons are pill-shaped with press animation across all screens
