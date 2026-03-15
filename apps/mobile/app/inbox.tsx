@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useCallback } from "react";
+import React, { useMemo, useState, useCallback, useRef, useEffect } from "react";
 import {
   View,
   Text,
@@ -14,6 +14,7 @@ import { Card } from "@/src/ui/components/Card";
 import { HelpTooltip } from "@/src/ui/components/HelpTooltip";
 import { Spacing, Radius, FontSize, FontWeight, type ColorTokens } from "@/src/ui/tokens";
 import { useThemedStyles } from "@/src/ui/ThemeProvider";
+import { Confetti, type ConfettiRef } from "@/src/ui/components/Confetti";
 import { suggestEnvelope, detectRecurring, normalizePayee, isBnplTransaction, type Transaction, type EnvelopeSuggestion } from "@money-shepherd/domain";
 import { Features } from "@/src/config/features";
 
@@ -101,6 +102,28 @@ export default function InboxScreen() {
     return inboxItems.filter((tx) => !suggestions.has(tx.id)).length;
   }, [inboxItems, suggestions]);
 
+  // ── Inbox-cleared celebration ───────────────────────────────────────────
+  const confettiRef = useRef<ConfettiRef>(null);
+  const prevLengthRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    const len = inboxItems.length;
+    const prev = prevLengthRef.current;
+
+    if (prev === null) {
+      // First render — don't celebrate an already-empty inbox
+      prevLengthRef.current = len;
+      return;
+    }
+
+    if (prev > 0 && len === 0) {
+      confettiRef.current?.fire({ mode: "sparkle", duration: 1200 });
+      showToast("All caught up! ✨", "info");
+    }
+    prevLengthRef.current = len;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [inboxItems.length]);
+
   if (!state) {
     return (
       <View style={styles.center}>
@@ -128,6 +151,7 @@ export default function InboxScreen() {
 
   return (
     <View style={styles.root}>
+      <Confetti ref={confettiRef} />
       <View style={styles.header}>
         <View style={styles.headerLeft}>
           <Text style={styles.title}>Inbox</Text>
@@ -184,8 +208,8 @@ export default function InboxScreen() {
 
       {inboxItems.length === 0 ? (
         <Card style={styles.empty}>
-          <Text style={styles.emptyText}>Inbox is clear.</Text>
-          <Text style={styles.emptyHint}>Assigned transactions will no longer appear here.</Text>
+          <Text style={styles.emptyText}>All caught up! ✨</Text>
+          <Text style={styles.emptyHint}>All transactions have been assigned to an envelope.</Text>
           <View style={styles.nextActions}>
             <Text style={styles.nextLabel}>Next:</Text>
             <Pressable onPress={() => router.push("/add-transaction")} accessibilityRole="link">
