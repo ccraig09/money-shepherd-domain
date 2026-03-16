@@ -127,6 +127,10 @@ function RootLayoutInner() {
             options={{ presentation: "modal", headerShown: false }}
           />
           <Stack.Screen
+            name="inbox-review"
+            options={{ presentation: "modal", headerShown: false }}
+          />
+          <Stack.Screen
             name="add-transaction"
             options={{ presentation: "modal", title: "Add Transaction" }}
           />
