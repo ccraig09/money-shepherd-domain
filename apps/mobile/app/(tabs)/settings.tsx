@@ -30,9 +30,12 @@ import {
   authenticateWithBiometric,
   getBiometricTypeLabel,
 } from "../../src/infra/local/biometric";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 // eslint-disable-next-line import/no-unresolved
 import * as Speech from "expo-speech";
 import { loadVoiceId } from "../../src/infra/local/voicePreference";
+
+const ALWAYS_REVIEW_KEY = "ms_always_show_review";
 
 export default function SettingsScreen() {
   const styles = useThemedStyles(createStyles);
@@ -64,6 +67,9 @@ export default function SettingsScreen() {
   // TTS voice state
   const [voiceName, setVoiceName] = React.useState<string>("Default");
 
+  // Review preference
+  const [alwaysReview, setAlwaysReview] = React.useState(false);
+
   async function refreshMeta() {
     const current = await loadSyncMeta();
     setMeta(current);
@@ -85,6 +91,10 @@ export default function SettingsScreen() {
       if (match?.name) setVoiceName(match.name);
     }
     if (Features.AI_TTS) initVoiceName();
+
+    AsyncStorage.getItem(ALWAYS_REVIEW_KEY).then((v) => {
+      if (v === "true") setAlwaysReview(true);
+    });
 
     async function initBiometric() {
       const [hasHw, enrolled, prefOn] = await Promise.all([
@@ -329,6 +339,18 @@ export default function SettingsScreen() {
             onPress={() => router.push("/ai-setup-wizard")}
             disabled={isBusy || !state}
           />
+          <Divider />
+          <View style={styles.toggleRow}>
+            <Text style={styles.toggleLabel}>Always review before assigning</Text>
+            <Switch
+              value={alwaysReview}
+              onValueChange={(v) => {
+                setAlwaysReview(v);
+                AsyncStorage.setItem(ALWAYS_REVIEW_KEY, v ? "true" : "false");
+              }}
+              trackColor={{ false: colors.borderLight, true: colors.primary }}
+            />
+          </View>
           {aiUsage && (
             <>
               <Row label="Calls today" value={`${aiUsage.callsToday} / 20`} />

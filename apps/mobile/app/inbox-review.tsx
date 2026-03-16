@@ -176,6 +176,26 @@ export default function InboxReviewScreen() {
     });
   }, []);
 
+  const toggleAll = useCallback(() => {
+    const allIds = sections.flatMap((s) => s.data.map((d) => d.tx.id));
+    setExcludedIds((prev) =>
+      prev.size < allIds.length ? new Set(allIds) : new Set(),
+    );
+  }, [sections]);
+
+  const toggleGroup = useCallback((section: GroupedSection) => {
+    const groupIds = section.data.map((d) => d.tx.id);
+    setExcludedIds((prev) => {
+      const next = new Set(prev);
+      const allExcluded = groupIds.every((id) => next.has(id));
+      for (const id of groupIds) {
+        if (allExcluded) next.delete(id);
+        else next.add(id);
+      }
+      return next;
+    });
+  }, []);
+
   // ── Assign handlers ───────────────────────────────────────────────────
   const handleAssign = useCallback(
     async (onlySelected: boolean) => {
@@ -255,6 +275,19 @@ export default function InboxReviewScreen() {
         </Pressable>
       </View>
 
+      {/* Batch toggle */}
+      <View style={styles.batchRow}>
+        <Pressable onPress={toggleAll} hitSlop={4}>
+          <Text style={styles.batchLink}>
+            {excludedIds.size === 0
+              ? "Deselect All"
+              : excludedIds.size >= totalCount
+                ? "Select All"
+                : `Select All (${selectedCount}/${totalCount})`}
+          </Text>
+        </Pressable>
+      </View>
+
       {/* Grouped list */}
       <SectionList
         sections={sections}
@@ -285,6 +318,15 @@ export default function InboxReviewScreen() {
                   </Text>
                 </View>
               </View>
+              <Pressable
+                onPress={() => toggleGroup(section)}
+                hitSlop={8}
+                style={styles.groupToggleBtn}
+              >
+                <Text style={styles.groupToggleText}>
+                  {groupSelectedCount === section.data.length ? "None" : "All"}
+                </Text>
+              </Pressable>
             </Pressable>
           );
         }}
@@ -418,6 +460,19 @@ const createStyles = (c: ColorTokens) =>
       paddingVertical: Spacing.xs,
     },
 
+    // Batch toggle
+    batchRow: {
+      flexDirection: "row",
+      justifyContent: "flex-end",
+      paddingHorizontal: Spacing.base,
+      paddingVertical: Spacing.xs,
+    },
+    batchLink: {
+      fontSize: FontSize.small,
+      fontWeight: FontWeight.semibold,
+      color: c.primary,
+    },
+
     // List
     list: {
       paddingHorizontal: Spacing.base,
@@ -452,6 +507,15 @@ const createStyles = (c: ColorTokens) =>
       fontSize: FontSize.caption,
       color: c.textMuted,
       marginTop: 1,
+    },
+    groupToggleBtn: {
+      paddingHorizontal: Spacing.sm,
+      paddingVertical: Spacing.xs,
+    },
+    groupToggleText: {
+      fontSize: FontSize.small,
+      fontWeight: FontWeight.semibold,
+      color: c.primary,
     },
 
     // Transaction row

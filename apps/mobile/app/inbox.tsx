@@ -15,8 +15,12 @@ import { HelpTooltip } from "@/src/ui/components/HelpTooltip";
 import { Spacing, Radius, FontSize, FontWeight, type ColorTokens } from "@/src/ui/tokens";
 import { useThemedStyles } from "@/src/ui/ThemeProvider";
 import { Confetti, type ConfettiRef } from "@/src/ui/components/Confetti";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { suggestEnvelope, detectRecurring, normalizePayee, isBnplTransaction, type Transaction, type EnvelopeSuggestion } from "@money-shepherd/domain";
 import { Features } from "@/src/config/features";
+
+const REVIEW_THRESHOLD = 6;
+const ALWAYS_REVIEW_KEY = "ms_always_show_review";
 
 export default function InboxScreen() {
   const styles = useThemedStyles(createStyles);
@@ -25,6 +29,13 @@ export default function InboxScreen() {
   const categorizeInbox = useAppStore((s) => s.categorizeInbox);
   const showToast = useAppStore((s) => s.showToast);
   const [aiLoading, setAiLoading] = useState(false);
+  const [alwaysReview, setAlwaysReview] = useState(false);
+
+  useEffect(() => {
+    AsyncStorage.getItem(ALWAYS_REVIEW_KEY).then((v) => {
+      if (v === "true") setAlwaysReview(true);
+    });
+  }, []);
 
   const inboxItems = useMemo(() => {
     if (!state) return [];
@@ -175,7 +186,17 @@ export default function InboxScreen() {
         </Pressable>
       </View>
 
-      {suggestions.size > 0 && (
+      {suggestions.size > 0 && (alwaysReview || suggestions.size >= REVIEW_THRESHOLD) && (
+        <Pressable
+          style={styles.confirmAllBtn}
+          onPress={() => router.push("/inbox-review")}
+        >
+          <Text style={styles.confirmAllText}>
+            Review & Assign ({suggestions.size})
+          </Text>
+        </Pressable>
+      )}
+      {suggestions.size > 0 && !alwaysReview && suggestions.size < REVIEW_THRESHOLD && (
         <Pressable
           style={styles.confirmAllBtn}
           onPress={() => {
