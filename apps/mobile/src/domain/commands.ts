@@ -1068,3 +1068,12 @@ export function mergeAiPayeeMappings(
     updatedAt: nowIso(),
   };
 }
+
+/**
+ * Dismiss the first-run Getting Started card.
+ * Idempotent — calling when already dismissed is a no-op.
+ */
+export function dismissFirstRun(state: AppStateV1): AppStateV1 {
+  if (state.firstRunDismissed) return state;
+  return { ...state, firstRunDismissed: true, updatedAt: nowIso() };
+}

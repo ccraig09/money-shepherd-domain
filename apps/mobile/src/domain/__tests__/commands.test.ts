@@ -1,6 +1,6 @@
 import { Money, applyTransactionsToBudget } from "@money-shepherd/domain";
 import type { AppStateV1 } from "../appState";
-import { createEnvelope, renameEnvelope, deleteEnvelope, setTransactionNote, seedBudgetFromBalances, assignTransaction, addAssignmentRule, removeAssignmentRule, reorderAssignmentRules, mergeAiPayeeMappings } from "../commands";
+import { createEnvelope, renameEnvelope, deleteEnvelope, setTransactionNote, seedBudgetFromBalances, assignTransaction, addAssignmentRule, removeAssignmentRule, reorderAssignmentRules, mergeAiPayeeMappings, dismissFirstRun } from "../commands";
 
 function makeState(envelopeNames: string[] = []): AppStateV1 {
   return {
@@ -598,5 +598,20 @@ describe("mergeAiPayeeMappings", () => {
     const state = { ...makeState(), payeeMappings: { starbucks: "env-0" } };
     mergeAiPayeeMappings(state, { target: "env-1" });
     expect(state.payeeMappings).toEqual({ starbucks: "env-0" });
+  });
+});
+
+describe("dismissFirstRun", () => {
+  it("sets firstRunDismissed to true", () => {
+    const state = makeState();
+    const next = dismissFirstRun(state);
+    expect(next.firstRunDismissed).toBe(true);
+    expect(next.updatedAt).not.toBe(state.updatedAt);
+  });
+
+  it("is idempotent — returns same state if already dismissed", () => {
+    const state = { ...makeState(), firstRunDismissed: true };
+    const next = dismissFirstRun(state);
+    expect(next).toBe(state);
   });
 });

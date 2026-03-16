@@ -103,6 +103,7 @@ type AppStore = {
   markBudgetSeeded: () => Promise<void>;
   refreshFromPlaid: (opts?: { force?: boolean; silent?: boolean }) => Promise<{ imported: number; shouldSeedBudget?: boolean }>;
   deduplicateAccounts: () => Promise<void>;
+  dismissFirstRun: () => Promise<void>;
   importState: (state: AppStateV1) => Promise<void>;
   syncNow: () => Promise<void>;
   analyzeSpending: () => Promise<{ suggestions: { name: string; goalCents: number; type: string; reason: string }[]; warning?: "budget_warning" }>;
@@ -1028,6 +1029,18 @@ export const useAppStore = create<AppStore>((set, get) => ({
       }
     } catch (err: any) {
       set({ toast: { text: err?.message ?? "Failed to clean up duplicates", variant: "error" } });
+    }
+  },
+
+  dismissFirstRun: async () => {
+    try {
+      const result = await engine.dismissFirstRun();
+      set({
+        state: result.state,
+        syncState: applyOutcome(get().syncState, result.syncOutcome, result.syncError),
+      });
+    } catch {
+      // Best-effort — state already set locally
     }
   },
 

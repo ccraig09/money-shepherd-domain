@@ -34,6 +34,7 @@ export default function DashboardScreen() {
   const styles = useThemedStyles(createStyles);
   const state = useAppStore((s) => s.state);
   const lastAiTip = useAppStore((s) => s.lastAiTip);
+  const dismissFirstRun = useAppStore((s) => s.dismissFirstRun);
 
   const totalEnvelopeCents = useMemo(
     () => state?.budget.envelopes.reduce((sum, e) => sum + e.balance.cents, 0) ?? 0,
@@ -59,6 +60,28 @@ export default function DashboardScreen() {
       (tx) => tx.amount.cents < 0 && !assignedTxIds.has(tx.id),
     ).length;
   }, [state]);
+
+  // ── First-run Getting Started card ──────────────────────────────────
+  const firstRunSteps = useMemo(() => {
+    if (!state) return null;
+    if (state.firstRunDismissed) return null;
+    if (state.accounts.length === 0) return null; // no bank connected yet
+
+    const step1 = state.budget.envelopes.length > 0;
+    const step2 = state.budgetSeeded === true;
+    const step3 = state.budget.envelopes.some((e) => e.balance.cents > 0);
+    const step4 = unassignedExpenseCount === 0;
+    const allDone = step1 && step2 && step3 && step4;
+
+    if (allDone) return null; // auto-dismiss when done
+
+    return [
+      { label: "Set up envelopes", done: step1, route: "/ai-setup-wizard" as const },
+      { label: "Seed your budget", done: step2, route: "/seed-budget" as const },
+      { label: "Fill envelopes", done: step3, route: "/fill-envelopes" as const },
+      { label: "Review & assign transactions", done: step4, route: "/inbox" as const },
+    ];
+  }, [state, unassignedExpenseCount]);
 
   const monthSummary = useMemo(() => {
     if (!state) return null;
@@ -312,6 +335,44 @@ export default function DashboardScreen() {
       {topInsight && (
         <ReAnimated.View entering={FadeInDown.delay(200).duration(400).springify()}>
           <InsightCard insight={topInsight} onDismiss={dismissInsight} />
+        </ReAnimated.View>
+      )}
+
+      {/* Getting Started checklist */}
+      {firstRunSteps && (
+        <ReAnimated.View entering={FadeInDown.delay(220).duration(400).springify()}>
+          <Card style={styles.gettingStartedCard}>
+            <Text style={styles.gettingStartedTitle}>Getting Started</Text>
+            {firstRunSteps.map((step, i) => (
+              <Pressable
+                key={i}
+                style={styles.gettingStartedRow}
+                onPress={() => !step.done && router.push(step.route)}
+                disabled={step.done}
+              >
+                <Text style={styles.gettingStartedCheck}>
+                  {step.done ? "✓" : "○"}
+                </Text>
+                <Text
+                  style={[
+                    styles.gettingStartedLabel,
+                    step.done && styles.gettingStartedDone,
+                  ]}
+                >
+                  {step.label}
+                </Text>
+                {!step.done && (
+                  <Text style={styles.gettingStartedChevron}>›</Text>
+                )}
+              </Pressable>
+            ))}
+            <Pressable
+              onPress={dismissFirstRun}
+              style={styles.gettingStartedDismiss}
+            >
+              <Text style={styles.gettingStartedDismissText}>Got it</Text>
+            </Pressable>
+          </Card>
         </ReAnimated.View>
       )}
 
@@ -630,6 +691,57 @@ const createStyles = (c: ColorTokens) => StyleSheet.create({
   debtCardSummary: {
     fontSize: FontSize.caption,
     color: c.textMuted,
+  },
+
+  // Getting Started card
+  gettingStartedCard: {
+    marginHorizontal: Spacing.base,
+    marginBottom: Spacing.md,
+    padding: Spacing.base,
+    gap: Spacing.xs,
+  },
+  gettingStartedTitle: {
+    fontSize: FontSize.subtitle,
+    fontWeight: FontWeight.bold,
+    color: c.textDark,
+    marginBottom: Spacing.xs,
+  },
+  gettingStartedRow: {
+    flexDirection: "row" as const,
+    alignItems: "center" as const,
+    paddingVertical: Spacing.sm,
+    gap: Spacing.sm,
+  },
+  gettingStartedCheck: {
+    fontSize: 16,
+    width: 20,
+    textAlign: "center" as const,
+    color: c.primary,
+    fontWeight: FontWeight.bold,
+  },
+  gettingStartedLabel: {
+    flex: 1,
+    fontSize: FontSize.body,
+    color: c.textDark,
+  },
+  gettingStartedDone: {
+    color: c.textMuted,
+    textDecorationLine: "line-through" as const,
+  },
+  gettingStartedChevron: {
+    fontSize: 18,
+    color: c.textMuted,
+    fontWeight: FontWeight.medium,
+  },
+  gettingStartedDismiss: {
+    alignItems: "center" as const,
+    paddingVertical: Spacing.xs,
+    marginTop: Spacing.xs,
+  },
+  gettingStartedDismissText: {
+    fontSize: FontSize.small,
+    color: c.textMuted,
+    fontWeight: FontWeight.medium,
   },
 
   // Nudge cards — icon + pill style
