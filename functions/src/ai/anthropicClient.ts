@@ -7,7 +7,7 @@ export const AI_MODEL = "claude-sonnet-4-6";
 export const MAX_TOKENS = 4096;
 
 /** Max envelope suggestions the AI can return */
-export const MAX_AI_ENVELOPE_SUGGESTIONS = 7;
+export const MAX_AI_ENVELOPE_SUGGESTIONS = 12;
 
 /**
  * Create an Anthropic client instance.

@@ -15,6 +15,21 @@ import { Spacing, Radius, FontSize, FontWeight, type ColorTokens } from "../src/
 import { useThemedStyles, useTheme } from "@/src/ui/ThemeProvider";
 import type { EnvelopeType } from "@money-shepherd/domain";
 
+/** Map AI envelope types to human-readable group names */
+const GROUP_NAME_FOR_TYPE: Record<EnvelopeType, string> = {
+  giving: "Giving",
+  spending: "Spending",
+  savings: "Savings",
+  debt: "Debt",
+};
+
+/** Check if an error is a rate-limit / budget-exhausted error */
+function isRateLimitError(err: unknown): boolean {
+  if (!(err instanceof Error)) return false;
+  const msg = err.message.toLowerCase();
+  return msg.includes("resource-exhausted") || msg.includes("monthly ai budget");
+}
+
 type Suggestion = {
   name: string;
   goalCents: number;
@@ -27,7 +42,7 @@ type WizardState =
   | { phase: "loading" }
   | { phase: "error"; message: string }
   | { phase: "suggestions"; suggestions: Suggestion[] }
-  | { phase: "creating" };
+  | { phase: "creating"; progress: number; total: number };
 
 const TYPE_LABELS: Record<EnvelopeType, string> = {
   giving: "Giving",
@@ -49,6 +64,8 @@ export default function AiSetupWizardScreen() {
   const analyzeSpending = useAppStore((s) => s.analyzeSpending);
   const createEnvelope = useAppStore((s) => s.createEnvelope);
   const setEnvelopeGoal = useAppStore((s) => s.setEnvelopeGoal);
+  const createEnvelopeGroup = useAppStore((s) => s.createEnvelopeGroup);
+  const state = useAppStore((s) => s.state);
 
   const [wizardState, setWizardState] = React.useState<WizardState>({ phase: "confirm" });
   const [editableSuggestions, setEditableSuggestions] = React.useState<Suggestion[]>([]);
@@ -62,8 +79,9 @@ export default function AiSetupWizardScreen() {
         setWizardState({ phase: "suggestions", suggestions });
       })
       .catch((err: unknown) => {
-        const msg =
-          err instanceof Error ? err.message : "Could not load AI suggestions.";
+        const msg = isRateLimitError(err)
+          ? "AI budget reached ($7/mo). Resets next month. You can set up envelopes manually."
+          : err instanceof Error ? err.message : "Could not load AI suggestions.";
         setWizardState({ phase: "error", message: msg });
       });
   }
@@ -90,21 +108,47 @@ export default function AiSetupWizardScreen() {
       router.dismissAll();
       return;
     }
-    setWizardState({ phase: "creating" });
+    const total = editableSuggestions.length;
+    setWizardState({ phase: "creating", progress: 0, total });
     try {
-      for (const suggestion of editableSuggestions) {
-        await createEnvelope(suggestion.name, suggestion.type);
-        // Find the newly created envelope by name to set goal
-        // (store toast will show if anything fails — we proceed best-effort)
+      // 1. Auto-create missing groups by type
+      const existingGroups = useAppStore.getState().state?.envelopeGroups ?? [];
+      const existingGroupNames = new Set(existingGroups.map((g) => g.name));
+      const neededTypes = new Set(editableSuggestions.map((s) => s.type));
+      const typeToGroupId: Record<string, string> = {};
+
+      // Map existing groups by name
+      for (const g of existingGroups) {
+        for (const [type, name] of Object.entries(GROUP_NAME_FOR_TYPE)) {
+          if (g.name === name) typeToGroupId[type] = g.id;
+        }
       }
-      // Set goals after all envelopes created
-      // We need the state to get the envelope IDs
-      // Use the store snapshot after each create
-      const state = useAppStore.getState().state;
-      if (state) {
+
+      // Create any missing groups
+      for (const type of neededTypes) {
+        const groupName = GROUP_NAME_FOR_TYPE[type as EnvelopeType];
+        if (!existingGroupNames.has(groupName)) {
+          await createEnvelopeGroup(groupName);
+          const freshState = useAppStore.getState().state;
+          const created = freshState?.envelopeGroups?.find((g) => g.name === groupName);
+          if (created) typeToGroupId[type] = created.id;
+        }
+      }
+
+      // 2. Create envelopes with group assignment
+      for (let i = 0; i < editableSuggestions.length; i++) {
+        const suggestion = editableSuggestions[i];
+        setWizardState({ phase: "creating", progress: i + 1, total });
+        const groupId = typeToGroupId[suggestion.type];
+        await createEnvelope(suggestion.name, suggestion.type, groupId);
+      }
+
+      // 3. Set goals after all envelopes created
+      const freshState = useAppStore.getState().state;
+      if (freshState) {
         for (const suggestion of editableSuggestions) {
           if (suggestion.goalCents > 0) {
-            const env = state.budget.envelopes
+            const env = freshState.budget.envelopes
               .slice()
               .reverse()
               .find((e) => e.name === suggestion.name);
@@ -136,9 +180,9 @@ export default function AiSetupWizardScreen() {
           <Text style={styles.sparkle}>✦</Text>
           <Text style={styles.title}>AI Budget Setup</Text>
           <Text style={styles.subtitle}>
-            Claude will analyze your spending patterns and suggest up to 7
-            personalized budget envelopes. This uses a small amount of your
-            monthly AI budget (~$0.03).
+            Claude will analyze your spending patterns and suggest up to 12
+            personalized budget envelopes, organized into groups. This uses a
+            small amount of your monthly AI budget (~$0.03).
           </Text>
         </View>
         <View style={styles.footer}>
@@ -178,7 +222,11 @@ export default function AiSetupWizardScreen() {
     return (
       <View style={styles.center}>
         <ActivityIndicator color={colors.primary} size="large" />
-        <Text style={styles.loadingText}>Creating envelopes…</Text>
+        <Text style={styles.loadingText}>
+          {wizardState.progress === 0
+            ? "Setting up groups…"
+            : `Creating ${wizardState.progress} of ${wizardState.total}…`}
+        </Text>
       </View>
     );
   }

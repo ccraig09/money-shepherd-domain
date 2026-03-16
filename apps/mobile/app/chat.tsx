@@ -251,11 +251,17 @@ export default function ChatScreen() {
           actionStatuses: actions ? actions.map(() => "pending" as const) : undefined,
         };
         setMessages((prev) => [...prev, aiMsg]);
-      } catch {
+      } catch (err) {
+        const isRateLimit =
+          err instanceof Error &&
+          (err.message.toLowerCase().includes("resource-exhausted") ||
+            err.message.toLowerCase().includes("monthly ai budget"));
         const errorMsg: ChatMessage = {
           id: makeId("msg"),
           role: "assistant",
-          content: "Sorry, I wasn't able to respond right now. Please try again in a moment.",
+          content: isRateLimit
+            ? "You've reached your AI budget for this month ($7/mo). It resets next month — in the meantime, you can manage your budget manually from the Envelopes tab."
+            : "Sorry, I wasn't able to respond right now. Please try again in a moment.",
           timestamp: Date.now(),
         };
         setMessages((prev) => [...prev, errorMsg]);

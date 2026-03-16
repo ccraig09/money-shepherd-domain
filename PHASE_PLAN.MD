@@ -982,12 +982,20 @@ Plaid access tokens are stored in `expo-secure-store` (device keychain) and neve
 
 ### Recommended build order
 
+- [x] MS-33.0 AI feature hardening (#241)
 - [ ] MS-33.1 AI Assignment Review Screen — grouped summary modal (#237)
-- [ ] MS-33.2 Wire review screen into inbox flow (#238)
+- [ ] MS-33.2 Wire review screen into inbox flow + Settings toggle (#238)
 - [ ] MS-33.3 First-run guided nudge on Home screen (#239)
 - [ ] MS-33.4 Phase 33 verification and smoke test (#240)
 
 ### Ticket Details
+
+**MS-33.0 — AI Feature Hardening**
+Audit-driven fixes to existing AI features before building Phase 33 on top:
+- Raise envelope suggestion limit from 7 → 12
+- Auto-assign envelope groups in wizard (use AI-returned `type` to set groupId)
+- Double-tap guard on chat Confirm button
+- User-friendly rate limit error messages (catch `resource-exhausted`)
 
 **MS-33.1 — AI Assignment Review Screen**
 After AI categorizes merchants, show a full-screen review modal grouped by envelope:

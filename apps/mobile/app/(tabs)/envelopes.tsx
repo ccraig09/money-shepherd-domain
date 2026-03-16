@@ -22,6 +22,7 @@ import { HelpTooltip } from "../../src/ui/components/HelpTooltip";
 import { Confetti, type ConfettiRef } from "../../src/ui/components/Confetti";
 import { Spacing, Radius, FontSize, FontWeight, Shadow, type ColorTokens } from "../../src/ui/tokens";
 import { useThemedStyles, useTheme } from "@/src/ui/ThemeProvider";
+import { Features } from "../../src/config/features";
 
 type SortOrder = "alpha" | "balance" | "giving";
 
@@ -191,6 +192,16 @@ export default function EnvelopesScreen() {
           />
         </View>
         <View style={styles.headerActions}>
+          {Features.AI_ADVISOR && (
+            <Pressable
+              onPress={() => router.push("/ai-setup-wizard")}
+              style={styles.actionChip}
+              accessibilityLabel="AI suggest envelopes"
+            >
+              <Text style={styles.actionChipIcon}>✦</Text>
+              <Text style={styles.actionChipLabel}>AI Suggest</Text>
+            </Pressable>
+          )}
           <Pressable
             onPress={() => router.push("/allocate")}
             style={styles.actionChip}

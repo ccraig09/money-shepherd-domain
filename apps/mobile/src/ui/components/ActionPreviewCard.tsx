@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useRef, useCallback } from "react";
 import { View, Text, Pressable, ActivityIndicator, StyleSheet } from "react-native";
 import { Spacing, Radius, FontSize, FontWeight, LineHeight, type ColorTokens } from "../tokens";
 import { useThemedStyles, useTheme } from "../ThemeProvider";
@@ -39,6 +39,13 @@ const TOOL_LABELS: Record<string, string> = {
 export function ActionPreviewCard({ action, status, onConfirm, onCancel, envelopeLookup, stepLabel }: Props) {
   const styles = useThemedStyles(createStyles);
   const { colors } = useTheme();
+  const confirmingRef = useRef(false);
+
+  const handleConfirm = useCallback(() => {
+    if (confirmingRef.current) return;
+    confirmingRef.current = true;
+    onConfirm();
+  }, [onConfirm]);
 
   const label = TOOL_LABELS[action.toolName] ?? action.toolName;
   const details = buildDetails(action, envelopeLookup);
@@ -87,7 +94,7 @@ export function ActionPreviewCard({ action, status, onConfirm, onCancel, envelop
           <>
             <Pressable
               style={({ pressed }) => [styles.confirmBtn, pressed && styles.btnPressed]}
-              onPress={onConfirm}
+              onPress={handleConfirm}
               accessibilityLabel={`Confirm ${label}`}
             >
               <Text style={styles.confirmBtnText}>Confirm</Text>
