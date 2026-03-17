@@ -50,3 +50,20 @@ DEV_CHEATSHEET.md
 functions/lib/
 functions/.env
 functions/.secret.local
+
+# Root-level stray files (belong in apps/mobile, not root)
+/app.json
+/eas.json
+/ios/
+
+# Plugin caches
+.playwright-mcp/
+.superpowers/
+
+# Research screenshots
+*.png
+!apps/mobile/assets/**/*.png
+!packages/**/assets/**/*.png
+
+# Firebase debug logs (extra copies)
+firebase-debug*.log

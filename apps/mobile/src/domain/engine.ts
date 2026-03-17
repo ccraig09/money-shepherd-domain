@@ -42,6 +42,7 @@ export type SyncNowResult = { pulledRemote: boolean; state?: AppStateV1 };
 
 export type Engine = {
   getState(): Promise<AppStateV1>;
+  getLocalState(): Promise<AppStateV1 | null>;
   seed(): Promise<AppStateV1>;
   reset(): Promise<void>;
   recompute(state: AppStateV1): Promise<RecomputeResult>;
@@ -164,6 +165,10 @@ export function createEngine(): Engine {
     const existing = await loadAppState();
     if (existing) return existing;
     return seed();
+  }
+
+  async function getLocalState(): Promise<AppStateV1 | null> {
+    return loadAppState();
   }
 
   async function createEnvelopeAction(args: {
@@ -812,6 +817,7 @@ export function createEngine(): Engine {
 
   const engineApi: Engine = {
     getState,
+    getLocalState,
     seed,
     reset,
     recompute,

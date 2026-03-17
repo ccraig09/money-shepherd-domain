@@ -63,7 +63,7 @@ function RootLayoutInner() {
   // Hide native splash once guard decision is made
   React.useEffect(() => {
     if (guardState !== "checking") {
-      SplashScreen.hideAsync();
+      SplashScreen.hideAsync().catch(() => {});
     }
   }, [guardState]);
 

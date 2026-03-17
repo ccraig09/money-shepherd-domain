@@ -275,6 +275,24 @@ export const useAppStore = create<AppStore>((set, get) => ({
         syncState: syncTransition(get().syncState, { type: "sync-success", at: now }),
       });
     } catch (err: any) {
+      // Try to load local-only state so the user isn't blocked
+      try {
+        const localState = await engine.getLocalState();
+        if (localState) {
+          set({
+            state: localState,
+            status: "ready",
+            syncState: syncTransition(get().syncState, {
+              type: "sync-error",
+              error: "Sync failed — using local data.",
+            }),
+            toast: { text: "Sync failed — using local data", variant: "info" },
+          });
+          return;
+        }
+      } catch {
+        // Local state also unavailable — fall through to error
+      }
       const friendly = classifySyncError(err);
       set({
         status: "error",

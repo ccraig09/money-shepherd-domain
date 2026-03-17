@@ -986,7 +986,7 @@ Plaid access tokens are stored in `expo-secure-store` (device keychain) and neve
 - [x] MS-33.1 AI Assignment Review Screen — grouped summary modal (#237)
 - [x] MS-33.2 Wire review screen into inbox flow + Settings toggle (#238)
 - [x] MS-33.3 First-run guided nudge on Home screen (#239)
-- [ ] MS-33.4 Phase 33 verification and smoke test (#240)
+- [x] MS-33.4 Phase 33 verification and smoke test (#240)
 
 ### Ticket Details
 

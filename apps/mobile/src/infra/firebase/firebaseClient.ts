@@ -1,7 +1,7 @@
 import { initializeApp, getApps, getApp } from "firebase/app";
 import {
   initializeAuth,
-  getReactNativePersistence,
+  getAuth,
   signInAnonymously,
   type Auth,
 } from "firebase/auth";
@@ -22,11 +22,17 @@ let authSingleton: Auth | null = null;
 export function getFirebase() {
   const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 
-  // RN: must initializeAuth with AsyncStorage persistence
   if (!authSingleton) {
-    authSingleton = initializeAuth(app, {
-      persistence: getReactNativePersistence(ReactNativeAsyncStorage),
-    });
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const { getReactNativePersistence } = require("firebase/auth");
+      authSingleton = initializeAuth(app, {
+        persistence: getReactNativePersistence(ReactNativeAsyncStorage),
+      });
+    } catch {
+      // Fallback if getReactNativePersistence is unavailable (e.g., EAS preview builds)
+      authSingleton = getAuth(app);
+    }
   }
 
   const db = getFirestore(app);

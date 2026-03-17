@@ -11,7 +11,9 @@ import {
 } from "react-native-plaid-link-sdk";
 import { getFirebase } from "../firebase/firebaseClient";
 
-const functions = getFunctions(getFirebase().app);
+function getLazyFunctions() {
+  return getFunctions(getFirebase().app);
+}
 
 interface CreateLinkTokenResponse {
   linkToken: string;
@@ -24,7 +26,7 @@ interface CreateLinkTokenResponse {
  */
 export async function requestLinkToken(userId: string): Promise<string> {
   const fn = httpsCallable<{ userId: string }, CreateLinkTokenResponse>(
-    functions,
+    getLazyFunctions(),
     "createLinkToken"
   );
   const result = await fn({ userId });
@@ -47,7 +49,7 @@ export async function exchangePublicToken(
   const fn = httpsCallable<
     { publicToken: string; userId: string },
     ExchangeTokenResponse
-  >(functions, "exchangePublicToken");
+  >(getLazyFunctions(),"exchangePublicToken");
   const result = await fn({ publicToken, userId });
   return result.data;
 }
@@ -73,7 +75,7 @@ export async function fetchAccounts(
   const fn = httpsCallable<
     { accessToken: string },
     { accounts: PlaidAccountInfo[] }
-  >(functions, "getAccounts");
+  >(getLazyFunctions(),"getAccounts");
   const result = await fn({ accessToken });
   return result.data.accounts;
 }
@@ -106,7 +108,7 @@ export async function syncTransactions(
   const fn = httpsCallable<
     { accessToken: string; cursor?: string },
     SyncTransactionsResult
-  >(functions, "syncTransactions");
+  >(getLazyFunctions(),"syncTransactions");
   const result = await fn({ accessToken, cursor });
   return result.data;
 }
@@ -117,7 +119,7 @@ export async function syncTransactions(
  */
 export async function removeItem(accessToken: string): Promise<void> {
   const fn = httpsCallable<{ accessToken: string }, { removed: boolean }>(
-    functions,
+    getLazyFunctions(),
     "removeItem"
   );
   await fn({ accessToken });
