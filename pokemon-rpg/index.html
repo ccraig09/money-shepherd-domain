@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>PokéQuest — A Critter RPG</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div id="app">
+    <div id="frame">
+      <canvas id="screen" width="480" height="320"></canvas>
+      <div id="hud-controls" aria-hidden="true">
+        <div class="dpad">
+          <button data-key="ArrowUp" class="dpad-btn up">▲</button>
+          <button data-key="ArrowLeft" class="dpad-btn left">◀</button>
+          <button data-key="ArrowDown" class="dpad-btn down">▼</button>
+          <button data-key="ArrowRight" class="dpad-btn right">▶</button>
+        </div>
+        <div class="buttons">
+          <button data-key="x" class="btn-b">B</button>
+          <button data-key="z" class="btn-a">A</button>
+          <button data-key="Enter" class="btn-start">START</button>
+        </div>
+      </div>
+    </div>
+    <div id="boot-hint">
+      <strong>Controls:</strong> Arrow keys to move · <kbd>Z</kbd> confirm · <kbd>X</kbd> cancel/menu · <kbd>Enter</kbd> start · <kbd>S</kbd> save
+    </div>
+  </div>
+
+  <script src="js/data.js"></script>
+  <script src="js/sprites.js"></script>
+  <script src="js/audio.js"></script>
+  <script src="js/input.js"></script>
+  <script src="js/world.js"></script>
+  <script src="js/player.js"></script>
+  <script src="js/battle.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/game.js"></script>
+</body>
+</html>
